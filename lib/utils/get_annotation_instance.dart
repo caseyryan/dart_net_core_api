@@ -12,7 +12,7 @@ T? getAnnotationInstanceOrNull<T>(List<InstanceMirror> mirrors) {
 }
 
 /// finds meta annotations with a specified type or
-/// a descendents of the type
+/// a descendent of the type
 List<T> getAnnotationOfType<T>(List<InstanceMirror> mirrors) {
   List<T> data = [];
   for (var annotation in mirrors) {

@@ -13,7 +13,7 @@ class JwtAuth extends AuthorizationBase {
   });
 
   @override
-  void authorize(HttpContext context) {
+  Future authorize(HttpContext context) async {
     print(context);
   }
 }
