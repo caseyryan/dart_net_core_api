@@ -84,7 +84,7 @@ class EndpointPathParser {
         return false;
       }
       int varIndex = 0;
-      final pathVariables = <PathVariable>[];
+      final pathVariables = <QueryArgument>[];
       for (var i = 0; i < totalSegments; i++) {
         final mySegment = _querySegments[i];
         final incomingSegment = value.querySegments[i];
@@ -94,11 +94,9 @@ class EndpointPathParser {
           }
         } else {
           pathVariables.add(
-            PathVariable(
-              isRequired: !mySegment.isOptional,
+            QueryArgument(
               name: mySegment.name,
               value: incomingSegment.name,
-              index: varIndex,
             ),
           );
           varIndex++;

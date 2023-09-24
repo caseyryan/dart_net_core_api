@@ -1,7 +1,7 @@
 part of '../server.dart';
 
-typedef LazyServiceInitializer = Service Function();
+typedef LazyServiceInitializer = IService Function();
 
-typedef ServiceLocator = Service? Function(Type serviceType);
+typedef ServiceLocator = IService? Function(Type serviceType);
 
-abstract class Service {}
+abstract class IService {}

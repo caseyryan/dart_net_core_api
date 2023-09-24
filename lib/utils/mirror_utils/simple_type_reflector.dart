@@ -1,17 +1,15 @@
+import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
-import 'package:dart_net_core_api/controllers/api_controller.dart';
+import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/utils/argument_value_type_converter.dart';
 import 'package:dart_net_core_api/utils/endpoint_path_parser.dart';
 import 'package:dart_net_core_api/utils/incoming_path_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 
-import '../../server.dart';
-
 part 'controller_type_reflector.dart';
-
-
 
 final ClassMirror _baseApiControllerMirror = reflectClass(
   ApiController,
@@ -35,7 +33,6 @@ class SimpleTypeReflector {
     final methodMirrors =
         _classMirror.declarations.values.whereType<MethodMirror>().toList();
 
-  
     constructors = methodMirrors
         .where((e) => e.isConstructor)
         .map(
@@ -45,14 +42,13 @@ class SimpleTypeReflector {
         )
         .toList();
 
-    methods = methodMirrors
-        .where((e) => !e.isConstructor)
-        .map(
-          (e) => Method(
-            methodMirror: e,
-          ),
-        )
-        .toList();
+    methods = methodMirrors.where((e) => !e.isConstructor).map(
+      (e) {
+        return Method(
+          methodMirror: e,
+        );
+      },
+    ).toList();
     _annotations = _classMirror.metadata
         .map(
           (e) => e.reflectee,
@@ -76,8 +72,6 @@ class SimpleTypeReflector {
     return methods.any((m) => m.hasEndpointAnnotations);
   }
 
-
-
   bool hasAnnotationOfType<T>() {
     return _annotations.any((element) => element is T);
   }
@@ -100,7 +94,7 @@ class SimpleTypeReflector {
 
 class Method {
   final MethodMirror methodMirror;
-  late List<_Parameter> _parameters;
+  late final List<MethodParameter> parameters;
   late List<dynamic> _annotations;
   late final String name;
 
@@ -114,9 +108,9 @@ class Method {
       throw 'These annotation(s): $controllerAnnotation can only be used on a class. But is/are used on "$name" instance method';
     }
 
-    _parameters = methodMirror.parameters
+    parameters = methodMirror.parameters
         .map(
-          (e) => _Parameter(parameterMirror: e),
+          (e) => MethodParameter(parameterMirror: e),
         )
         .toList();
   }
@@ -126,26 +120,34 @@ class Method {
   }
 
   int get numParams {
-    return _parameters.length;
+    return parameters.length;
   }
 
   Map toMap() {
     return {
       'annotations': _annotations.map((e) => e.toString()).toList(),
       'constructorName': name,
-      'parameters': _parameters.map((e) => e.toMap()).toList(),
+      'parameters': parameters.map((e) => e.toMap()).toList(),
     };
   }
 }
 
-class _Parameter {
+class MethodParameter {
   final ParameterMirror parameterMirror;
   late final String name;
   late final bool isNamed;
   late final bool isOptional;
   late final Type type;
 
-  _Parameter({
+  bool get isRequired {
+    return !isOptional;
+  }
+
+  bool get isPositional {
+    return !isNamed;
+  }
+
+  MethodParameter({
     required this.parameterMirror,
   }) {
     isNamed = parameterMirror.isNamed;

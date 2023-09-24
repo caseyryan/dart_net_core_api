@@ -1,46 +1,41 @@
 // ignore_for_file: await_only_futures
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
-// import 'package:mongo_dart/mongo_dart.dart';
-
-import 'package:dart_net_core_api/utils/endpoint_path_parser.dart';
+import 'package:collection/collection.dart';
+import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:uuid/uuid.dart';
 
 import 'utils/json_utils/json_serializer.dart';
 
+part 'api_controller.dart';
 part 'server_extensions/service.dart';
 
 class HttpContext {
   final String path;
   final String method;
-  final List<QuerySegment> requiredArgs;
-  final List<QuerySegment> optionalArgs;
-  final Server server;
   final HttpRequest httpRequest;
 
   HttpContext({
     required this.path,
     required this.method,
-    required this.requiredArgs,
-    required this.optionalArgs,
-    required this.server,
     required this.httpRequest,
   });
 }
 
 class Response {
-  final dynamic payload;
+  final dynamic data;
 
-  Response(this.payload);
+  Response(this.data);
 }
 
 typedef ExceptionHandler = Response Function({
-  String traceId,
-  String message,
-  int statusCode,
+  required String traceId,
+  required String message,
+  required int statusCode,
+  required HttpRequest request,
 });
 
 class Server {
@@ -51,7 +46,9 @@ class Server {
   final String baseApiPath;
   final String ipV4Address;
   final JsonSerializer jsonSerializer;
-  final ExceptionHandler? status500Handler;
+  final DateParser dateParser;
+  final ExceptionHandler? custom500Handler;
+  final ExceptionHandler? custom404Handler;
 
   HttpServer? _httpServer;
   HttpServer? _httpsServer;
@@ -64,18 +61,29 @@ class Server {
   ///  @BaseApiPath('/api/v2')
   ///  UserController() {}
   /// and your controller will use a custom path
+  ///
   /// [jsonSerializer] is used to serialize endpoint responses
   /// you can simply return an instance of a class e.g. User
   /// and it will automatically be serialized to json
+  ///
   /// [apiControllers] the list of controller types.
   /// It can be null or empty but if you also don't add
   /// standalone endpoints then this will mean the server is
   /// basically useless because there is no endpoint to call
+  ///
+  /// [lazyServiceInitializer] an initializer that will create a service
+  /// instance only on demand
+  ///
   /// [singletonServices] a list of services that will be stored as
   /// singletons in this server instance. Notice that an separate instance will
   /// be created for each isolate
-  /// [status500Handler] if you want to process default 500 error
+  ///
+  /// [custom500Handler] if you want to process default 500 error
   /// on your own, just pass this handler
+  ///
+  /// [dateParser] a tool to convert string dates from params to a DateTime
+  /// the default parser uses [DateTime.tryParse] but you can implement your own
+  /// parser for any types of date representation
   Server({
     this.baseApiPath = '/api/v1',
     this.httpPort = 8084,
@@ -85,10 +93,12 @@ class Server {
     bool useHttps = false,
     List<Type>? apiControllers,
     SecurityContext? securityContext,
-    this.status500Handler,
+    this.custom500Handler,
+    this.custom404Handler,
     Map<Type, LazyServiceInitializer>? lazyServiceInitializer,
-    List<Service>? singletonServices,
+    List<IService>? singletonServices,
     this.jsonSerializer = const DefaultJsonSerializer(),
+    this.dateParser = defaultDateParser,
   }) {
     assert(
       useHttp == true || useHttps == true,
@@ -123,14 +133,14 @@ class Server {
   }
 
   final Map<Type, LazyServiceInitializer> _lazyServiceInitializer = {};
-  final Map<Type, Service> _singletonServices = {};
+  final Map<Type, IService> _singletonServices = {};
 
-  void addSingletonService(covariant Service service) {
+  void addSingletonService(covariant IService service) {
     _singletonServices[service.runtimeType] = service;
   }
 
   /// Creates a service instance on demand.
-  void addServiceLazily<T extends Service>({
+  void addServiceLazily<T extends IService>({
     required LazyServiceInitializer initializer,
   }) {
     if (_lazyServiceInitializer.containsKey(T)) {
@@ -139,11 +149,18 @@ class Server {
     _lazyServiceInitializer[T] = initializer;
   }
 
-  Service? tryGetServiceByType(Type serviceType) {
+  IService? tryGetServiceByType(Type serviceType) {
     if (_lazyServiceInitializer.containsKey(serviceType)) {
       return _lazyServiceInitializer[serviceType]!();
     }
     return _singletonServices[serviceType];
+  }
+
+  void updateControllerContext({
+    required ApiController? controller,
+    required HttpContext context,
+  }) {
+    controller?._httpContext = context;
   }
 
   Future _bindServer({
@@ -179,25 +196,26 @@ class Server {
 
   Future _onHttpRequest(HttpRequest request) async {
     final traceId = Uuid().v4();
-    // print(traceId);
     try {
       final method = request.method;
       final uri = request.requestedUri;
       final origin = uri.origin;
       final path = '${uri.path}?${uri.query}';
       await _callEndpoint(
+        origin: origin,
         method: method,
         path: path,
         request: request,
         traceId: traceId,
       );
-      request.response.write('$method -> ORIGIN: $origin, PATH: $path');
-      request.response.close();
     } catch (e) {
-      _on500Error(
+      _onRequestError(
         request: request,
         traceId: traceId,
-        error: e,
+        error: {
+          'message': e.toString(),
+        },
+        statusCode: 500,
       );
     }
   }
@@ -207,88 +225,144 @@ class Server {
     print('[$tag] ${data.toString()}');
   }
 
-  Future _on500Error({
+  Future _onRequestError({
     required HttpRequest request,
     required String traceId,
-    required Object error,
+    required Map error,
+    required int statusCode,
   }) async {
-    if (status500Handler != null) {
-      try {
-        request.response.statusCode = 500;
-        String message = 'Something went wrong';
-        try {
-          message = (error as dynamic).message;
-        } catch (e) {
-          _logError(tagError, e);
-        }
-
-        final response = status500Handler!(
-          message: message,
-          statusCode: request.response.statusCode,
-          traceId: traceId,
-        );
-        request.response.write(
-          jsonSerializer.toJson(response),
-        );
-        request.response.close();
-      } finally {
-        request.response.write({});
-        request.response.close();
-      }
+    ExceptionHandler? handler;
+    if (statusCode == 500) {
+      handler = custom500Handler ?? _defaultErrorHandler;
+    } else if (statusCode == 404) {
+      handler = custom404Handler ?? _defaultErrorHandler;
+    } else {
+      handler = _defaultErrorHandler;
     }
+    String message;
+    try {
+      request.response.statusCode = statusCode;
+
+      try {
+        message = error['message'];
+      } catch (e) {
+        message = 'Something went wrong';
+        _logError(tagError, e);
+      }
+
+      handler(
+        message: message,
+        statusCode: request.response.statusCode,
+        traceId: traceId,
+        request: request,
+      );
+    } finally {
+      request.response.close();
+    }
+    // }
+  }
+
+  Response _defaultErrorHandler({
+    required String traceId,
+    required String message,
+    required int statusCode,
+    required HttpRequest request,
+  }) {
+    final response = Response({
+      'message': message,
+      'traceId': traceId,
+    });
+    request.response.write(
+      jsonSerializer.toJson(response),
+    );
+    return response;
   }
 
   Future<dynamic> _callEndpoint({
+    required String origin,
     required String method,
     required String path,
     required HttpRequest request,
     required String traceId,
   }) async {
-    final key = '$method $path';
-    print(path);
-    // final _EndpointWrapper? endpoint = _endpoints[key];
-    // final parser = EndpointPathParser(path);
+    EndpointMapper? endpointMapper;
+    bool notFound = true;
 
-    // if (endpoint != null) {
-    //   final context = HttpContext(
-    //     method: method,
-    //     path: path,
-    //     // requiredArgs: parser._querySegments,
-    //     // optionalArgs: parser.optionalArgs,
-    //     requiredArgs: [],
-    //     optionalArgs: [],
-    //     server: this,
-    //     httpRequest: request,
-    //   );
-    //   try {
-    //     return await endpoint.call(context);
-    //   } on DartApiException catch (e) {
-    //     _logError(tagError, e.message);
-    //   } catch (e) {
-    //     _logError(tagError, e);
-    //   }
-    // }
+    final context = HttpContext(
+      httpRequest: request,
+      method: method,
+      path: path,
+    );
+    for (var controller in _registeredControllers) {
+      final endpointMappers = controller.tryFindEndpointMappers(
+        path: path,
+        method: method,
+      );
+      if (endpointMappers.isNotEmpty) {
+        notFound = false;
+        endpointMapper = endpointMappers.firstWhereOrNull(
+          (e) => e.restMethodName == method,
+        );
+        break;
+      }
+    }
+    if (notFound) {
+      _onRequestError(
+        request: request,
+        traceId: traceId,
+        error: {
+          'message': 'Could not find the endpoint to process the request',
+        },
+        statusCode: 404,
+      );
+      return;
+    } else if (endpointMapper == null) {
+      /// this means that the endpoint was found but with an incorrect method
+      _onRequestError(
+        request: request,
+        traceId: traceId,
+        error: {
+          'message': 'Method not allowed: $method',
+        },
+        statusCode: 405,
+      );
+      return;
+    } else {
+      /// ok case
+      try {
+        final result = await endpointMapper.tryCallEndpoint(
+          path: path,
+          server: this,
+          context: context,
+        );
+        request.response.write(result);
+      } on String catch (e) {
+        _onRequestError(
+          request: request,
+          traceId: traceId,
+          error: {'message': e},
+          statusCode: 400,
+        );
+      } catch (e) {
+        _onRequestError(
+          request: request,
+          traceId: traceId,
+          error: {'message': e.toString()},
+          statusCode: 500,
+        );
+      } finally {
+        request.response.close();
+      }
+    }
     return null;
   }
 
-  bool _registerController(Type type) {
-    final simpleTypeReflection = ControllerTypeReflector(type);
-    final controllerInstance = simpleTypeReflection.instantiateController(
-      serviceLocator: tryGetServiceByType,
-    );
-    print(controllerInstance);
-
-    return true;
+  final List<ControllerTypeReflector> _registeredControllers = [];
+  void _registerController(Type type) {
+    if (_registeredControllers.any((c) => c.controllerType == type)) {
+      throw 'You can\'t register the same controller more than once: $type';
+    }
+    final simpleTypeReflection = ControllerTypeReflector(type, baseApiPath);
+    _registeredControllers.add(simpleTypeReflection);
   }
-}
-
-List<DeclarationMirror> _getConstructors(
-  ClassMirror mirror,
-) {
-  final constructors = mirror.declarations.values
-      .where(
-        (declare) => declare is MethodMirror && declare.isConstructor,
-      )
-      .toList();
-  return constructors;
 }

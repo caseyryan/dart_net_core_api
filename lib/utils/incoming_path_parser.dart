@@ -7,19 +7,27 @@ import 'endpoint_path_parser.dart';
 class IncomingPathParser {
   final String fullUrl;
 
-  /// all the parameters that go after
-  late final List<PathVariable> namedParams;
+  /// all the incoming query parameters
+  late final List<QueryArgument> arguments;
   late final String path;
   late final bool isValid;
 
+  /// It is required here only to calculate the number of segments
   EndpointPathParser? _endpointPathParser;
   String? _endpointPath;
 
   /// These variables will be extracted after calling
   /// [EndpointPathParser.tryMatchPath]
   /// to match a corresponding endpoint
-  List<PathVariable> _positionalPathVariables = [];
-  List<PathVariable> get positionalPathVariables => _positionalPathVariables;
+  List<QueryArgument> _positionalPathVariables = [];
+  List<QueryArgument> get positionalPathVariables => _positionalPathVariables;
+
+  QueryArgument? tryFindQueryArgument({
+    required String argumentName,
+  }) {
+    return arguments.firstWhereOrNull((a) => a.name == argumentName);
+  }
+
 
   List<QuerySegment> get querySegments {
     return _endpointPathParser?.querySegments ?? [];
@@ -34,14 +42,13 @@ class IncomingPathParser {
     } else {
       isValid = true;
       path = parsedParams.path;
-      namedParams = parsedParams.queryParameters.entries.mapIndexed((index, kv) {
-        return PathVariable(
+      arguments = parsedParams.queryParameters.entries.mapIndexed((index, kv) {
+        return QueryArgument(
           name: kv.key,
           value: kv.value,
-          isRequired: false,
-          index: index,
         );
       }).toList();
+      /// Very important line! Do not move or remove
       _endpointPathParser = EndpointPathParser(
         path,
       );
@@ -50,20 +57,20 @@ class IncomingPathParser {
 
   Map toMap() {
     return {
-      'positionalParameters': positionalPathVariables.map((e) => e.toMap()).toList(),
-      'namedParameters': namedParams.map((e) => e.toMap()).toList(),
       'fullUrl': fullUrl,
       'path': path,
+      'params': arguments.map((e) => e.toMap()).toList(),
       'matchedEndpointPath': _endpointPath,
     };
   }
 
   void updatePositionalVariables({
-    required List<PathVariable> value,
+    required List<QueryArgument> value,
     required String endpointPath,
   }) {
     _positionalPathVariables = value;
     _endpointPath = endpointPath;
+    arguments.addAll(value);
   }
 
   int get totalSegments {
@@ -71,25 +78,19 @@ class IncomingPathParser {
   }
 }
 
-class PathVariable {
-  const PathVariable({
+class QueryArgument {
+  const QueryArgument({
     required this.name,
     required this.value,
-    required this.isRequired,
-    required this.index,
   });
 
   final String name;
-  final dynamic value;
-  final bool isRequired;
-  final int index;
+  final String value;
 
   Map toMap() {
     return {
       'name': name,
       'value': value,
-      'isRequired': isRequired,
-      'index': index,
     };
   }
 }

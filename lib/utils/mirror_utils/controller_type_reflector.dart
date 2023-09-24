@@ -21,6 +21,11 @@ String _fixEndpointPath(String path) {
 class ControllerTypeReflector extends SimpleTypeReflector {
   ControllerTypeReflector(
     this.controllerType,
+
+    /// [baseApiPath] which is provided in a [Server] constructor.
+    /// If you add BaseApiPath annotation to a controller, it will override the
+    /// [baseApiPath] for that controller
+    String baseApiPath,
   ) : super(controllerType) {
     assert(
       isApiController,
@@ -36,10 +41,14 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     if (controllerAnnotations.length > 1) {
       throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
     }
-
-    basePath = _fixEndpointPath(
+    final controllerBasePathFromAnnotation = _fixEndpointPath(
       controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '',
     );
+    if (controllerBasePathFromAnnotation.isNotEmpty) {
+      basePath = controllerBasePathFromAnnotation;
+    } else {
+      basePath = baseApiPath;
+    }
     _endpointMappers ??= [];
     for (var em in _endpointMethods!) {
       final endPointAnnotations = em._annotations.whereType<EndpointAnnotation>();
@@ -64,14 +73,12 @@ class ControllerTypeReflector extends SimpleTypeReflector {
 
   /// Instantiates a controller passing all the necessary
   /// service instance to its constructor if necessary
-  ApiController? instantiateController({
+  InstanceMirror instantiateController({
     required ServiceLocator serviceLocator,
   }) {
-    // final paramTypes = _constructor._parameters.map((e) => e.type).toList();
-
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
-    for (var param in _constructor._parameters) {
+    for (var param in _constructor.parameters) {
       final service = serviceLocator(param.type);
       if (service == null) {
         if (!param.isOptional) {
@@ -85,25 +92,37 @@ class ControllerTypeReflector extends SimpleTypeReflector {
       }
     }
 
-    final instance = _classMirror.newInstance(
-      Symbol(''),
-      positionalArgs,
-      namedArguments,
-    ).reflectee;
-    return instance as ApiController;
+    final instance = _classMirror
+        .newInstance(
+          Symbol.empty,
+          positionalArgs,
+          namedArguments,
+        )
+        .reflectee;
+    return reflect(instance);
   }
 
-  EndpointMapper? tryFindEndpointMapper({
+  List<EndpointMapper> tryFindEndpointMappers({
     required String path,
     required String method,
   }) {
-    return _endpointMappers!.firstWhereOrNull(
-      (e) =>
-          e.restMethodName == method &&
-          e.endpointPathParser.tryMatchPath(
+    return _endpointMappers!
+        .where(
+          (e) => e.endpointPathParser.tryMatchPath(
             IncomingPathParser(path),
           ),
-    );
+        )
+        .toList();
+  }
+
+  @override
+  bool operator ==(covariant ControllerTypeReflector other) {
+    return other.controllerType == controllerType;
+  }
+
+  @override
+  int get hashCode {
+    return controllerType.hashCode;
   }
 
   /// Used to check ambiguous endpoint paths
@@ -136,6 +155,61 @@ class EndpointMapper {
   final String fullPath;
   final ControllerTypeReflector controllerTypeReflection;
   late final EndpointPathParser endpointPathParser;
+
+  FutureOr<dynamic> tryCallEndpoint({
+    required String path,
+    required Server server,
+    required HttpContext context,
+  }) async {
+    final InstanceMirror controller = controllerTypeReflection.instantiateController(
+      serviceLocator: server.tryGetServiceByType,
+    );
+    server.updateControllerContext(
+      controller: controller.reflectee,
+      context: context,
+    );
+
+    final incomingPathParser = IncomingPathParser(path);
+    final List<dynamic> positionalArgs = [];
+    final Map<Symbol, dynamic> namedArguments = {};
+
+    /// by calling these we fill all the pass variables in
+    /// the incomingPathParser
+    endpointPathParser.tryMatchPath(incomingPathParser);
+    for (var param in instanceMethod.parameters) {
+      final argument = incomingPathParser.tryFindQueryArgument(
+        argumentName: param.name,
+      );
+      if (argument == null) {
+        if (param.isRequired) {
+          throw 'Argument ${param.name} is required';
+          // throw 'Not all required arguments were provided';
+        }
+      }
+      if (param.isPositional) {
+        positionalArgs.add(
+          tryConvertArgumentType(
+            actual: argument?.value,
+            expectedType: param.type,
+            dateParser: server.dateParser,
+          ),
+        );
+      } else {
+        namedArguments[Symbol(param.name)] = tryConvertArgumentType(
+          actual: argument?.value,
+          expectedType: param.type,
+          dateParser: server.dateParser,
+        );
+      }
+    }
+    return controller
+        .invoke(
+          Symbol(instanceMethod.name),
+          positionalArgs,
+          namedArguments,
+        )
+        .reflectee;
+  }
 
   @override
   bool operator ==(covariant EndpointMapper other) {
