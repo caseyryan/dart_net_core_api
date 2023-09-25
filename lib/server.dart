@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dart_net_core_api/exceptions/base_exception.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:uuid/uuid.dart';
@@ -16,12 +17,16 @@ part 'server_extensions/service.dart';
 class HttpContext {
   final String path;
   final String method;
+  final String traceId;
   final HttpRequest httpRequest;
+  final ServiceLocator serviceLocator;
 
   HttpContext({
     required this.path,
     required this.method,
     required this.httpRequest,
+    required this.serviceLocator,
+    required this.traceId,
   });
 }
 
@@ -212,9 +217,10 @@ class Server {
       _onRequestError(
         request: request,
         traceId: traceId,
-        error: {
-          'message': e.toString(),
-        },
+        error: ApiException(
+          message: e.toString(),
+          traceId: traceId,
+        ),
         statusCode: 500,
       );
     }
@@ -228,7 +234,7 @@ class Server {
   Future _onRequestError({
     required HttpRequest request,
     required String traceId,
-    required Map error,
+    required ApiException error,
     required int statusCode,
   }) async {
     ExceptionHandler? handler;
@@ -244,7 +250,7 @@ class Server {
       request.response.statusCode = statusCode;
 
       try {
-        message = error['message'];
+        message = error.message;
       } catch (e) {
         message = 'Something went wrong';
         _logError(tagError, e);
@@ -292,6 +298,8 @@ class Server {
       httpRequest: request,
       method: method,
       path: path,
+      serviceLocator: tryGetServiceByType,
+      traceId: traceId,
     );
     for (var controller in _registeredControllers) {
       final endpointMappers = controller.tryFindEndpointMappers(
@@ -310,9 +318,10 @@ class Server {
       _onRequestError(
         request: request,
         traceId: traceId,
-        error: {
-          'message': 'Could not find the endpoint to process the request',
-        },
+        error: ApiException(
+          message: 'Could not find the endpoint to process the request',
+          traceId: traceId,
+        ),
         statusCode: 404,
       );
       return;
@@ -321,9 +330,10 @@ class Server {
       _onRequestError(
         request: request,
         traceId: traceId,
-        error: {
-          'message': 'Method not allowed: $method',
-        },
+        error: ApiException(
+          message: 'Method not allowed: $method',
+          traceId: traceId,
+        ),
         statusCode: 405,
       );
       return;
@@ -336,18 +346,31 @@ class Server {
           context: context,
         );
         request.response.write(result);
+      } on ApiException catch (e) {
+        _onRequestError(
+          request: request,
+          traceId: traceId,
+          error: e,
+          statusCode: e.statusCode,
+        );
       } on String catch (e) {
         _onRequestError(
           request: request,
           traceId: traceId,
-          error: {'message': e},
+          error: ApiException(
+            message: e,
+            traceId: traceId,
+          ),
           statusCode: 400,
         );
       } catch (e) {
         _onRequestError(
           request: request,
           traceId: traceId,
-          error: {'message': e.toString()},
+          error: ApiException(
+            message: e.toString(),
+            traceId: traceId,
+          ),
           statusCode: 500,
         );
       } finally {

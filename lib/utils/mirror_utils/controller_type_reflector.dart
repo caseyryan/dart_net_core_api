@@ -41,6 +41,11 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     if (controllerAnnotations.length > 1) {
       throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
     }
+    final controllerAuthAnnotations = controllerAnnotations.whereType<Authorization>();
+    if (controllerAuthAnnotations.length > 1) {
+      throw 'A controller can\'t have more that one AuthorizationAnnotation but $controllerType has ${controllerAuthAnnotations.length}';
+    }
+
     final controllerBasePathFromAnnotation = _fixEndpointPath(
       controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '',
     );
@@ -52,8 +57,12 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     _endpointMappers ??= [];
     for (var em in _endpointMethods!) {
       final endPointAnnotations = em._annotations.whereType<EndpointAnnotation>();
+      final authAnnotations = em._annotations.whereType<Authorization>();
       if (endPointAnnotations.length > 1) {
         throw 'An endpoint can have only one EndpointAnnotation. But $controllerType -> ${em.name}() has ${endPointAnnotations.length}';
+      }
+      if (authAnnotations.length > 1) {
+        throw 'An endpoint can have only one AuthorizationAnnotation. But $controllerType -> ${em.name}() has ${authAnnotations.length}';
       }
       final endPointAnnotation = endPointAnnotations.first;
       _endpointMappers!.add(
@@ -168,6 +177,12 @@ class EndpointMapper {
       controller: controller.reflectee,
       context: context,
     );
+    final authAnnotation =
+        instanceMethod._annotations.whereType<Authorization>().firstOrNull ??
+            controllerTypeReflection._annotations.whereType<Authorization>().firstOrNull;
+    if (authAnnotation != null) {
+      await authAnnotation.authorize(context);
+    }
 
     final incomingPathParser = IncomingPathParser(path);
     final List<dynamic> positionalArgs = [];
@@ -182,7 +197,10 @@ class EndpointMapper {
       );
       if (argument == null) {
         if (param.isRequired) {
-          throw 'Argument ${param.name} is required';
+          throw ApiException(
+            message: 'Argument ${param.name} is required',
+            traceId: context.traceId,
+          );
           // throw 'Not all required arguments were provided';
         }
       }

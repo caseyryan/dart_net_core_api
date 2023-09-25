@@ -1,11 +1,13 @@
 /// This exception is throws from the server core
 /// and can later be converted to anythong you want
-class DartApiException implements Exception {
+class ApiException implements Exception {
   final String message;
   final String traceId;
+  final int statusCode;
 
-  DartApiException(
-    this.message,
-    this.traceId,
-  );
+  ApiException({
+    required this.message,
+    required this.traceId,
+    this.statusCode = 400,
+  });
 }

@@ -3,6 +3,7 @@ import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/exceptions/base_exception.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/argument_value_type_converter.dart';
 import 'package:dart_net_core_api/utils/endpoint_path_parser.dart';

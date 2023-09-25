@@ -16,9 +16,12 @@ class BaseApiPath extends ControllerAnnotation {
 }
 
 /// Extend this class if you need to implement custom
-/// authorization attribute.
-abstract class AuthorizationBase {
-  const AuthorizationBase();
+/// authorization attribute. 
+/// 
+/// This annotation can be used on a controller or on a method level
+/// The method usage has a higher priority compared the controller's one
+abstract class Authorization {
+  const Authorization();
   Future authorize(HttpContext context);
 }
 

@@ -1,8 +1,10 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/server.dart';
 
 import 'main.dart';
 
+@JwtAuth(roles: ['admin'])
 @BaseApiPath('/api/v1')
 class TestController extends ApiController {
   Service1 service;
@@ -14,6 +16,7 @@ class TestController extends ApiController {
     print('Instantiated a $this with service: $service');
   }
 
+  @JwtAuth(roles: ['user'])
   @HttpGet('/user/{:id}')
   Future<String> getUser({
     required int id,

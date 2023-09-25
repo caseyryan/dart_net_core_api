@@ -1,3 +1,5 @@
+import 'package:dart_net_core_api/exceptions/base_exception.dart';
+
 import '../../annotations/controller_annotations.dart';
 import '../../server.dart';
 
@@ -5,15 +7,23 @@ import '../../server.dart';
 /// to a separate endpoint method. If it's applied to
 /// an endpoint t will override the one applied to the
 /// controller's class
-class JwtAuth extends AuthorizationBase {
-  final List<String>? roles;
+class JwtAuth extends Authorization {
+  final List<String> roles;
 
   const JwtAuth({
-    this.roles,
+    this.roles = const [],
   });
 
   @override
   Future authorize(HttpContext context) async {
     print(context);
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (roles.contains('user')) {
+      throw ApiException(
+        message: 'Unauthorized, bitch',
+        traceId: context.traceId,
+        statusCode: 401,
+      );
+    }
   }
 }

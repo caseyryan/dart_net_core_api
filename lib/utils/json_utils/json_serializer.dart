@@ -64,7 +64,7 @@ class DefaultJsonSerializer extends JsonSerializer {
 
   /// Top level key name converter. If there is an
   /// annotation on a class or field or a variable
-  /// this will be overriden
+  /// this will be overridden
   final KeyNameConverter? defaultKeyNameConverter;
 
   @override
