@@ -16,7 +16,7 @@ class TestController extends ApiController {
     print('Instantiated a $this with service: $service');
   }
 
-  @JwtAuth(roles: ['user'])
+  // @JwtAuth(roles: ['user'])
   @HttpGet('/user/{:id}')
   Future<String> getUser({
     required int id,

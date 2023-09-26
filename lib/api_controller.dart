@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 part of 'server.dart';
 
 abstract class ApiController {
@@ -7,5 +9,9 @@ abstract class ApiController {
 
   void _setContext(HttpContext httpContext) {
     _httpContext = httpContext;
+  }
+
+  HttpHeaders get headers {
+    return httpContext.headers;
   }
 }

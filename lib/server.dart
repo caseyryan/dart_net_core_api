@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/exceptions/base_exception.dart';
+import 'package:dart_net_core_api/utils/body_reader.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:uuid/uuid.dart';
@@ -27,7 +28,29 @@ class HttpContext {
     required this.httpRequest,
     required this.serviceLocator,
     required this.traceId,
-  });
+  }) {
+    if (httpRequest.contentLength > 0) {
+
+    }
+  }
+
+  String get language {
+    return headers.acceptLanguage ?? 'en-US';
+  }
+
+  HttpHeaders get headers {
+    return httpRequest.headers;
+  }
+}
+
+extension HttpRequestExtension on HttpHeaders {
+  String? get authorization {
+    return value('authorization');
+  }
+
+  String? get acceptLanguage {
+    return value('accept-language');
+  }
 }
 
 class Response {
@@ -292,8 +315,8 @@ class Server {
     required String traceId,
   }) async {
     EndpointMapper? endpointMapper;
+    final body = await tryReadBody(request, traceId);
     bool notFound = true;
-
     final context = HttpContext(
       httpRequest: request,
       method: method,
@@ -340,6 +363,7 @@ class Server {
     } else {
       /// ok case
       try {
+        
         final result = await endpointMapper.tryCallEndpoint(
           path: path,
           server: this,
