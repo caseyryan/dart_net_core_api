@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-class CodecRegistry {
-  CodecRegistry._() {
+class CodecUtils {
+  CodecUtils._() {
     add(
       ContentType(
         "application",
@@ -39,11 +39,11 @@ class CodecRegistry {
     );
   }
 
-  static CodecRegistry get instance {
+  static CodecUtils get instance {
     return _instance;
   }
 
-  static final CodecRegistry _instance = CodecRegistry._();
+  static final CodecUtils _instance = CodecUtils._();
 
   final Map<String, Codec> _primaryTypeCodecs = {};
   final Map<String, Map<String, Codec>> _fullySpecifiedCodecs = {};

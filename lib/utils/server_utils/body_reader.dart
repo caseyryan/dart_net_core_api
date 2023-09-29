@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:dart_net_core_api/exceptions/base_exception.dart';
 import 'package:mime/mime.dart';
 
-import 'codec.dart';
+import 'codec_utils.dart';
 import 'form_entry.dart';
 
 Future<Object?> tryReadRequestBody(
@@ -100,9 +100,11 @@ class _BodyData {
   }
 
   bool get isFormData {
-    return contentType != null &&
-        (contentType!.subType == 'x-www-form-urlencoded' ||
-            contentType!.subType == 'form-data');
+    return contentType!.subType == 'form-data';
+  }
+
+  bool get isUrlEncodedFormData {
+    return contentType!.subType == 'x-www-form-urlencoded';
   }
 
   Future<List<FormEntry>> _toFormDataFiles(
@@ -120,16 +122,23 @@ class _BodyData {
         );
         if (file.isString) {
           files.add(
-            StringFormEntry(
-              name: file.name,
+            FormEntry.fromRawData(
               value: file.readAsString(),
+              name: file.name,
+            ),
+          );
+        } else if (file.isSingleFile) {
+          files.add(
+            FileFormEntry(
+              name: file.name,
+              value: file.bytes.first,
             ),
           );
         } else {
+          /// The base form entry may contain a few files 
           files.add(file);
         }
       }
-      print(files);
       return files.where((e) => e.isValid).toList();
     } catch (e) {
       /// TODO: add logger here
@@ -179,7 +188,7 @@ class _BodyData {
       return _decodedData;
     }
 
-    final codec = CodecRegistry.instance.codecForContentType(
+    final codec = CodecUtils.instance.codecForContentType(
       contentType,
     );
     final originalBytes = await _readBytes(bytes);
@@ -196,8 +205,28 @@ class _BodyData {
         _decodedData = originalBytes;
         return _decodedData;
       }
-
       _decodedData = codec.decoder.convert(originalBytes);
+      if (isUrlEncodedFormData) {
+        if (_decodedData is Map) {
+          final entries = (_decodedData as Map)
+              .entries
+              .map((e) {
+                final name = e.key;
+                final rawValues = e.value as List;
+                if (rawValues.length == 1) {
+                  return FormEntry.fromRawData(
+                    name: name,
+                    value: rawValues.first,
+                  );
+                }
+                return null;
+              })
+              .whereType<FormEntry>()
+              .toList();
+
+          return entries;
+        }
+      }
     } catch (e) {
       throw 'Entity could not be decoded';
     }

@@ -5,10 +5,73 @@ class StringFormEntry extends FormEntry {
     required super.name,
     required this.value,
   }) : super(
-    realFileName: '',
-    bytes: const [],
-  );
+          realFileName: '',
+          bytes: const [],
+        );
   final String value;
+
+  @override
+  bool get isValid {
+    return true;
+  }
+}
+
+class BoolFormEntry extends FormEntry {
+  const BoolFormEntry({
+    required super.name,
+    required this.value,
+  }) : super(
+          realFileName: '',
+          bytes: const [],
+        );
+  final bool value;
+
+  @override
+  bool get isValid {
+    return true;
+  }
+}
+
+class IntFormEntry extends FormEntry {
+  const IntFormEntry({
+    required super.name,
+    required this.value,
+  }) : super(
+          realFileName: '',
+          bytes: const [],
+        );
+  final int value;
+
+  @override
+  bool get isValid {
+    return true;
+  }
+}
+
+class DoubleFormEntry extends FormEntry {
+  const DoubleFormEntry({
+    required super.name,
+    required this.value,
+  }) : super(
+          realFileName: '',
+          bytes: const [],
+        );
+  final double value;
+
+  @override
+  bool get isValid {
+    return true;
+  }
+}
+class FileFormEntry extends FormEntry {
+  const FileFormEntry({
+    required super.name,
+    required this.value,
+  }) : super(
+          realFileName: '',
+          bytes: const [],
+        );
+  final List<int> value;
 
   @override
   bool get isValid {
@@ -20,9 +83,43 @@ class FormEntry {
   const FormEntry({
     required this.name,
     required this.realFileName,
-     this.contentType = '',
-     this.bytes = const [],
+    this.contentType = '',
+    this.bytes = const [],
   });
+
+  factory FormEntry.fromRawData({
+    required Object? value,
+    required String name,
+  }) {
+    final convertedValue = _tryConvertPrimitive(value);
+    switch (convertedValue.runtimeType) {
+      case String:
+        return StringFormEntry(
+          name: name,
+          value: convertedValue as String,
+        );
+      case double:
+        return DoubleFormEntry(
+          name: name,
+          value: convertedValue as double,
+        );
+      case int:
+        return IntFormEntry(
+          name: name,
+          value: convertedValue as int,
+        );
+      case bool:
+        return BoolFormEntry(
+          name: name,
+          value: convertedValue as bool,
+        );
+    }
+
+    return StringFormEntry(
+      name: name,
+      value: convertedValue.toString(),
+    );
+  }
 
   final String name;
   final String realFileName;
@@ -31,6 +128,10 @@ class FormEntry {
 
   bool get isString {
     return realFileName.isNotEmpty != true && name.isNotEmpty;
+  }
+
+  bool get isSingleFile {
+    return bytes.length == 1;
   }
 
   bool get isVideo {
@@ -116,4 +217,26 @@ class FormEntry {
       bytes: [],
     );
   }
+}
+
+RegExp _intRegExp = RegExp(r'(-?)[0-9]+$');
+RegExp _doubleRegExp = RegExp(r'(-?)(0|([1-9][0-9]*))(\.[0-9]+)?$');
+
+Object? _tryConvertPrimitive(Object? value) {
+  if (value is String) {
+    if (value.length > 3 && value.length <= 5) {
+      final lowerValue = value.toLowerCase();
+      if (lowerValue == 'true' || lowerValue == 'false') {
+        return bool.fromEnvironment(lowerValue);
+      }
+    }
+    if (_intRegExp.stringMatch(value)?.length == value.length) {
+      return int.tryParse(value);
+    }
+    if (_doubleRegExp.stringMatch(value)?.length == value.length) {
+      return double.tryParse(value);
+    }
+
+  }
+  return value;
 }
