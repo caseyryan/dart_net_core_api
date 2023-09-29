@@ -3,6 +3,16 @@ import '../utils/extensions.dart';
 class JsonIgnore {
   const JsonIgnore();
 }
+class MongoType {
+  const MongoType();
+}
+
+/// Use this annotation if you need 
+/// to serialize / deserialize 
+/// private fields
+class JsonInclude {
+  const JsonInclude();
+}
 /// for mongodb
 class BsonIgnore {
   const BsonIgnore();

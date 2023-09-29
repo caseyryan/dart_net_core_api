@@ -3,6 +3,7 @@ import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/annotations/json_annotations.dart';
 import 'package:dart_net_core_api/exceptions/base_exception.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/argument_value_type_converter.dart';
@@ -12,6 +13,7 @@ import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/server_utils/body_reader.dart';
 
 part 'controller_type_reflector.dart';
+part 'json_type_reflector.dart';
 
 final ClassMirror _baseApiControllerMirror = reflectClass(
   ApiController,
