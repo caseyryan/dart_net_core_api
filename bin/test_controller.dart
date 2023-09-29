@@ -1,6 +1,7 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/utils/server_utils/form_entry.dart';
 
 import 'main.dart';
 
@@ -21,8 +22,10 @@ class TestController extends ApiController {
   Future<String> getUser({
     required int id,
     required String name,
+    // @FromBody() Map? user,
+    @FromBody() List<FormEntry>? form,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return 'User id: $id: name: $name, ${httpContext.path}';
+    
+    return 'User id: $id: name: $name, ${httpContext.path}, user: $form';
   }
 }

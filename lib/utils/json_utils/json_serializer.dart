@@ -2,7 +2,7 @@ import 'dart:convert' as convert;
 import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
-import 'package:dart_net_core_api/annotations/field_annotations.dart';
+import 'package:dart_net_core_api/annotations/json_annotations.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 
 import '../get_annotation_instance.dart';

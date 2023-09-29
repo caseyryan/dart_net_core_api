@@ -1,13 +1,15 @@
+import 'dart:io';
+
 /// This exception is throws from the server core
-/// and can later be converted to anythong you want
+/// and can later be converted to anything you want
 class ApiException implements Exception {
   final String message;
-  final String traceId;
   final int statusCode;
+  String? traceId;
 
   ApiException({
     required this.message,
-    required this.traceId,
-    this.statusCode = 400,
+    this.traceId,
+    this.statusCode = HttpStatus.badRequest,
   });
 }

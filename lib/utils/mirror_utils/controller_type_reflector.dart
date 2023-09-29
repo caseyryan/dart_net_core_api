@@ -56,6 +56,15 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     }
     _endpointMappers ??= [];
     for (var em in _endpointMethods!) {
+      int numBodyParams = 0;
+      for (var p in em.parameters) {
+        if (p._annotations.whereType<FromBody>().isNotEmpty) {
+          numBodyParams++;
+          if (numBodyParams > 1) {
+            throw 'A method cannot contain more than one $FromBody annotation';
+          }
+        }
+      }
       final endPointAnnotations = em._annotations.whereType<EndpointAnnotation>();
       final authAnnotations = em._annotations.whereType<Authorization>();
       if (endPointAnnotations.length > 1) {
@@ -170,11 +179,12 @@ class EndpointMapper {
     required Server server,
     required HttpContext context,
   }) async {
-    final InstanceMirror controller = controllerTypeReflection.instantiateController(
+    final InstanceMirror controllerMirror = controllerTypeReflection.instantiateController(
       serviceLocator: server.tryGetServiceByType,
     );
+    
     server.updateControllerContext(
-      controller: controller.reflectee,
+      controller: controllerMirror.reflectee,
       context: context,
     );
     final authAnnotation =
@@ -187,40 +197,44 @@ class EndpointMapper {
     final incomingPathParser = IncomingPathParser(path);
     final List<dynamic> positionalArgs = [];
     final Map<Symbol, dynamic> namedArguments = {};
+    final body = await tryReadRequestBody(
+      context.httpRequest,
+      context.traceId,
+    );
 
-    /// by calling these we fill all the pass variables in
+    /// by calling these we fill all path variables in
     /// the incomingPathParser
     endpointPathParser.tryMatchPath(incomingPathParser);
     for (var param in instanceMethod.parameters) {
-      final argument = incomingPathParser.tryFindQueryArgument(
-        argumentName: param.name,
-      );
-      if (argument == null) {
-        if (param.isRequired) {
-          throw ApiException(
-            message: 'Argument ${param.name} is required',
-            traceId: context.traceId,
-          );
-          // throw 'Not all required arguments were provided';
-        }
-      }
-      if (param.isPositional) {
-        positionalArgs.add(
-          tryConvertArgumentType(
-            actual: argument?.value,
-            expectedType: param.type,
-            dateParser: server.dateParser,
-          ),
-        );
+      Object? value;
+      if (param.isBodyParam) {
+        value = body;
       } else {
-        namedArguments[Symbol(param.name)] = tryConvertArgumentType(
+        final argument = incomingPathParser.tryFindQueryArgument(
+          argumentName: param.name,
+        );
+        if (argument == null) {
+          if (param.isRequired) {
+            throw ApiException(
+              message: 'Argument ${param.name} is required',
+              traceId: context.traceId,
+            );
+          }
+        }
+        value = tryConvertQueryArgumentType(
           actual: argument?.value,
           expectedType: param.type,
           dateParser: server.dateParser,
         );
       }
+      if (param.isPositional) {
+        positionalArgs.add(value);
+      } else {
+        namedArguments[Symbol(param.name)] = value;
+      }
     }
-    return controller
+    
+    return controllerMirror
         .invoke(
           Symbol(instanceMethod.name),
           positionalArgs,
@@ -237,5 +251,11 @@ class EndpointMapper {
   @override
   int get hashCode {
     return fullPath.hashCode;
+  }
+}
+
+extension MethodParameterExtension on MethodParameter {
+  bool get isBodyParam {
+    return _annotations.any((a) => a is FromBody);
   }
 }

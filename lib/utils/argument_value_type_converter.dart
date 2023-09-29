@@ -3,7 +3,7 @@
 
 import 'default_date_parser.dart';
 
-Object? tryConvertArgumentType({
+Object? tryConvertQueryArgumentType({
   required String? actual,
   required Type expectedType,
   required DateParser dateParser, 

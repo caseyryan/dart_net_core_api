@@ -9,6 +9,7 @@ import 'package:dart_net_core_api/utils/argument_value_type_converter.dart';
 import 'package:dart_net_core_api/utils/endpoint_path_parser.dart';
 import 'package:dart_net_core_api/utils/incoming_path_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
+import 'package:dart_net_core_api/utils/server_utils/body_reader.dart';
 
 part 'controller_type_reflector.dart';
 
@@ -139,6 +140,7 @@ class MethodParameter {
   late final bool isNamed;
   late final bool isOptional;
   late final Type type;
+  late List<dynamic> _annotations;
 
   bool get isRequired {
     return !isOptional;
@@ -155,7 +157,10 @@ class MethodParameter {
     isOptional = parameterMirror.isOptional;
     name = parameterMirror.simpleName.toName();
     type = parameterMirror.type.reflectedType;
+    _annotations = parameterMirror.metadata.map((e) => e.reflectee).toList();
   }
+
+  
 
   Map toMap() {
     return {

@@ -5,7 +5,6 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/exceptions/base_exception.dart';
-import 'package:dart_net_core_api/utils/body_reader.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:uuid/uuid.dart';
@@ -29,9 +28,7 @@ class HttpContext {
     required this.serviceLocator,
     required this.traceId,
   }) {
-    if (httpRequest.contentLength > 0) {
-
-    }
+    if (httpRequest.contentLength > 0) {}
   }
 
   String get language {
@@ -315,7 +312,7 @@ class Server {
     required String traceId,
   }) async {
     EndpointMapper? endpointMapper;
-    final body = await tryReadBody(request, traceId);
+    
     bool notFound = true;
     final context = HttpContext(
       httpRequest: request,
@@ -345,7 +342,7 @@ class Server {
           message: 'Could not find the endpoint to process the request',
           traceId: traceId,
         ),
-        statusCode: 404,
+        statusCode: HttpStatus.notFound,
       );
       return;
     } else if (endpointMapper == null) {
@@ -357,13 +354,12 @@ class Server {
           message: 'Method not allowed: $method',
           traceId: traceId,
         ),
-        statusCode: 405,
+        statusCode: HttpStatus.methodNotAllowed,
       );
       return;
     } else {
       /// ok case
       try {
-        
         final result = await endpointMapper.tryCallEndpoint(
           path: path,
           server: this,
@@ -371,6 +367,7 @@ class Server {
         );
         request.response.write(result);
       } on ApiException catch (e) {
+        e.traceId ??= traceId;
         _onRequestError(
           request: request,
           traceId: traceId,
@@ -385,7 +382,7 @@ class Server {
             message: e,
             traceId: traceId,
           ),
-          statusCode: 400,
+          statusCode: HttpStatus.badRequest,
         );
       } catch (e) {
         _onRequestError(
@@ -395,7 +392,7 @@ class Server {
             message: e.toString(),
             traceId: traceId,
           ),
-          statusCode: 500,
+          statusCode: HttpStatus.internalServerError,
         );
       } finally {
         request.response.close();
