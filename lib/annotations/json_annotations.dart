@@ -3,16 +3,25 @@ import '../utils/extensions.dart';
 class JsonIgnore {
   const JsonIgnore();
 }
+
+/// If you need a field to have a specific name
+/// in Json, you can pass the name here
+class JsonName {
+  const JsonName(this.name);
+  final String name;
+}
+
 class MongoType {
   const MongoType();
 }
 
-/// Use this annotation if you need 
-/// to serialize / deserialize 
+/// Use this annotation if you need
+/// to serialize / deserialize
 /// private fields
 class JsonInclude {
   const JsonInclude();
 }
+
 /// for mongodb
 class BsonIgnore {
   const BsonIgnore();

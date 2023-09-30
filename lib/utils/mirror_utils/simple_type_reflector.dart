@@ -19,6 +19,47 @@ final ClassMirror _baseApiControllerMirror = reflectClass(
   ApiController,
 );
 
+extension JsonTypeExtension on Type {
+  String toJson() {
+    return 'f';
+  }
+
+  Object? fromJson(Map json) {
+    final jsonReflector = JsonTypeReflector(this);
+    return jsonReflector.instanceFromJson(json);
+    
+  }
+}
+
+extension ClassMirrorExtension on ClassMirror {
+  List<MethodMirror> getConstructors() {
+    final constructors = declarations.values
+        .where(
+          (declare) => declare is MethodMirror && declare.isConstructor,
+        )
+        .toList();
+    print(constructors);
+    return constructors.cast<MethodMirror>().toList();
+  }
+
+  MethodMirror? get defaultConstructor {
+    return getConstructors().firstWhereOrNull((e) => e.parameters.isEmpty);
+  }
+}
+
+
+bool _isPrimitiveType(Type type) {
+  switch (type) {
+    case String:
+    case double:
+    case num:
+    case int:
+    case bool:
+      return true;
+  }
+  return false;
+}
+
 /// Just a wrapper over mirrors to simplify working with
 /// class mirrors, instances and so on
 class SimpleTypeReflector {
@@ -28,9 +69,11 @@ class SimpleTypeReflector {
   late List<Method> methods;
   List<ControllerAnnotation>? _controllerAnnotations;
   late final bool isApiController;
+  late final bool isPrimitive;
 
   SimpleTypeReflector(Type fromType) {
     _classMirror = reflectClass(fromType);
+    isPrimitive = _isPrimitiveType(fromType);
     isApiController = _classMirror.isSubclassOf(
       _baseApiControllerMirror,
     );
@@ -161,8 +204,6 @@ class MethodParameter {
     type = parameterMirror.type.reflectedType;
     _annotations = parameterMirror.metadata.map((e) => e.reflectee).toList();
   }
-
-  
 
   Map toMap() {
     return {
