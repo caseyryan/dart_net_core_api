@@ -16,7 +16,6 @@ class EndpointPathParser {
 
   int _numRequiredSegments = 0;
   int get numRequiredSegments => _numRequiredSegments;
-  int _numOptionalSegments = 0;
 
   int get totalSegments {
     return _querySegments.length;
@@ -35,7 +34,6 @@ class EndpointPathParser {
           segment,
         );
         if (optionalVarMatch != null) {
-          _numOptionalSegments++;
           isVariable = true;
           isOptional = true;
           hasOptional = true;
@@ -83,7 +81,6 @@ class EndpointPathParser {
       if (_numRequiredSegments > value.totalSegments) {
         return false;
       }
-      int varIndex = 0;
       final pathVariables = <QueryArgument>[];
       for (var i = 0; i < totalSegments; i++) {
         final mySegment = _querySegments[i];
@@ -99,7 +96,6 @@ class EndpointPathParser {
               value: incomingSegment.name,
             ),
           );
-          varIndex++;
         }
       }
       value.updatePositionalVariables(

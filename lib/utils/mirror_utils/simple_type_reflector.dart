@@ -38,7 +38,6 @@ extension ClassMirrorExtension on ClassMirror {
           (declare) => declare is MethodMirror && declare.isConstructor,
         )
         .toList();
-    print(constructors);
     return constructors.cast<MethodMirror>().toList();
   }
 

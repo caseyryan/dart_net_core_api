@@ -5,12 +5,14 @@ import 'test_controller.dart';
 
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
 void main(List<String> arguments) {
-  final mirror = JsonTypeReflector(ToSerialize);
+  // final mirror = JsonTypeReflector(ToSerialize);
   final instance = (ToSerialize).fromJson({
-    'first_name': 'Kostyan',
+    '_id': '123123',
+    'age': 9,
+    'first_name': 'Steve',
     'values': ['John', 'Jay'],
     'data': {
-      'name': 'Vova',
+      'name': 'Mary',
     },
     'datas': [
       {
@@ -20,7 +22,13 @@ void main(List<String> arguments) {
         'name': 'InnerName2',
       },
     ],
+    'fromMap': {
+      'firstKey': {
+        'name': 'FirstJohn'
+      }
+    }
   });
+
   print(instance);
 
   return;
@@ -35,17 +43,36 @@ void main(List<String> arguments) {
 }
 
 class ToSerialize {
-  List<String>? values;
+  // List<String>? values;
+  // @JsonName('first_name')
+
+  // @JsonStringValidator(
+  //   canBeNull: false,
+  //   regExpPattern: r'[a-zA-Z]+',
+  // )
   // @JsonName('first_name')
   // String? firstName;
-  // double? price;
+  // // double? price;
+
+  // @JsonIntConverter(
+  //   minValue: 10,
+  //   maxValue: 32,
+  //   canBeNull: false,
+  // )
+  // @JsonIntValidator(
+  //   minValue: 10,
+  //   maxValue: 32,
+  //   canBeNull: false,
+  // )
   // int? age;
   // @JsonInclude()
   // String? _id;
 
-  bool get isPrivate => false;
-  List<ToSerialize2>? datas;
-  ToSerialize2? data;
+  Map<String, ToSerialize2>? fromMap;
+
+  // bool get isPrivate => false;
+  // List<ToSerialize2>? datas;
+  // ToSerialize2? data;
 }
 
 class ToSerialize2 {

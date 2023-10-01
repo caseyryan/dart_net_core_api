@@ -384,7 +384,8 @@ class Server {
           ),
           statusCode: HttpStatus.badRequest,
         );
-      } catch (e) {
+      } 
+      catch (e) {
         _onRequestError(
           request: request,
           traceId: traceId,

@@ -40,69 +40,83 @@ class JsonTypeReflector extends SimpleTypeReflector {
       {},
     ).reflectee;
     final instanceMirror = reflect(instance);
-
-    for (var kv in json.entries) {
-      final variable = tryFindVariableByName(kv.key);
-      if (variable != null) {
-        if (variable.isPrimitiveType) {
-          instanceMirror.setField(
-            variable.symbolicName,
-            kv.value,
-          );
-        } else {
-          if (variable.isGeneric) {
-            if (variable.isList) {
-              if (variable.isPrimitiveGenericType) {
-                instanceMirror.setField(
-                  variable.symbolicName,
-                  kv.value as dynamic,
-                );
-              } else {
-                /// Just an additional check
-                /// the value in json also must be a list to be able
-                /// to be mapped to a list
-                if (kv.value is List) {
-                  final rawList = kv.value as List;
-                  final listGenericType =
-                      variable.typeArguments.first._classMirror.reflectedType;
-
-                  final listClassMirror = reflectType(
-                    variable.mirror.type.reflectedType,
-                  ) as ClassMirror;
-
-                  /// Instantiation of a typed list is necessary
-                  /// to avoid type cast exception
-                  final c = listClassMirror.getConstructors().firstWhere(
-                        (e) => e.simpleName == Symbol('List.from'),
-                      );
-
-                  final typedList = listClassMirror.newInstance(
-                    c.constructorName,
-                    [
-                      rawList.map(
-                        (e) => listGenericType.fromJson(e),
-                      ),
-                    ],
-                  ).reflectee;
-
-                  instanceMirror.setField(
-                    variable.symbolicName,
-                    typedList as dynamic,
-                  );
-                }
-              }
-            } else {
-              /// TODO: Process maps here
-              print('not list');
-            }
-          } else {
+    for (var variable in _variables) {
+      final valueFromJson = json[variable.jsonName];
+      if (variable.isPrimitiveType) {
+        variable.checkValueBeforeSetting(valueFromJson);
+        instanceMirror.setField(
+          variable.symbolicName,
+          valueFromJson,
+        );
+      } else {
+        if (variable.isGeneric) {
+          // if (variable.isList) {
+          if (variable.allGenericTypesPrimitive) {
+            variable.checkValueBeforeSetting(valueFromJson);
             instanceMirror.setField(
               variable.symbolicName,
-              variable.convertValueFromJson(
-                kv.value,
-              ),
+              valueFromJson as dynamic,
             );
+          } else {
+            /// Just an additional check
+            /// the value in json also must be a list to be able
+            /// to be mapped to a list
+            final classMirror = reflectType(
+              variable.mirror.type.reflectedType,
+            ) as ClassMirror;
+
+            /// Instantiation of a typed value is necessary
+            /// to avoid type cast exception
+            final constructor = classMirror.getConstructors().firstWhere(
+                  (e) => e.simpleName == variable.defaultConstructorName,
+                );
+            List<dynamic>? positionalArguments;
+            Type genericType;
+
+            if (variable.isList) {
+              if (valueFromJson is List) {
+                genericType = variable.typeArguments.first._classMirror.reflectedType;
+                positionalArguments = [
+                  valueFromJson.map(
+                    (e) => genericType.fromJson(e),
+                  ),
+                ];
+              }
+            } else if (variable.isMap) {
+              if (valueFromJson is Map) {
+                positionalArguments = [];
+                genericType = variable.typeArguments[1]._classMirror.reflectedType;
+                for (var kv in valueFromJson.entries) {
+                  final value = genericType.fromJson(kv.value);
+                  positionalArguments.add({
+                    kv.key: value,
+                  });
+                }
+              }
+            }
+            if (positionalArguments != null) {
+              final typedValue = classMirror
+                  .newInstance(
+                    constructor.constructorName,
+                    positionalArguments,
+                  )
+                  .reflectee;
+              variable.checkValueBeforeSetting(typedValue);
+              instanceMirror.setField(
+                variable.symbolicName,
+                typedValue as dynamic,
+              );
+            }
           }
+        } else {
+          final value = variable.convertValueFromJson(
+            valueFromJson,
+          );
+          variable.checkValueBeforeSetting(value);
+          instanceMirror.setField(
+            variable.symbolicName,
+            value,
+          );
         }
       }
     }
@@ -126,11 +140,24 @@ class Variable {
   late bool isGeneric = false;
   late List _annotations;
   late bool isList;
+  late bool isMap;
 
-  bool get isPrimitiveGenericType {
+  late List<JsonValueValidator> _validators;
+  late List<JsonValueConverter> _converters;
+
+  Symbol get defaultConstructorName {
+    if (isList) {
+      return Symbol('List.from');
+    } else if (isMap) {
+      return Symbol('Map.from');
+    }
+    return Symbol.empty;
+  }
+
+  bool get allGenericTypesPrimitive {
     if (isGeneric) {
       if (typeArguments.isNotEmpty) {
-        return typeArguments.first.isPrimitive;
+        return !typeArguments.any((e) => e.isPrimitive);
       }
     }
     return true;
@@ -140,13 +167,34 @@ class Variable {
     return _reflectedType.fromJson(json);
   }
 
+  /// Applies conversion and validation in a correct order
+  void checkValueBeforeSetting(dynamic value) {
+    for (var converter in _converters) {
+      value = converter.convert(value);
+    }
+    _validateValue(value);
+  }
+
+  /// This is called when trying to set a field value
+  void _validateValue(dynamic value) {
+    for (var v in _validators) {
+      v.validate(
+        fieldName: jsonName,
+        actualValue: value,
+      );
+    }
+  }
+
   Variable({
     required this.mirror,
     required this.symbolicName,
   }) {
     _annotations = mirror.metadata.map((e) => e.reflectee).toList();
+    _validators = _annotations.whereType<JsonValueValidator>().toList();
+    _converters = _annotations.whereType<JsonValueConverter>().toList();
     _reflectedType = mirror.type.reflectedType;
     isList = mirror.type.qualifiedName == const Symbol('dart.core.List');
+    isMap = mirror.type.qualifiedName == const Symbol('dart.core.Map');
     typeArguments = mirror.type.typeArguments
         .map(
           (e) => JsonTypeReflector(e.reflectedType),
