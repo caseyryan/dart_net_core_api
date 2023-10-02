@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:dart_net_core_api/exceptions/base_exception.dart';
+import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
@@ -55,15 +55,7 @@ extension HttpRequestExtension on HttpHeaders {
   }
 }
 
-class Response {
-  final dynamic data;
-
-  Response([
-    this.data,
-  ]);
-}
-
-typedef ExceptionHandler = Response Function({
+typedef ExceptionHandler = Object? Function({
   required String traceId,
   required String message,
   required int statusCode,
@@ -249,11 +241,11 @@ class Server {
       _onRequestError(
         request: request,
         traceId: traceId,
-        error: ApiException(
+        exception: ApiException(
           message: e.toString(),
           traceId: traceId,
+          statusCode: 500,
         ),
-        statusCode: 500,
       );
     }
   }
@@ -266,23 +258,22 @@ class Server {
   Future _onRequestError({
     required HttpRequest request,
     required String traceId,
-    required ApiException error,
-    required int statusCode,
+    required ApiException exception,
   }) async {
     ExceptionHandler? handler;
-    if (statusCode == 500) {
+    if (exception.statusCode == 500) {
       handler = custom500Handler ?? _defaultErrorHandler;
-    } else if (statusCode == 404) {
+    } else if (exception.statusCode == 404) {
       handler = custom404Handler ?? _defaultErrorHandler;
     } else {
       handler = _defaultErrorHandler;
     }
     String message;
     try {
-      request.response.statusCode = statusCode;
+      request.response.statusCode = exception.statusCode;
 
       try {
-        message = error.message;
+        message = exception.message;
       } catch (e) {
         message = 'Something went wrong';
         _logError(tagError, e);
@@ -300,37 +291,20 @@ class Server {
     // }
   }
 
-  Response _defaultErrorHandler({
+  Object? _defaultErrorHandler({
     required String traceId,
     required String message,
     required int statusCode,
     required HttpRequest request,
   }) {
-    final response = Response({
-      'message': message,
-      'traceId': traceId,
-    });
-    request.response.headers.contentType = ContentType.json;
-    if (jsonSerializer != null) {
-      try {
-        request.response.write(
-          jsonSerializer?.tryConvertToJsonString(
-            response,
-          ),
-        );
-      } catch (e) {
-        request.response.write(jsonEncode(({
-          'message': message,
-          'traceId': traceId,
-          'innerError': e.toString(),
-        })));
-      }
-    } else {
-      request.response.write(jsonEncode(({
+    final response = {
+      'error': {
         'message': message,
         'traceId': traceId,
-      })));
-    }
+      }
+    };
+    request.response.headers.contentType = ContentType.json;
+    request.response.write(jsonEncode(response));
     return response;
   }
 
@@ -361,6 +335,7 @@ class Server {
         endpointMapper = endpointMappers.firstWhereOrNull(
           (e) => e.restMethodName == method,
         );
+        print(endpointMapper);
         break;
       }
     }
@@ -368,11 +343,10 @@ class Server {
       _onRequestError(
         request: request,
         traceId: traceId,
-        error: ApiException(
+        exception: NotFoundException(
           message: 'Could not find the endpoint to process the request',
           traceId: traceId,
         ),
-        statusCode: HttpStatus.notFound,
       );
       return;
     } else if (endpointMapper == null) {
@@ -380,11 +354,11 @@ class Server {
       _onRequestError(
         request: request,
         traceId: traceId,
-        error: ApiException(
+        exception: ApiException(
           message: 'Method not allowed: $method',
           traceId: traceId,
+          statusCode: HttpStatus.methodNotAllowed,
         ),
-        statusCode: HttpStatus.methodNotAllowed,
       );
       return;
     } else {
@@ -395,41 +369,41 @@ class Server {
           server: this,
           context: context,
         );
-        if (context.shouldSerializeToJson && jsonSerializer != null) {
+        if (result != null) {
           request.response.headers.contentType = request.headers.contentType;
-          request.response.write(
-            jsonSerializer!.tryConvertToJsonString(result),
-          );
+          if (context.shouldSerializeToJson && jsonSerializer != null) {
+            final converted = jsonSerializer!.tryConvertToJsonString(result);
+            request.response.write(converted);
+          } else {
+            request.response.write(result);
+          }
         } else {
-          request.response.write(result);
+          request.response.statusCode = HttpStatus.noContent;
         }
       } on ApiException catch (e) {
         e.traceId ??= traceId;
         _onRequestError(
           request: request,
           traceId: traceId,
-          error: e,
-          statusCode: e.statusCode,
+          exception: e,
         );
       } on String catch (e) {
         _onRequestError(
           request: request,
           traceId: traceId,
-          error: ApiException(
+          exception: ApiException(
             message: e,
             traceId: traceId,
           ),
-          statusCode: HttpStatus.badRequest,
         );
       } catch (e) {
         _onRequestError(
           request: request,
           traceId: traceId,
-          error: ApiException(
+          exception: InternalServerException(
             message: e.toString(),
             traceId: traceId,
           ),
-          statusCode: HttpStatus.internalServerError,
         );
       } finally {
         request.response.close();

@@ -78,9 +78,12 @@ class EndpointPathParser {
       if (value.totalSegments > totalSegments) {
         return false;
       }
-      if (_numRequiredSegments > value.totalSegments) {
+      /// This logic is not perfect. Needs to be thought over again
+      if (_numRequiredSegments > value.totalSegments ||
+          totalSegments > value.querySegments.length) {
         return false;
       }
+
       final pathVariables = <QueryArgument>[];
       for (var i = 0; i < totalSegments; i++) {
         final mySegment = _querySegments[i];

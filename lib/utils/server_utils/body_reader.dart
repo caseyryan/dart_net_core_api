@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart_net_core_api/exceptions/base_exception.dart';
+import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:mime/mime.dart';
 
 import 'codec_utils.dart';

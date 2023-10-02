@@ -179,10 +179,11 @@ class EndpointMapper {
     required Server server,
     required HttpContext context,
   }) async {
-    final InstanceMirror controllerMirror = controllerTypeReflection.instantiateController(
+    final InstanceMirror controllerMirror =
+        controllerTypeReflection.instantiateController(
       serviceLocator: server.tryFindServiceByType,
     );
-    
+
     server.updateControllerContext(
       controller: controllerMirror.reflectee,
       context: context,
@@ -208,7 +209,15 @@ class EndpointMapper {
     for (var param in instanceMethod.parameters) {
       Object? value;
       if (param.isBodyParam) {
-        value = body;
+        if (body is Map) {
+          value = server.jsonSerializer?.fromJson(
+                body,
+                param.reflectedType,
+              ) ??
+              value;
+        } else {
+          value = body;
+        }
       } else {
         final argument = incomingPathParser.tryFindQueryArgument(
           argumentName: param.name,
@@ -233,7 +242,7 @@ class EndpointMapper {
         namedArguments[Symbol(param.name)] = value;
       }
     }
-    
+
     return controllerMirror
         .invoke(
           Symbol(instanceMethod.name),
@@ -245,12 +254,15 @@ class EndpointMapper {
 
   @override
   bool operator ==(covariant EndpointMapper other) {
-    return other.fullPath == fullPath;
+    return other.fullPath == fullPath && other.restMethodName == restMethodName;
   }
 
   @override
   int get hashCode {
-    return fullPath.hashCode;
+    return Object.hash(
+      fullPath.hashCode,
+      restMethodName,
+    );
   }
 }
 

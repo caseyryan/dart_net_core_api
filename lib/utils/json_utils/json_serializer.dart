@@ -14,13 +14,17 @@ abstract class JsonSerializer {
     this.keyNameConverter,
   });
 
-  T? fromJson<T>(Map json);
+  Object? fromJson(
+    Map json,
+    Type type,
+  );
 
   dynamic toJson(Object? object) {
     return object?.toJson(
       keyNameConverter: keyNameConverter,
     );
   }
+
   dynamic tryConvertToJsonString(Object? object) {
     final result = toJson(object);
     if (result is Map) {
@@ -39,7 +43,10 @@ class DefaultJsonSerializer extends JsonSerializer {
   ) : super(keyNameConverter: keyNameConverter);
 
   @override
-  T? fromJson<T>(Map json) {
-    return T.fromJson(json) as T;
+  Object? fromJson(
+    Map json,
+    Type type,
+  ) {
+    return type.fromJson(json);
   }
 }
