@@ -274,7 +274,12 @@ class Server {
 
       try {
         message = exception.message;
-      } catch (e) {
+      } catch (e, s) {
+        _logError(tagError, {
+          'traceId': traceId,
+          'error': e.toString(),
+          'stackTrace': s.toString(),
+        });
         message = 'Something went wrong';
         _logError(tagError, e);
       }
@@ -285,10 +290,15 @@ class Server {
         traceId: traceId,
         request: request,
       );
+    } catch (e, s) {
+      _logError(tagError, {
+        'traceId': traceId,
+        'error': e.toString(),
+        'stackTrace': s.toString(),
+      });
     } finally {
       request.response.close();
     }
-    // }
   }
 
   Object? _defaultErrorHandler({
