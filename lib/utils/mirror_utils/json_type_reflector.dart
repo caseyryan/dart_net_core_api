@@ -50,7 +50,6 @@ class JsonTypeReflector extends SimpleTypeReflector {
         );
       } else {
         if (variable.isGeneric) {
-          // if (variable.isList) {
           if (variable.allGenericTypesPrimitive) {
             variable.checkValueBeforeSetting(valueFromJson);
             instanceMirror.setField(

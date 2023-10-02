@@ -23,9 +23,9 @@ void main(List<String> arguments) {
       },
     ],
     'fromMap': {
-      'firstKey': {
-        'name': 'FirstJohn'
-      }
+      'firstKey': [
+        {'name': 'FirstJohn'},
+      ]
     }
   });
 
@@ -68,7 +68,7 @@ class ToSerialize {
   // @JsonInclude()
   // String? _id;
 
-  Map<String, ToSerialize2>? fromMap;
+  Map<String, List<ToSerialize2>>? fromMap;
 
   // bool get isPrivate => false;
   // List<ToSerialize2>? datas;
