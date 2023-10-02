@@ -16,6 +16,7 @@ dependencies:
   collection: ^1.15.0
   uuid: 3.0.5
   mime: ^1.0.4
+  
 
 dev_dependencies:
   lints: ^2.0.0

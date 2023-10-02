@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
@@ -13,6 +14,7 @@ import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/server_utils/body_reader.dart';
 
 part 'controller_type_reflector.dart';
+part 'json_object_reflector.dart';
 part 'json_type_reflector.dart';
 
 final ClassMirror _baseApiControllerMirror = reflectClass(
@@ -20,15 +22,40 @@ final ClassMirror _baseApiControllerMirror = reflectClass(
 );
 
 extension JsonTypeExtension on Type {
-  String toJson() {
-    return 'f';
+  Object? fromJson(dynamic value) {
+    if (value is Map) {
+      final jsonReflector = JsonTypeReflector(this);
+      return jsonReflector.instanceFromJson(value);
+    }
+    return value;
+  }
+}
+
+extension JsonObjectExtension on Object {
+  dynamic toJson({
+    KeyNameConverter? keyNameConverter,
+  }) {
+    if (_isPrimitiveType(runtimeType)) {
+      return this;
+    }
+    final reflector = JsonObjectReflector(
+      object: this,
+      keyNameConverter: keyNameConverter,
+    );
+
+    return reflector.toJson();
   }
 
-  Object? fromJson(Map json) {
-    final jsonReflector = JsonTypeReflector(this);
-    return jsonReflector.instanceFromJson(json);
-    
+  dynamic toJsonString({
+    KeyNameConverter? keyNameConverter,
+  }) {
+    final value = toJson(keyNameConverter: keyNameConverter);
+    if (value is Map) {
+      return jsonEncode(value);
+    }
+    return this;
   }
+
 }
 
 extension ClassMirrorExtension on ClassMirror {
@@ -41,11 +68,43 @@ extension ClassMirrorExtension on ClassMirror {
     return constructors.cast<MethodMirror>().toList();
   }
 
+  bool get isPrimitiveType {
+    return _isPrimitiveType(reflectedType);
+  }
+
+  List? newTypedListInstance() {
+    if (isList) {
+      return newInstance(
+        Symbol('from'),
+        [[]],
+      ).reflectee;
+    }
+    return null;
+  }
+
+  Map? newTypedMapInstance() {
+    if (isMap) {
+      return newInstance(
+        Symbol('from'),
+        [{}],
+      ).reflectee;
+    }
+    return null;
+  }
+
+  bool get isList {
+    return qualifiedName == const Symbol('dart.core.List') ||
+        qualifiedName == const Symbol('dart.core.GrowableList');
+  }
+
+  bool get isMap {
+    return qualifiedName == const Symbol('dart.core.Map');
+  }
+
   MethodMirror? get defaultConstructor {
     return getConstructors().firstWhereOrNull((e) => e.parameters.isEmpty);
   }
 }
-
 
 bool _isPrimitiveType(Type type) {
   switch (type) {
@@ -69,6 +128,14 @@ class SimpleTypeReflector {
   List<ControllerAnnotation>? _controllerAnnotations;
   late final bool isApiController;
   late final bool isPrimitive;
+
+  // bool get isList {
+  //   return _classMirror.qualifiedName == const Symbol('dart.core.List');
+  // }
+
+  // bool get isMap {
+  //   return _classMirror.qualifiedName == const Symbol('dart.core.Map');
+  // }
 
   SimpleTypeReflector(Type fromType) {
     _classMirror = reflectClass(fromType);
@@ -194,13 +261,18 @@ class MethodParameter {
     return !isNamed;
   }
 
+  Type get reflectedType {
+    return parameterMirror.type.reflectedType;
+  }
+
   MethodParameter({
     required this.parameterMirror,
   }) {
     isNamed = parameterMirror.isNamed;
     isOptional = parameterMirror.isOptional;
     name = parameterMirror.simpleName.toName();
-    type = parameterMirror.type.reflectedType;
+    // type = parameterMirror.type.reflectedType;
+    type = parameterMirror.type.runtimeType;
     _annotations = parameterMirror.metadata.map((e) => e.reflectee).toList();
   }
 

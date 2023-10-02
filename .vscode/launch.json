@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Users Demo",
+            "request": "launch",
+            "type": "dart",
+            "program": "bin/examples/users/main.dart",
+        },
+    ],
+    "compounds": []
+}

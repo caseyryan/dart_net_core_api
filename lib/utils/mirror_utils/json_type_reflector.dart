@@ -5,8 +5,12 @@ part of 'simple_type_reflector.dart';
 ///
 class JsonTypeReflector extends SimpleTypeReflector {
   JsonTypeReflector(super.fromType) {
-    if (!constructors.any((e) => e.parameters.isEmpty) && !isPrimitive) {
-      throw 'A JSON serializable class must have an empty default constructor';
+    if (!isPrimitive) {
+      if (!_classMirror.isList && !_classMirror.isMap) {
+        if (!constructors.any((e) => e.parameters.where((p) => !p.isOptional).isEmpty)) {
+          throw 'A JSON serializable class must have an empty default constructor';
+        }
+      }
     }
     for (var kv in _classMirror.declarations.entries) {
       if (kv.value is VariableMirror) {
@@ -33,12 +37,31 @@ class JsonTypeReflector extends SimpleTypeReflector {
 
   final List<Variable> _variables = [];
 
+  List<Object?> _jsonListToTypedList({
+    required List jsonList,
+    required Type genericType,
+  }) {
+    return jsonList
+        .map(
+          (e) => genericType.fromJson(e),
+        )
+        .toList();
+  }
+
   Object? instanceFromJson(Map json) {
-    final instance = _classMirror.newInstance(
+    if (_classMirror.isPrimitiveType) {
+      return json;
+    }
+    Object? instance;
+    // if (_classMirror.isList) {
+    //   print(json);
+    // } else {
+    instance = _classMirror.newInstance(
       Symbol.empty,
       [],
       {},
     ).reflectee;
+    // }
     final instanceMirror = reflect(instance);
     for (var variable in _variables) {
       final valueFromJson = json[variable.jsonName];
@@ -70,26 +93,32 @@ class JsonTypeReflector extends SimpleTypeReflector {
                   (e) => e.simpleName == variable.defaultConstructorName,
                 );
             List<dynamic>? positionalArguments;
-            Type genericType;
 
             if (variable.isList) {
               if (valueFromJson is List) {
-                genericType = variable.typeArguments.first._classMirror.reflectedType;
                 positionalArguments = [
-                  valueFromJson.map(
-                    (e) => genericType.fromJson(e),
+                  _jsonListToTypedList(
+                    genericType: variable.mirror.type.typeArguments.first.reflectedType,
+                    jsonList: valueFromJson,
                   ),
                 ];
               }
             } else if (variable.isMap) {
               if (valueFromJson is Map) {
-                positionalArguments = [];
-                genericType = variable.typeArguments[1]._classMirror.reflectedType;
-                for (var kv in valueFromJson.entries) {
-                  final value = genericType.fromJson(kv.value);
-                  positionalArguments.add({
-                    kv.key: value,
-                  });
+                final innerClassMirror =
+                    variable.mirror.type.typeArguments[1] as ClassMirror;
+                if (innerClassMirror.isList) {
+                  throw 'Inner Lists are not supported "${variable.jsonName}"';
+                } else if (innerClassMirror.isMap) {
+                  throw 'Inner Maps are not supported "${variable.jsonName}"';
+                } else {
+                  final type = variable.mirror.type.typeArguments[1].reflectedType;
+
+                  positionalArguments = [
+                    {
+                      variable.jsonName: type.fromJson(valueFromJson),
+                    },
+                  ];
                 }
               }
             }
@@ -130,6 +159,33 @@ class JsonTypeReflector extends SimpleTypeReflector {
 }
 
 class Variable {
+
+  Variable({
+    required this.mirror,
+    required this.symbolicName,
+  }) {
+    _annotations = mirror.metadata.map((e) => e.reflectee).toList();
+    _validators = _annotations.whereType<JsonValueValidator>().toList();
+    _converters = _annotations.whereType<JsonValueConverter>().toList();
+    _reflectedType = mirror.type.reflectedType;
+    isPrivate = mirror.isPrivate;
+    isList = mirror.type.qualifiedName == const Symbol('dart.core.List');
+    isMap = mirror.type.qualifiedName == const Symbol('dart.core.Map');
+    typeArguments = mirror.type.typeArguments
+        .map(
+          (e) => JsonTypeReflector(e.reflectedType),
+        )
+        .toList();
+    isGeneric = mirror.type.typeArguments.isNotEmpty;
+    final nameAnnotations = _annotations.whereType<JsonName>();
+    if (nameAnnotations.isNotEmpty) {
+      if (nameAnnotations.length > 1) {
+        throw 'A field cannot have more that one $JsonName annotation. "$name" has ${nameAnnotations.length}';
+      }
+      _jsonName = nameAnnotations.first;
+    }
+  }
+
   final VariableMirror mirror;
   final Symbol symbolicName;
 
@@ -140,23 +196,26 @@ class Variable {
   late List _annotations;
   late bool isList;
   late bool isMap;
+  late bool isPrivate;
 
   late List<JsonValueValidator> _validators;
   late List<JsonValueConverter> _converters;
 
+  JsonName? _jsonName;
+
   Symbol get defaultConstructorName {
     if (isList) {
-      return Symbol('List.from');
+      return const Symbol('List.from');
     } else if (isMap) {
-      return Symbol('Map.from');
+      return const Symbol('Map.from');
     }
     return Symbol.empty;
   }
-
+  
   bool get allGenericTypesPrimitive {
     if (isGeneric) {
       if (typeArguments.isNotEmpty) {
-        return !typeArguments.any((e) => e.isPrimitive);
+        return !typeArguments.any((e) => !e.isPrimitive);
       }
     }
     return true;
@@ -184,29 +243,26 @@ class Variable {
     }
   }
 
-  Variable({
-    required this.mirror,
-    required this.symbolicName,
-  }) {
-    _annotations = mirror.metadata.map((e) => e.reflectee).toList();
-    _validators = _annotations.whereType<JsonValueValidator>().toList();
-    _converters = _annotations.whereType<JsonValueConverter>().toList();
-    _reflectedType = mirror.type.reflectedType;
-    isList = mirror.type.qualifiedName == const Symbol('dart.core.List');
-    isMap = mirror.type.qualifiedName == const Symbol('dart.core.Map');
-    typeArguments = mirror.type.typeArguments
-        .map(
-          (e) => JsonTypeReflector(e.reflectedType),
-        )
-        .toList();
-    isGeneric = mirror.type.typeArguments.isNotEmpty;
+  
+
+  bool get isJsonIgnored {
+    return _annotations.whereType<JsonIgnore>().isNotEmpty || (isPrivate && !isJsonIncluded);
+  }
+
+  bool get isJsonIncluded {
+    return _annotations.whereType<JsonInclude>().isNotEmpty ;
+  }
+
+  bool get isBsonIgnored {
+    return _annotations.whereType<BsonIgnore>().isNotEmpty;
+  }
+
+  bool get hasOverriddenName {
+    return _jsonName != null;
   }
 
   String get jsonName {
-    final JsonName? jsonNameAnnotation = _annotations.firstWhereOrNull(
-      (e) => e is JsonName,
-    );
-    return jsonNameAnnotation?.name ?? name;
+    return _jsonName?.name ?? name;
   }
 
   String get name {

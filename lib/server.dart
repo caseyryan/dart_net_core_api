@@ -1,15 +1,15 @@
 // ignore_for_file: await_only_futures
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/exceptions/base_exception.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
+import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:uuid/uuid.dart';
-
-import 'utils/json_utils/json_serializer.dart';
 
 part 'api_controller.dart';
 part 'server_extensions/service.dart';
@@ -38,6 +38,11 @@ class HttpContext {
   HttpHeaders get headers {
     return httpRequest.headers;
   }
+
+  bool get shouldSerializeToJson {
+    return headers.contentType?.primaryType == ContentType.json.primaryType &&
+        headers.contentType?.subType == ContentType.json.subType;
+  }
 }
 
 extension HttpRequestExtension on HttpHeaders {
@@ -53,7 +58,9 @@ extension HttpRequestExtension on HttpHeaders {
 class Response {
   final dynamic data;
 
-  Response(this.data);
+  Response([
+    this.data,
+  ]);
 }
 
 typedef ExceptionHandler = Response Function({
@@ -70,10 +77,10 @@ class Server {
   final int httpsPort;
   final String baseApiPath;
   final String ipV4Address;
-  final JsonSerializer jsonSerializer;
   final DateParser dateParser;
   final ExceptionHandler? custom500Handler;
   final ExceptionHandler? custom404Handler;
+  final JsonSerializer? jsonSerializer;
 
   HttpServer? _httpServer;
   HttpServer? _httpsServer;
@@ -88,8 +95,11 @@ class Server {
   /// and your controller will use a custom path
   ///
   /// [jsonSerializer] is used to serialize endpoint responses
+  /// if the Content-Type header is application/json
   /// you can simply return an instance of a class e.g. User
   /// and it will automatically be serialized to json
+  /// NOTICE: If you don't need your responses to be serialized automatically
+  /// just set [jsonSerializer] to null
   ///
   /// [apiControllers] the list of controller types.
   /// It can be null or empty but if you also don't add
@@ -120,9 +130,11 @@ class Server {
     SecurityContext? securityContext,
     this.custom500Handler,
     this.custom404Handler,
+    this.jsonSerializer = const DefaultJsonSerializer(
+      null,
+    ),
     Map<Type, LazyServiceInitializer>? lazyServiceInitializer,
     List<IService>? singletonServices,
-    this.jsonSerializer = const DefaultJsonSerializer(),
     this.dateParser = defaultDateParser,
   }) {
     assert(
@@ -174,7 +186,7 @@ class Server {
     _lazyServiceInitializer[T] = initializer;
   }
 
-  IService? tryGetServiceByType(Type serviceType) {
+  IService? tryFindServiceByType(Type serviceType) {
     if (_lazyServiceInitializer.containsKey(serviceType)) {
       return _lazyServiceInitializer[serviceType]!();
     }
@@ -298,9 +310,27 @@ class Server {
       'message': message,
       'traceId': traceId,
     });
-    request.response.write(
-      jsonSerializer.toJson(response),
-    );
+    request.response.headers.contentType = ContentType.json;
+    if (jsonSerializer != null) {
+      try {
+        request.response.write(
+          jsonSerializer?.tryConvertToJsonString(
+            response,
+          ),
+        );
+      } catch (e) {
+        request.response.write(jsonEncode(({
+          'message': message,
+          'traceId': traceId,
+          'innerError': e.toString(),
+        })));
+      }
+    } else {
+      request.response.write(jsonEncode(({
+        'message': message,
+        'traceId': traceId,
+      })));
+    }
     return response;
   }
 
@@ -312,13 +342,13 @@ class Server {
     required String traceId,
   }) async {
     EndpointMapper? endpointMapper;
-    
+
     bool notFound = true;
     final context = HttpContext(
       httpRequest: request,
       method: method,
       path: path,
-      serviceLocator: tryGetServiceByType,
+      serviceLocator: tryFindServiceByType,
       traceId: traceId,
     );
     for (var controller in _registeredControllers) {
@@ -358,14 +388,21 @@ class Server {
       );
       return;
     } else {
-      /// ok case
       try {
+        /// The actual calling of an endpoint
         final result = await endpointMapper.tryCallEndpoint(
           path: path,
           server: this,
           context: context,
         );
-        request.response.write(result);
+        if (context.shouldSerializeToJson && jsonSerializer != null) {
+          request.response.headers.contentType = request.headers.contentType;
+          request.response.write(
+            jsonSerializer!.tryConvertToJsonString(result),
+          );
+        } else {
+          request.response.write(result);
+        }
       } on ApiException catch (e) {
         e.traceId ??= traceId;
         _onRequestError(
@@ -384,8 +421,7 @@ class Server {
           ),
           statusCode: HttpStatus.badRequest,
         );
-      } 
-      catch (e) {
+      } catch (e) {
         _onRequestError(
           request: request,
           traceId: traceId,

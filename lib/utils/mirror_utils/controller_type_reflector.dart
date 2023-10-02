@@ -97,7 +97,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
     for (var param in _constructor.parameters) {
-      final service = serviceLocator(param.type);
+      final service = serviceLocator(param.reflectedType);
       if (service == null) {
         if (!param.isOptional) {
           throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
@@ -174,13 +174,13 @@ class EndpointMapper {
   final ControllerTypeReflector controllerTypeReflection;
   late final EndpointPathParser endpointPathParser;
 
-  FutureOr<dynamic> tryCallEndpoint({
+  FutureOr<Object?> tryCallEndpoint({
     required String path,
     required Server server,
     required HttpContext context,
   }) async {
     final InstanceMirror controllerMirror = controllerTypeReflection.instantiateController(
-      serviceLocator: server.tryGetServiceByType,
+      serviceLocator: server.tryFindServiceByType,
     );
     
     server.updateControllerContext(
@@ -223,7 +223,7 @@ class EndpointMapper {
         }
         value = tryConvertQueryArgumentType(
           actual: argument?.value,
-          expectedType: param.type,
+          expectedType: param.reflectedType,
           dateParser: server.dateParser,
         );
       }
