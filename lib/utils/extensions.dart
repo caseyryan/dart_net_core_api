@@ -88,9 +88,9 @@ extension MapExtensions on Map<dynamic, dynamic> {
   //   return words.map((e) => _capitalizeString(e)).join(' ');
   // }
 
-  String _capitalizeString(String string) {
-    return "${string[0].toUpperCase()}${string.substring(1)}";
-  }
+  // String _capitalizeString(String string) {
+  //   return "${string[0].toUpperCase()}${string.substring(1)}";
+  // }
 
   String toFormattedJson({
     bool includeNull = false,

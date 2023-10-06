@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:dart_net_core_api/annotations/json_annotations.dart';
-import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
+import 'package:reflect_buddy/reflect_buddy.dart';
+
 
 abstract class JsonSerializer {
   /// Allows to convert json keys to whatever you want
@@ -9,7 +9,7 @@ abstract class JsonSerializer {
   /// Notice that if you have JsonName attribute applied to a field
   /// it will have the higher priority and will not be converted
   /// using [keyNameConverter]
-  final KeyNameConverter? keyNameConverter;
+  final JsonKeyNameConverter? keyNameConverter;
   const JsonSerializer({
     this.keyNameConverter,
   });
@@ -19,13 +19,13 @@ abstract class JsonSerializer {
     Type type,
   );
 
-  dynamic toJson(Object? object) {
+  Object? toJson(Object? object) {
     return object?.toJson(
       keyNameConverter: keyNameConverter,
     );
   }
 
-  dynamic tryConvertToJsonString(Object? object) {
+  Object? tryConvertToJsonString(Object? object) {
     final result = toJson(object);
     if (result is Map) {
       return jsonEncode(result);
@@ -39,7 +39,7 @@ abstract class JsonSerializer {
 /// it won't serialize / deserialize
 class DefaultJsonSerializer extends JsonSerializer {
   const DefaultJsonSerializer(
-    KeyNameConverter? keyNameConverter,
+    JsonKeyNameConverter? keyNameConverter,
   ) : super(keyNameConverter: keyNameConverter);
 
   @override

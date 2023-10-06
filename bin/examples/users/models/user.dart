@@ -1,12 +1,14 @@
 // ignore_for_file: unnecessary_getters_setters
 
-import 'package:dart_net_core_api/annotations/json_annotations.dart';
+
+import 'package:reflect_buddy/reflect_buddy.dart';
 
 /// Notice that there are some JSON annotations are
 /// used here. None of them is required but they help you
 /// control the values before they are assigned
 /// during a deserialization process. You can implement your
 /// own validators extending [JsonValueValidator] class
+@CamelToSnake()
 class User {
   /// Notice this is a private field but it won't
   /// be serialized / deserialized unless it has

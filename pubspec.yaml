@@ -10,6 +10,7 @@ dependencies:
   path: ^1.8.0
   html: ^0.15.1
   mongo_dart: ^0.7.4+1
+  reflect_buddy: ^1.0.0
   dio: ^4.0.0
   dio_cache_interceptor: ^3.0.3
   dio_cache_interceptor_file_store: ^1.0.0

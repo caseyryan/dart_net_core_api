@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
-import 'package:dart_net_core_api/annotations/json_annotations.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/argument_value_type_converter.dart';
@@ -14,49 +12,12 @@ import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/server_utils/body_reader.dart';
 
 part 'controller_type_reflector.dart';
-part 'json_object_reflector.dart';
-part 'json_type_reflector.dart';
 
-final ClassMirror _baseApiControllerMirror = reflectClass(
+
+final ClassMirror _baseApiControllerMirror = reflectType(
   ApiController,
-);
+) as ClassMirror;
 
-extension JsonTypeExtension on Type {
-  Object? fromJson(dynamic value) {
-    if (value is Map) {
-      final jsonReflector = JsonTypeReflector(this);
-      return jsonReflector.instanceFromJson(value);
-    }
-    return value;
-  }
-}
-
-extension JsonObjectExtension on Object {
-  dynamic toJson({
-    KeyNameConverter? keyNameConverter,
-  }) {
-    if (_isPrimitiveType(runtimeType)) {
-      return this;
-    }
-    final reflector = JsonObjectReflector(
-      object: this,
-      keyNameConverter: keyNameConverter,
-    );
-
-    return reflector.toJson();
-  }
-
-  dynamic toJsonString({
-    KeyNameConverter? keyNameConverter,
-  }) {
-    final value = toJson(keyNameConverter: keyNameConverter);
-    if (value is Map) {
-      return jsonEncode(value);
-    }
-    return this;
-  }
-
-}
 
 extension ClassMirrorExtension on ClassMirror {
   List<MethodMirror> getConstructors() {
@@ -138,7 +99,7 @@ class SimpleTypeReflector {
   // }
 
   SimpleTypeReflector(Type fromType) {
-    _classMirror = reflectClass(fromType);
+    _classMirror = reflectType(fromType) as ClassMirror;
     isPrimitive = _isPrimitiveType(fromType);
     isApiController = _classMirror.isSubclassOf(
       _baseApiControllerMirror,
