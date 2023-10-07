@@ -18,7 +18,6 @@ class JwtAuth extends Authorization {
 
   @override
   Future authorize(HttpContext context) async {
-    print(context);
     // await Future.delayed(const Duration(milliseconds: 1000));
     if (roles.contains('user')) {
       throw ApiException(

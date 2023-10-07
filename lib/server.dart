@@ -4,56 +4,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
+import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
 import 'package:uuid/uuid.dart';
 
+import 'utils/server_utils/config/base_config.dart';
+
 part 'api_controller.dart';
-part 'server_extensions/service.dart';
+part 'services/service.dart';
+part 'utils/server_utils/environment_reader.dart';
+part 'utils/server_utils/parts/http_context.dart';
+part 'utils/server_utils/parts/http_request_extension.dart';
 
-class HttpContext {
-  final String path;
-  final String method;
-  final String traceId;
-  final HttpRequest httpRequest;
-  final ServiceLocator serviceLocator;
 
-  HttpContext({
-    required this.path,
-    required this.method,
-    required this.httpRequest,
-    required this.serviceLocator,
-    required this.traceId,
-  }) {
-    if (httpRequest.contentLength > 0) {}
-  }
 
-  String get language {
-    return headers.acceptLanguage ?? 'en-US';
-  }
 
-  HttpHeaders get headers {
-    return httpRequest.headers;
-  }
-
-  bool get shouldSerializeToJson {
-    return headers.contentType?.primaryType == ContentType.json.primaryType &&
-        headers.contentType?.subType == ContentType.json.subType;
-  }
-}
-
-extension HttpRequestExtension on HttpHeaders {
-  String? get authorization {
-    return value('authorization');
-  }
-
-  String? get acceptLanguage {
-    return value('accept-language');
-  }
-}
 
 typedef ExceptionHandler = Object? Function({
   required String traceId,
@@ -77,6 +47,14 @@ class Server {
   HttpServer? _httpServer;
   HttpServer? _httpsServer;
 
+  /// [arguments] a list of arguments from main method
+  /// e.g.
+  /// [
+  //     "--configPath",
+  //     "config.dev.json",
+  //     "--env",
+  //     "dev"
+  // ]
   /// [baseApiPath] this path will be prepended to
   /// all controllers by default. But if you need a custom
   /// default path for a particular controller you can override this
@@ -108,10 +86,15 @@ class Server {
   /// [custom500Handler] if you want to process default 500 error
   /// on your own, just pass this handler
   ///
+  /// [configType] is the type of your config. Basically it's just for the 
+  /// purpose of a having a typed configuration. You can write your own class
+  /// it will be deserialized using reflection
+  ///
   /// [dateParser] a tool to convert string dates from params to a DateTime
   /// the default parser uses [DateTime.tryParse] but you can implement your own
   /// parser for any types of date representation
   Server({
+    required List<String>? arguments,
     this.baseApiPath = '/api/v1',
     this.httpPort = 8084,
     this.httpsPort = 8085,
@@ -122,6 +105,7 @@ class Server {
     SecurityContext? securityContext,
     this.custom500Handler,
     this.custom404Handler,
+    Type configType = BaseConfig,
     this.jsonSerializer = const DefaultJsonSerializer(
       null,
     ),
@@ -150,6 +134,19 @@ class Server {
         _registerController(ct);
       }
     }
+    if (arguments?.isNotEmpty == true) {
+      final argParser = ArgParser();
+      argParser.addOption('configPath');
+      argParser.addOption('env');
+      _argResults = argParser.parse(arguments!);
+    }
+
+    /// supports dev / prod / stage. By default it will be prod
+    _environment = _readEnvironment(_argResults!['env']);
+    _configParser = ConfigParser(
+      configPath: _argResults!['configPath'],
+      configType: configType,
+    );
 
     _bindServer(
       useHttp: useHttp,
@@ -161,6 +158,15 @@ class Server {
     );
   }
 
+  String get environment {
+    return _environment;
+  }
+
+  late ConfigParser _configParser;
+  late String _environment;
+
+  /// If you pass launch arguments here, it will contain parsed parameters
+  ArgResults? _argResults;
   final Map<Type, LazyServiceInitializer> _lazyServiceInitializer = {};
   final Map<Type, IService> _singletonServices = {};
 
@@ -180,7 +186,9 @@ class Server {
 
   IService? tryFindServiceByType(Type serviceType) {
     if (_lazyServiceInitializer.containsKey(serviceType)) {
-      return _lazyServiceInitializer[serviceType]!();
+      final newServiceInstance = _lazyServiceInitializer[serviceType]!();
+      _lazyServiceInitializer.remove(serviceType);
+      _singletonServices[serviceType] = newServiceInstance;
     }
     return _singletonServices[serviceType];
   }
@@ -250,9 +258,12 @@ class Server {
     }
   }
 
-  void _logError(String tag, dynamic data) {
+  void _logError(
+    String tag,
+    dynamic error,
+  ) {
     /// TODO: добавить логгер
-    print('[$tag] ${data.toString()}');
+    print('[$tag] ${error.toString()}');
   }
 
   Future _onRequestError({
@@ -281,7 +292,6 @@ class Server {
           'stackTrace': s.toString(),
         });
         message = 'Something went wrong';
-        _logError(tagError, e);
       }
 
       handler(
@@ -334,9 +344,10 @@ class Server {
       path: path,
       serviceLocator: tryFindServiceByType,
       traceId: traceId,
-    );
-    for (var controller in _registeredControllers) {
-      final endpointMappers = controller.tryFindEndpointMappers(
+    ).._environment = environment
+    .._configParser = _configParser;
+    for (final controllerTypeReflection in _registeredControllers) {
+      final endpointMappers = controllerTypeReflection.tryFindEndpointMappers(
         path: path,
         method: method,
       );
@@ -345,7 +356,6 @@ class Server {
         endpointMapper = endpointMappers.firstWhereOrNull(
           (e) => e.restMethodName == method,
         );
-        print(endpointMapper);
         break;
       }
     }
@@ -416,6 +426,15 @@ class Server {
           ),
         );
       } finally {
+        try {
+          endpointMapper.controllerTypeReflection.instance?.dispose();
+        } catch (e, s) {
+          _logError(tagError, {
+            'traceId': traceId,
+            'error': e.toString(),
+            'stackTrace': s.toString(),
+          });
+        }
         request.response.close();
       }
     }

@@ -1,0 +1,9 @@
+{
+    "jwtConfig": {
+        "hmacKey": "AgkuiefUiljljrge789837452687fewfwdTT",
+        "refreshTokenHmac": "3201iefUiljljrge789837452rg7fewfWWwr",
+        "issuer": "https://localhost",
+        "bearerLifeSeconds": 86400,
+        "refreshLifeSeconds": 2592000
+    }
+}

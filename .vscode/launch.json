@@ -6,6 +6,12 @@
             "request": "launch",
             "type": "dart",
             "program": "bin/examples/users/main.dart",
+            "args": [
+                "--configPath",
+                "config.dev.json",
+                "--env",
+                "dev"
+            ]
         },
     ],
     "compounds": []

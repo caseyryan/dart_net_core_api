@@ -8,7 +8,7 @@ import 'package:reflect_buddy/reflect_buddy.dart';
 /// control the values before they are assigned
 /// during a deserialization process. You can implement your
 /// own validators extending [JsonValueValidator] class
-@CamelToSnake()
+// @CamelToSnake()
 class User {
   /// Notice this is a private field but it won't
   /// be serialized / deserialized unless it has

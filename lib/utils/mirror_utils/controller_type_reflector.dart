@@ -85,6 +85,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     }
   }
 
+  ApiController? _instance;
+  ApiController? get instance => _instance;
+
   Method get _constructor {
     return constructors.first;
   }
@@ -110,14 +113,14 @@ class ControllerTypeReflector extends SimpleTypeReflector {
       }
     }
 
-    final instance = _classMirror
+    _instance = _classMirror
         .newInstance(
           Symbol.empty,
           positionalArgs,
           namedArguments,
         )
         .reflectee;
-    return reflect(instance);
+    return reflect(_instance);
   }
 
   List<EndpointMapper> tryFindEndpointMappers({

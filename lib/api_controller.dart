@@ -16,4 +16,8 @@ abstract class ApiController {
   HttpHeaders get headers {
     return httpContext.headers;
   }
+
+  /// This method is always called after the response if 
+  /// finished. You can override it if you need to clean up some resources
+  void dispose() { }
 }

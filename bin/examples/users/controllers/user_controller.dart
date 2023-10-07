@@ -1,4 +1,5 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/server.dart';
 
 import '../models/user.dart';
@@ -11,6 +12,7 @@ import '../services/user_service.dart';
 /// if you don't specify it here, the baseApiPath from [Server] will be
 /// used instead
 @BaseApiPath('/api/v2')
+@JwtAuth()
 class UserController extends ApiController {
   /// Notice [userService] is a dependency injection here
   /// If you specify a service in a constructor it will automatically
@@ -57,5 +59,12 @@ class UserController extends ApiController {
   ) async {
     await userService.insertUser(user);
     return user;
+  }
+
+  /// You can use [dispose] to clean up 
+  /// some resources if necessary
+  @override
+  void dispose() {
+    print('controller disposed $this');
   }
 }
