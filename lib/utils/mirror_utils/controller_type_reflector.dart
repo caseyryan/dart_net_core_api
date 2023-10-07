@@ -22,7 +22,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
   ControllerTypeReflector(
     this.controllerType,
 
-    /// [baseApiPath] which is provided in a [Server] constructor.
+    /// [baseApiPath] which is provided in a [_Server] constructor.
     /// If you add BaseApiPath annotation to a controller, it will override the
     /// [baseApiPath] for that controller
     String baseApiPath,
@@ -175,7 +175,7 @@ class EndpointMapper {
 
   FutureOr<Object?> tryCallEndpoint({
     required String path,
-    required Server server,
+    required IServer server,
     required HttpContext context,
   }) async {
     final InstanceMirror controllerMirror =
@@ -220,7 +220,7 @@ class EndpointMapper {
       Object? value;
       if (param.isBodyParam) {
         if (body is Map) {
-          value = server.jsonSerializer?.fromJson(
+          value = server.settings.jsonSerializer?.fromJson(
                 body,
                 param.reflectedType,
               ) ??
@@ -243,7 +243,7 @@ class EndpointMapper {
         value = tryConvertQueryArgumentType(
           actual: argument?.value,
           expectedType: param.reflectedType,
-          dateParser: server.dateParser,
+          dateParser: server.settings.dateParser,
         );
       }
       if (param.isPositional) {

@@ -6,10 +6,10 @@ import '../models/user.dart';
 import '../services/user_service.dart';
 
 /// Even though baseApiPath '/api/v1' was
-/// specified at [Server] initialization
+/// specified at [_Server] initialization
 /// [BaseApiPath] will override that value for this constructor
 /// This is done here for demonstration purposes and is not obligatory
-/// if you don't specify it here, the baseApiPath from [Server] will be
+/// if you don't specify it here, the baseApiPath from [_Server] will be
 /// used instead
 @BaseApiPath('/api/v2')
 @JwtAuth()
@@ -19,7 +19,7 @@ class UserController extends ApiController {
   /// be injected when the controller is instantiated
   /// you don't have to do it manually.
   /// In current scenario the service was initialized
-  /// in [Server] constructor
+  /// in [_Server] constructor
   /// Server(
   ///   apiControllers: [
   ///     UserController,

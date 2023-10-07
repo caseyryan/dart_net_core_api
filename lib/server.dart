@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
@@ -13,17 +14,14 @@ import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart'
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
 import 'package:uuid/uuid.dart';
 
-import 'utils/server_utils/config/base_config.dart';
+import 'utils/server_utils/config/config.dart';
 
 part 'api_controller.dart';
 part 'services/service.dart';
 part 'utils/server_utils/environment_reader.dart';
 part 'utils/server_utils/parts/http_context.dart';
 part 'utils/server_utils/parts/http_request_extension.dart';
-
-
-
-
+part 'utils/server_utils/parts/server_settings.dart';
 
 typedef ExceptionHandler = Object? Function({
   required String traceId,
@@ -32,129 +30,106 @@ typedef ExceptionHandler = Object? Function({
   required HttpRequest request,
 });
 
-class Server {
-  static const String tagError = 'ERROR';
+abstract class IServer {
+  const IServer(this.settings);
 
-  final int httpPort;
-  final int httpsPort;
-  final String baseApiPath;
-  final String ipV4Address;
-  final DateParser dateParser;
-  final ExceptionHandler? custom500Handler;
-  final ExceptionHandler? custom404Handler;
-  final JsonSerializer? jsonSerializer;
+  final ServerSettings settings;
+
+  void updateControllerContext({
+    required ApiController? controller,
+    required HttpContext context,
+  });
+
+  IService? tryFindServiceByType(Type serviceType);
+}
+
+Future _runServerInIsolate(
+  ServerSettings settings,
+  int instanceNumber,
+) async {
+  final receivePort = ReceivePort(
+    'isolate_$instanceNumber',
+  );
+  final isolate = await Isolate.spawn(
+    (Object? message) {
+      _Server(
+        settings,
+        instanceNumber,
+      );
+    },
+    settings,
+    errorsAreFatal: false,
+  );
+  isolate.addOnExitListener(receivePort.sendPort);
+}
+
+class Server {
+
+  /// [numInstances] the number of isolates you want to spawn 
+  /// for your server instances. 2 by default
+  Server({
+    int numInstances = 2,
+    required ServerSettings settings,
+  }) {
+    for (var i = 0; i < numInstances; i++) {
+      _runServerInIsolate(settings, i);
+    }
+  }
+}
+
+class _Server extends IServer {
+  static const String tagError = 'ERROR';
 
   HttpServer? _httpServer;
   HttpServer? _httpsServer;
 
-  /// [arguments] a list of arguments from main method
-  /// e.g.
-  /// [
-  //     "--configPath",
-  //     "config.dev.json",
-  //     "--env",
-  //     "dev"
-  // ]
-  /// [baseApiPath] this path will be prepended to
-  /// all controllers by default. But if you need a custom
-  /// default path for a particular controller you can override this
-  /// by adding a @BaseApiPath annotation to that controller's
-  /// constructor. E.g
-  ///  @BaseApiPath('/api/v2')
-  ///  UserController() {}
-  /// and your controller will use a custom path
-  ///
-  /// [jsonSerializer] is used to serialize endpoint responses
-  /// if the Content-Type header is application/json
-  /// you can simply return an instance of a class e.g. User
-  /// and it will automatically be serialized to json
-  /// NOTICE: If you don't need your responses to be serialized automatically
-  /// just set [jsonSerializer] to null
-  ///
-  /// [apiControllers] the list of controller types.
-  /// It can be null or empty but if you also don't add
-  /// standalone endpoints then this will mean the server is
-  /// basically useless because there is no endpoint to call
-  ///
-  /// [lazyServiceInitializer] an initializer that will create a service
-  /// instance only on demand
-  ///
-  /// [singletonServices] a list of services that will be stored as
-  /// singletons in this server instance. Notice that an separate instance will
-  /// be created for each isolate
-  ///
-  /// [custom500Handler] if you want to process default 500 error
-  /// on your own, just pass this handler
-  ///
-  /// [configType] is the type of your config. Basically it's just for the 
-  /// purpose of a having a typed configuration. You can write your own class
-  /// it will be deserialized using reflection
-  ///
-  /// [dateParser] a tool to convert string dates from params to a DateTime
-  /// the default parser uses [DateTime.tryParse] but you can implement your own
-  /// parser for any types of date representation
-  Server({
-    required List<String>? arguments,
-    this.baseApiPath = '/api/v1',
-    this.httpPort = 8084,
-    this.httpsPort = 8085,
-    this.ipV4Address = '0.0.0.0',
-    bool useHttp = true,
-    bool useHttps = false,
-    List<Type>? apiControllers,
-    SecurityContext? securityContext,
-    this.custom500Handler,
-    this.custom404Handler,
-    Type configType = BaseConfig,
-    this.jsonSerializer = const DefaultJsonSerializer(
-      null,
-    ),
-    Map<Type, LazyServiceInitializer>? lazyServiceInitializer,
-    List<IService>? singletonServices,
-    this.dateParser = defaultDateParser,
-  }) {
+  _Server(
+    super.settings,
+    int instanceNumber,
+  ) {
     assert(
-      useHttp == true || useHttps == true,
+      settings.useHttp == true || settings.useHttps == true,
       'You must use at least one protocol',
     );
 
-    if (singletonServices?.isNotEmpty == true) {
-      for (var s in singletonServices!) {
+    if (settings.singletonServices?.isNotEmpty == true) {
+      for (var s in settings.singletonServices!) {
         if (_singletonServices.containsKey(s.runtimeType)) {
           throw 'You have already instantiated ${s.runtimeType}';
         }
         _singletonServices[s.runtimeType] = s;
       }
     }
-    if (lazyServiceInitializer?.isNotEmpty == true) {
-      _lazyServiceInitializer.addAll(lazyServiceInitializer!);
+    if (settings.lazyServiceInitializer?.isNotEmpty == true) {
+      _lazyServiceInitializer.addAll(settings.lazyServiceInitializer!);
     }
-    if (apiControllers?.isNotEmpty == true) {
-      for (var ct in apiControllers!) {
+    if (settings.apiControllers?.isNotEmpty == true) {
+      for (var ct in settings.apiControllers!) {
         _registerController(ct);
       }
     }
-    if (arguments?.isNotEmpty == true) {
+    if (settings.arguments?.isNotEmpty == true) {
       final argParser = ArgParser();
       argParser.addOption('configPath');
       argParser.addOption('env');
-      _argResults = argParser.parse(arguments!);
+      _argResults = argParser.parse(settings.arguments!);
     }
 
     /// supports dev / prod / stage. By default it will be prod
     _environment = _readEnvironment(_argResults!['env']);
     _configParser = ConfigParser(
       configPath: _argResults!['configPath'],
-      configType: configType,
+      configType: settings.configType,
     );
 
     _bindServer(
-      useHttp: useHttp,
-      useHttps: useHttps,
-      ipV4Address: ipV4Address,
-      httpPort: httpPort,
-      httpsPort: httpsPort,
-      securityContext: securityContext ?? SecurityContext(),
+      useHttp: settings.useHttp,
+      useHttps: settings.useHttps,
+      ipV4Address: settings.ipV4Address,
+      httpPort: settings.httpPort,
+      httpsPort: settings.httpsPort,
+      securityContext: settings.securityContext ?? SecurityContext(),
+      instanceNumber: instanceNumber,
     );
   }
 
@@ -184,6 +159,7 @@ class Server {
     _lazyServiceInitializer[T] = initializer;
   }
 
+  @override
   IService? tryFindServiceByType(Type serviceType) {
     if (_lazyServiceInitializer.containsKey(serviceType)) {
       final newServiceInstance = _lazyServiceInitializer[serviceType]!();
@@ -193,11 +169,19 @@ class Server {
     return _singletonServices[serviceType];
   }
 
+  @override
   void updateControllerContext({
     required ApiController? controller,
     required HttpContext context,
   }) {
     controller?._httpContext = context;
+  }
+
+  void _printStartMessage({
+    required String url,
+    required int instanceNumber,
+  }) {
+    print('Started API server instance ($instanceNumber) at: $url');
   }
 
   Future _bindServer({
@@ -207,20 +191,30 @@ class Server {
     required int httpPort,
     required int httpsPort,
     required SecurityContext securityContext,
+    required int instanceNumber,
   }) async {
     if (useHttp) {
-      print('STARTING DART CORE API at http://$ipV4Address:$httpPort');
+      _printStartMessage(
+        url: 'http://$ipV4Address:$httpPort',
+        instanceNumber: instanceNumber,
+      );
+
       _httpServer = await HttpServer.bind(
         ipV4Address,
         httpPort,
+        shared: true,
       );
     }
     if (useHttps) {
-      print('STARTING DART CORE API at https://$ipV4Address:$httpsPort');
+      _printStartMessage(
+        url: 'https://$ipV4Address:$httpsPort',
+        instanceNumber: instanceNumber,
+      );
       _httpsServer = await HttpServer.bindSecure(
         ipV4Address,
         httpsPort,
         securityContext,
+        shared: true,
       );
     }
     _onServerBound();
@@ -273,9 +267,9 @@ class Server {
   }) async {
     ExceptionHandler? handler;
     if (exception.statusCode == 500) {
-      handler = custom500Handler ?? _defaultErrorHandler;
+      handler = settings.custom500Handler ?? _defaultErrorHandler;
     } else if (exception.statusCode == 404) {
-      handler = custom404Handler ?? _defaultErrorHandler;
+      handler = settings.custom404Handler ?? _defaultErrorHandler;
     } else {
       handler = _defaultErrorHandler;
     }
@@ -344,8 +338,9 @@ class Server {
       path: path,
       serviceLocator: tryFindServiceByType,
       traceId: traceId,
-    ).._environment = environment
-    .._configParser = _configParser;
+    )
+      .._environment = environment
+      .._configParser = _configParser;
     for (final controllerTypeReflection in _registeredControllers) {
       final endpointMappers = controllerTypeReflection.tryFindEndpointMappers(
         path: path,
@@ -391,8 +386,8 @@ class Server {
         );
         if (result != null) {
           request.response.headers.contentType = request.headers.contentType;
-          if (context.shouldSerializeToJson && jsonSerializer != null) {
-            final converted = jsonSerializer!.tryConvertToJsonString(result);
+          if (context.shouldSerializeToJson && settings.jsonSerializer != null) {
+            final converted = settings.jsonSerializer!.tryConvertToJsonString(result);
             request.response.write(converted);
           } else {
             request.response.write(result);
@@ -446,7 +441,10 @@ class Server {
     if (_registeredControllers.any((c) => c.controllerType == type)) {
       throw 'You can\'t register the same controller more than once: $type';
     }
-    final simpleTypeReflection = ControllerTypeReflector(type, baseApiPath);
+    final simpleTypeReflection = ControllerTypeReflector(
+      type,
+      settings.baseApiPath,
+    );
     _registeredControllers.add(simpleTypeReflection);
   }
 }
