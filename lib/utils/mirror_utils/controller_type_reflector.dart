@@ -66,12 +66,8 @@ class ControllerTypeReflector extends SimpleTypeReflector {
         }
       }
       final endPointAnnotations = em._annotations.whereType<EndpointAnnotation>();
-      final authAnnotations = em._annotations.whereType<Authorization>();
       if (endPointAnnotations.length > 1) {
         throw 'An endpoint can have only one EndpointAnnotation. But $controllerType -> ${em.name}() has ${endPointAnnotations.length}';
-      }
-      if (authAnnotations.length > 1) {
-        throw 'An endpoint can have only one AuthorizationAnnotation. But $controllerType -> ${em.name}() has ${authAnnotations.length}';
       }
       final endPointAnnotation = endPointAnnotations.first;
       _endpointMappers!.add(
@@ -191,11 +187,22 @@ class EndpointMapper {
       controller: controllerMirror.reflectee,
       context: context,
     );
-    final authAnnotation =
-        instanceMethod._annotations.whereType<Authorization>().firstOrNull ??
-            controllerTypeReflection._annotations.whereType<Authorization>().firstOrNull;
-    if (authAnnotation != null) {
-      await authAnnotation.authorize(context);
+
+    /// you can combine different auth annotations. 
+    /// For example you can use one that will check some 
+    /// necessary headers and another one will check auth bearer
+    /// 
+    /// Notice: method annotations have the highest priority
+    Iterable<Authorization> authAnnotations;
+    authAnnotations = instanceMethod._annotations.whereType<Authorization>();
+    if (authAnnotations.isEmpty) {
+      authAnnotations = controllerTypeReflection._annotations.whereType<Authorization>();
+    }
+
+    if (authAnnotations.isNotEmpty) {
+      for (var auth in authAnnotations) {
+        await auth.authorize(context);
+      }
     }
 
     final incomingPathParser = IncomingPathParser(path);
