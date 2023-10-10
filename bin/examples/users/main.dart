@@ -5,6 +5,7 @@ import 'package:dart_net_core_api/utils/server_utils/config/config.dart';
 
 import 'controllers/auth_controller.dart';
 import 'controllers/user_controller.dart';
+import 'services/mongo_service.dart';
 import 'services/user_service.dart';
 
 void main(List<String> arguments) {
@@ -18,9 +19,9 @@ void main(List<String> arguments) {
         AuthController,
       ],
       configType: Config,
-      // singletonServices: [
-      //   UserService(),
-      // ],
+      singletonServices: [
+        MongoService(),
+      ],
       lazyServiceInitializer: {
         UserService: () => UserService(),
         JwtService: () => JwtService(),

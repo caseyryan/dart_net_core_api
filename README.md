@@ -8,6 +8,7 @@ ___
 
 
 - [Getting started](#getting-started)
+    - [Isolates](#isolates)
     - [Controllers](#controllers)
     - [Endpoint Annotations](#endpoint-annotations)
 

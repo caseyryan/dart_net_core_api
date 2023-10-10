@@ -5,6 +5,7 @@
         "Hmac",
         "jsonwebtoken",
         "reflectee",
+        "superinterfaces",
         "присвоениемкув"
     ]
 }

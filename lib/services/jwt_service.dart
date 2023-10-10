@@ -5,7 +5,7 @@ import 'package:reflect_buddy/reflect_buddy.dart';
 
 /// It's a basic JwtService. You can extend this class
 /// and write your own validation and generation logic if you need
-class JwtService implements IService {
+class JwtService extends Service {
   int get _issuedAt {
     return DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
   }
@@ -31,6 +31,7 @@ class JwtService implements IService {
     int? iat,
     int? exp,
   }) {
+    
     final body = <String, dynamic>{
       'iat': iat ?? _issuedAt,
       'exp': exp ??
@@ -77,4 +78,97 @@ class JwtService implements IService {
 
     return data;
   }
+
+  // Map? decodeRefreshToken(String refreshToken) {
+  //   final data = JWT
+  //       .tryVerify(
+  //         refreshToken,
+  //         SecretKey(
+  //           config.jwt.refreshTokenHmac,
+  //         ),
+  //       )
+  //       ?.payload as Map?;
+  //   if (data == null) {
+  //     throw 'Невалидный refreshToken';
+  //   }
+  //   return data;
+  // }
+
+  // Map? decodeBearerToken(String bearerToken) {
+  //   final data = JWT
+  //       .tryVerify(
+  //         bearerToken,
+  //         SecretKey(
+  //           config.jwt.hmacKey,
+  //         ),
+  //       )
+  //       ?.payload as Map?;
+  //   if (data == null) {
+  //     throw 'Невалидный Bearer';
+  //   }
+  //   return data;
+  // }
+
+  
+  // bool isRefreshTokenValid({
+  //   required String? refreshToken,
+  // }) {
+  //   if (refreshToken == null) {
+  //     return false;
+  //   }
+  //   try {
+  //     JWT.verify(
+  //       refreshToken,
+  //       SecretKey(
+  //         config.jwt.refreshTokenHmac,
+  //       ),
+  //     );
+  //     return true;
+  //   } on JWTExpiredError {
+  //     print('jwt expired');
+  //   } on JWTError catch (ex) {
+  //     print(ex.message);
+  //   } catch (e) {
+  //     return false;
+  //   }
+  //   return false;
+  // }
+
+  // bool isBearerTokenValid({
+  //   required String? bearerToken,
+  //   required String? refreshToken,
+  // }) {
+  //   if (refreshToken == null || bearerToken == null) {
+  //     return false;
+  //   }
+  //   try {
+  //     if (!isRefreshTokenValid(
+  //       refreshToken: refreshToken,
+  //     )) {
+  //       return false;
+  //     }
+  //     final refreshData = decodeRefreshToken(refreshToken);
+  //     final jwt = JWT.verify(
+  //       bearerToken,
+  //       SecretKey(
+  //         config.jwt.hmacKey,
+  //       ),
+  //     );
+  //     final payload = jwt.payload as Map;
+  //     final bearerKey = payload['key'];
+  //     final refreshKey = refreshData!['key'];
+  //     if (refreshKey != bearerKey) {
+  //       return false;
+  //     }
+  //     return true;
+  //   } on JWTExpiredError {
+  //     print('jwt expired');
+  //   } on JWTError catch (ex) {
+  //     print(ex.message);
+  //   } catch (e) {
+  //     return false;
+  //   }
+  //   return false;
+  // }
+
 }

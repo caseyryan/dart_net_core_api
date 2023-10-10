@@ -92,6 +92,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
   /// service instance to its constructor if necessary
   InstanceMirror instantiateController({
     required ServiceLocator serviceLocator,
+    required ConfigParser configParser,
   }) {
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
@@ -102,6 +103,16 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
         }
       }
+
+      /// calling a private method. This is made this way
+      /// to avoid reveling it to other instances
+      service!.callMethodRegardlessOfVisibility(
+        methodName: '_setConfigParser',
+        positionalArguments: [
+          configParser,
+        ],
+      );
+
       if (param.isNamed) {
         namedArguments[Symbol(param.name)] = service;
       } else {
@@ -177,10 +188,12 @@ class EndpointMapper {
     required String path,
     required IServer server,
     required HttpContext context,
+    required ConfigParser configParser,
   }) async {
     final InstanceMirror controllerMirror =
         controllerTypeReflection.instantiateController(
       serviceLocator: server.tryFindServiceByType,
+      configParser: configParser,
     );
 
     server.updateControllerContext(
@@ -188,10 +201,10 @@ class EndpointMapper {
       context: context,
     );
 
-    /// you can combine different auth annotations. 
-    /// For example you can use one that will check some 
+    /// you can combine different auth annotations.
+    /// For example you can use one that will check some
     /// necessary headers and another one will check auth bearer
-    /// 
+    ///
     /// Notice: method annotations have the highest priority
     Iterable<Authorization> authAnnotations;
     authAnnotations = instanceMethod._annotations.whereType<Authorization>();

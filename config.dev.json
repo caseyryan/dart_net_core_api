@@ -5,5 +5,10 @@
         "issuer": "https://localhost",
         "bearerLifeSeconds": 86400,
         "refreshLifeSeconds": 2592000
-    }
+    },
+    "mongoConfig": {
+        "connectionString": "mongodb://localhost:27017/dart_core_api_test_database",
+        "isSecure": false
+    },
+    "staticFilesRoot": "bin/examples/users/users_static"
 }

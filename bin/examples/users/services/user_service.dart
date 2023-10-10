@@ -4,7 +4,7 @@ import 'package:dart_net_core_api/server.dart';
 
 import '../models/user.dart';
 
-class UserService extends IService {
+class UserService extends Service {
   static final List<User> _usersDataBase = [
     User()
       ..age = 23

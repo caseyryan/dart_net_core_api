@@ -74,7 +74,7 @@ class ServerSettings {
   final SecurityContext? securityContext;
   final Type configType;
   final Map<Type, LazyServiceInitializer>? lazyServiceInitializer;
-  final List<IService>? singletonServices;
+  final List<Service>? singletonServices;
   final List<String>? arguments;
   final bool useHttp;
   final bool useHttps;

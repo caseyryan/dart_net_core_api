@@ -1,6 +1,7 @@
 // ignore_for_file: await_only_futures
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -40,7 +41,7 @@ abstract class IServer {
     required HttpContext context,
   });
 
-  IService? tryFindServiceByType(Type serviceType);
+  Service? tryFindServiceByType(Type serviceType);
 }
 
 Future _runServerInIsolate(
@@ -143,14 +144,14 @@ class _Server extends IServer {
   /// If you pass launch arguments here, it will contain parsed parameters
   ArgResults? _argResults;
   final Map<Type, LazyServiceInitializer> _lazyServiceInitializer = {};
-  final Map<Type, IService> _singletonServices = {};
+  final Map<Type, Service> _singletonServices = {};
 
-  void addSingletonService(covariant IService service) {
+  void addSingletonService(covariant Service service) {
     _singletonServices[service.runtimeType] = service;
   }
 
   /// Creates a service instance on demand.
-  void addServiceLazily<T extends IService>({
+  void addServiceLazily<T extends Service>({
     required LazyServiceInitializer initializer,
   }) {
     if (_lazyServiceInitializer.containsKey(T)) {
@@ -160,7 +161,7 @@ class _Server extends IServer {
   }
 
   @override
-  IService? tryFindServiceByType(Type serviceType) {
+  Service? tryFindServiceByType(Type serviceType) {
     if (_lazyServiceInitializer.containsKey(serviceType)) {
       final newServiceInstance = _lazyServiceInitializer[serviceType]!();
       _lazyServiceInitializer.remove(serviceType);
@@ -383,6 +384,7 @@ class _Server extends IServer {
           path: path,
           server: this,
           context: context,
+          configParser: _configParser,
         );
         if (result != null) {
           request.response.headers.contentType = request.headers.contentType;

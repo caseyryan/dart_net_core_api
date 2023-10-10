@@ -14,7 +14,7 @@ class HttpContext {
   bool get isProd => _environment == 'prod';
   bool get isStage => _environment == 'stage';
 
-  T? getConfig<T>() {
+  T? getConfig<T extends IConfig>() {
     return _configParser.getConfig<T>();
   }
 
