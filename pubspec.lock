@@ -357,10 +357,10 @@ packages:
     dependency: "direct main"
     description:
       name: reflect_buddy
-      sha256: "372b2d46a826f7591764a8306f370c221c61a6147022bc34e3bdf0f1cc1cdfb0"
+      sha256: f26d87b43e836335fb0b92253f4b0b43c0bc186d1c6bfd36ecd8ad76385437d3
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.6"
+    version: "1.0.8"
   sasl_scram:
     dependency: transitive
     description:

@@ -16,7 +16,7 @@ class AuthController extends ApiController {
   final JwtService jwtService;
   final UserService userService;
 
-  @HttpPost('/auth/bearer')
+  @HttpPost('/auth/signup')
   Future<TokenResponse?> authorizeByBearer(
     @FromBody() BasicAuthData authData,
   ) async {
