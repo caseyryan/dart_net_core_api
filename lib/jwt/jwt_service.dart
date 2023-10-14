@@ -31,7 +31,6 @@ class JwtService extends Service {
     int? iat,
     int? exp,
   }) {
-    
     final body = <String, dynamic>{
       'iat': iat ?? _issuedAt,
       'exp': exp ??
@@ -79,6 +78,9 @@ class JwtService extends Service {
     return data;
   }
 
+  @override
+  void onReady() {}
+
   // Map? decodeRefreshToken(String refreshToken) {
   //   final data = JWT
   //       .tryVerify(
@@ -109,7 +111,6 @@ class JwtService extends Service {
   //   return data;
   // }
 
-  
   // bool isRefreshTokenValid({
   //   required String? refreshToken,
   // }) {
@@ -170,5 +171,4 @@ class JwtService extends Service {
   //   }
   //   return false;
   // }
-
 }

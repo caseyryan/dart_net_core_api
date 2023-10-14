@@ -1,7 +1,6 @@
 // ignore_for_file: await_only_futures
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -11,14 +10,15 @@ import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
+import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
 import 'package:uuid/uuid.dart';
 
-import 'utils/server_utils/config/config.dart';
+import 'config.dart';
 
 part 'api_controller.dart';
-part 'services/service.dart';
+part 'base_services/service.dart';
 part 'utils/server_utils/environment_reader.dart';
 part 'utils/server_utils/parts/http_context.dart';
 part 'utils/server_utils/parts/http_request_extension.dart';
@@ -65,8 +65,7 @@ Future _runServerInIsolate(
 }
 
 class Server {
-
-  /// [numInstances] the number of isolates you want to spawn 
+  /// [numInstances] the number of isolates you want to spawn
   /// for your server instances. 2 by default
   Server({
     int numInstances = 2,
@@ -122,6 +121,17 @@ class _Server extends IServer {
       configPath: _argResults!['configPath'],
       configType: settings.configType,
     );
+
+    /// We need to pass configs to singleton services right here
+    /// to make them ready
+    for (var service in _singletonServices.values) {
+      service.callMethodRegardlessOfVisibility(
+        methodName: '_setConfigParser',
+        positionalArguments: [
+          _configParser,
+        ],
+      );
+    }
 
     _bindServer(
       useHttp: settings.useHttp,
@@ -182,7 +192,13 @@ class _Server extends IServer {
     required String url,
     required int instanceNumber,
   }) {
-    print('Started API server instance ($instanceNumber) at: $url');
+    if (_printDebugInfo) {
+      print('Started API server instance ($instanceNumber) at: $url');
+    }
+  }
+
+  bool get _printDebugInfo {
+    return _configParser.getConfig<Config>()?.printDebugInfo == true;
   }
 
   Future _bindServer({

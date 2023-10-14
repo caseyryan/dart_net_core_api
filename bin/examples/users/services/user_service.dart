@@ -47,4 +47,9 @@ class UserService extends Service {
     }
     _usersDataBase.add(user);
   }
+  
+  @override
+  void onReady() {
+    
+  }
 }

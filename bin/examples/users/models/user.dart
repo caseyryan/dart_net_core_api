@@ -26,12 +26,13 @@ class User {
     return _id;
   }
 
-  @JsonStringValidator(
+  @StringValidator(
     canBeNull: false,
     regExpPattern: r'[a-zA-Z]+',
   )
   String? firstName;
-  @JsonStringValidator(
+
+  @StringValidator(
     canBeNull: false,
     regExpPattern: r'[a-zA-Z]+',
   )
@@ -41,7 +42,7 @@ class User {
   /// according to the provided validator.
   /// If it goes beyond the specified values
   /// an error will be thrown
-  @JsonIntValidator(
+  @IntValidator(
     minValue: 18,
     maxValue: 120,
     canBeNull: false,

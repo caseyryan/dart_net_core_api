@@ -10,5 +10,10 @@
         "connectionString": "mongodb://localhost:27017/dart_core_api_test_database",
         "isSecure": false
     },
-    "staticFilesRoot": "bin/examples/users/users_static"
+    "staticFilesRoot": "bin/examples/users/users_static",
+    "socketConfig": {
+        "port": 3001,
+        "allowDefaultNamespace": true
+    },
+    "printDebugInfo": true
 }

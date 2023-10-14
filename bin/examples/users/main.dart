@@ -1,7 +1,8 @@
+import 'package:dart_net_core_api/base_services/socket_service.dart';
+import 'package:dart_net_core_api/config.dart';
+import 'package:dart_net_core_api/jwt/jwt_service.dart';
 import 'package:dart_net_core_api/server.dart';
-import 'package:dart_net_core_api/services/jwt_service.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
-import 'package:dart_net_core_api/utils/server_utils/config/config.dart';
 
 import 'controllers/auth_controller.dart';
 import 'controllers/user_controller.dart';
@@ -21,6 +22,11 @@ void main(List<String> arguments) {
       configType: Config,
       singletonServices: [
         MongoService(),
+        SocketService(
+          namespaces: [
+            '/notifications'
+          ],
+        ),
       ],
       lazyServiceInitializer: {
         UserService: () => UserService(),

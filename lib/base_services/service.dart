@@ -6,6 +6,7 @@ typedef ServiceLocator = Service? Function(Type serviceType);
 
 abstract class Service {
 
+
   ConfigParser? _configParser;
 
   /// WARNING! DO NOT rename this method. This is called 
@@ -13,7 +14,10 @@ abstract class Service {
   // ignore: unused_element
   void _setConfigParser(ConfigParser value) {
     _configParser = value;
+    onReady();
   }
+
+  void onReady();
 
   T? getConfig<T extends IConfig>() {
     return _configParser?.getConfig<T>();

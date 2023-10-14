@@ -6,7 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-import 'config.dart';
+import '../../../config.dart';
 
 /// You can extend this config to make a custom one
 /// or write absolutely new class if you don't need any of these
