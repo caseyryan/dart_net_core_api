@@ -1,4 +1,4 @@
-import 'package:dart_net_core_api/base_services/socket_service.dart';
+import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/database/configs/mongo_config.dart';
 import 'package:dart_net_core_api/database/configs/mysql_config.dart';
 import 'package:dart_net_core_api/database/configs/postgresql_config.dart';

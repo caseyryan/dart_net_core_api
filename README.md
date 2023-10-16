@@ -11,6 +11,8 @@ ___
     - [Isolates](#isolates)
     - [Controllers](#controllers)
     - [Endpoint Annotations](#endpoint-annotations)
+    - [Socket Connections](#socket-connections)
+    - [Cron Jobs](#cron-jobs)
 
 
 

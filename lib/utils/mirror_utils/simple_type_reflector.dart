@@ -154,6 +154,9 @@ class SimpleTypeReflector {
   T? tryGetAnnotation<T>() {
     return _annotations.firstWhereOrNull((element) => element is T) as T?;
   }
+  List<T> tryGetAnnotations<T>() {
+    return _annotations.whereType<T>().toList();
+  }
 
   Map toMap() {
     return {

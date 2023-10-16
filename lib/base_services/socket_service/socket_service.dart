@@ -1,14 +1,16 @@
+import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
 import 'package:dart_net_core_api/config.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:socket_io/socket_io.dart' as socket_io;
+
+part 'socket_client.dart';
 
 /// This is the base Socket service.
 /// Extend this class to create a custom socket server with custom logic
 class SocketService extends Service {
   SocketService({
-    this.namespaces = const [],
+    this.socketControllers = const [],
     this.connectionPort,
-    this.allowDefaultNamespace,
   });
 
   @override
@@ -17,35 +19,29 @@ class SocketService extends Service {
   }
 
   Future _createConnections() async {
-    if (namespaces.isEmpty && !_allowDefaultNamespace) {
-      throw '[$this] You must provide at least one namespace or set allowDefaultNamespace to `true`';
+    if (socketControllers.isEmpty) {
+      throw '[$this] You must provide at least one namespace';
     }
     final buffer = StringBuffer();
     io = socket_io.Server();
-    if (_allowDefaultNamespace) {
-      buffer.writeln('/');
-      io.on(
-        'connection',
-        (client) {
-          onConnection(
-            client: client,
-            namespace: '/',
-          );
-        },
-      );
-    }
-    for (var nsString in namespaces) {
-      buffer.writeln(nsString);
-      var nsp = io.of(nsString);
+    for (var namespace in socketControllers) {
+      buffer.writeln(namespace.namespace);
+      var nsp = io.of(namespace.namespace);
       nsp.on(
         'connection',
-        (client) {
-          onConnection(
-            client: client,
-            namespace: nsString,
+        (socket) {
+          onConnect(
+            socket: socket,
+            namespace: namespace,
           );
         },
       );
+      nsp.on('disconnect', (socket) {
+        onDisconnect(
+          socket: socket,
+          namespace: namespace,
+        );
+      });
     }
     await io.listen(
       _connectionPort,
@@ -56,23 +52,38 @@ class SocketService extends Service {
     }
   }
 
-  Future onConnection({
-    required client,
-    required String namespace,
+  Future onConnect({
+    required socket_io.Socket socket,
+    required SocketController namespace,
   }) async {
-    print('connection $namespace');
+    final client = SocketClient(
+      socket: socket,
+    );
+    try {
+      await namespace.tryCallAuthorization(client);
+    } catch (e) {
+      print(e);
+    }
+    print('CONNECTED A CLIENT ${namespace.namespace}. Client ID: ${client.id}');
+    // await Future.delayed(const Duration(seconds: 1));
+    // socket.emit('fromServer', "ok");
     // client.on('msg', (data) {
     //   print('data from /some => $data');
     //   client.emit('fromServer', "ok 2");
     // });
   }
 
-  bool get _allowDefaultNamespace {
-    if (allowDefaultNamespace != null) {
-      return allowDefaultNamespace!;
-    }
-    return config?.allowDefaultNamespace == true;
+  Future onDisconnect({
+    required socket_io.Socket socket,
+    required SocketController namespace,
+  }) async {
+    print('DISCONNECTED A CLIENT ${namespace.namespace}. Client ID: ${socket.id}');
+    // client.on('msg', (data) {
+    //   print('data from /some => $data');
+    //   client.emit('fromServer', "ok 2");
+    // });
   }
+
 
   int get _connectionPort {
     if (connectionPort != null) {
@@ -87,9 +98,9 @@ class SocketService extends Service {
 
   late final socket_io.Server io;
 
-  /// [namespaces] the service creates a connection for
+  /// [socketControllers] the service creates a connection for
   /// every namespace you provide
-  final List<String> namespaces;
+  final List<SocketController> socketControllers;
 
   /// [connectionPort] if you want your socket to connect
   /// on this port, just pass it here.
@@ -99,12 +110,8 @@ class SocketService extends Service {
   /// connect on port 3000 by default
   final int? connectionPort;
 
-  /// this will allow a socket server to connect
-  /// on the default namespace even if no namespace is provided
-  final bool? allowDefaultNamespace;
 }
 
 class SocketConfig implements IConfig {
   int? port;
-  bool? allowDefaultNamespace;
 }
