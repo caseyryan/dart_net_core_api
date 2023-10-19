@@ -27,6 +27,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     /// [baseApiPath] for that controller
     String baseApiPath,
   ) : super(controllerType) {
+    final isApiController = _classMirror.isSubclassOf(
+      reflectType(ApiController) as ClassMirror,
+    );
     assert(
       isApiController,
       'The provided type: $controllerType does not extend $ApiController. All api controllers must inherit from $ApiController',
@@ -41,10 +44,10 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     if (controllerAnnotations.length > 1) {
       throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
     }
-    final controllerAuthAnnotations = controllerAnnotations.whereType<Authorization>();
-    if (controllerAuthAnnotations.length > 1) {
-      throw 'A controller can\'t have more that one AuthorizationAnnotation but $controllerType has ${controllerAuthAnnotations.length}';
-    }
+    // final controllerAuthAnnotations = controllerAnnotations.whereType<Authorization>();
+    // if (controllerAuthAnnotations.length > 1) {
+    //   throw 'A controller can\'t have more that one [$Authorization] but $controllerType has ${controllerAuthAnnotations.length}';
+    // }
 
     final controllerBasePathFromAnnotation = _fixEndpointPath(
       controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '',

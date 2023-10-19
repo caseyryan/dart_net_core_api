@@ -3,6 +3,8 @@ import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
+import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/argument_value_type_converter.dart';
@@ -13,10 +15,14 @@ import 'package:dart_net_core_api/utils/server_utils/body_reader.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
 
 part 'controller_type_reflector.dart';
+part 'socket_controller_type_reflector.dart';
 
 
 final ClassMirror _baseApiControllerMirror = reflectType(
   ApiController,
+) as ClassMirror;
+final ClassMirror _baseSocketControllerMirror = reflectType(
+  SocketController,
 ) as ClassMirror;
 
 
@@ -88,7 +94,8 @@ class SimpleTypeReflector {
   late List<Method> constructors;
   late List<Method> methods;
   List<ControllerAnnotation>? _controllerAnnotations;
-  late final bool isApiController;
+  // late final bool isApiController;
+  // late final bool isSocketController;
   late final bool isPrimitive;
 
   // bool get isList {
@@ -102,9 +109,12 @@ class SimpleTypeReflector {
   SimpleTypeReflector(Type fromType) {
     _classMirror = reflectType(fromType) as ClassMirror;
     isPrimitive = _isPrimitiveType(fromType);
-    isApiController = _classMirror.isSubclassOf(
-      _baseApiControllerMirror,
-    );
+    // isApiController = _classMirror.isSubclassOf(
+    //   _baseApiControllerMirror,
+    // );
+    // isSocketController = _classMirror.isSubclassOf(
+    //   _baseSocketControllerMirror,
+    // );
     final methodMirrors =
         _classMirror.declarations.values.whereType<MethodMirror>().toList();
 

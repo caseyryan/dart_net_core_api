@@ -3,13 +3,7 @@ import 'package:dart_net_core_api/base_services/socket_service/socket_controller
 
 
 @SocketJwtAuthorization()
+@SocketNamespace(path: '/notifications')
 class NotificationSocketController extends SocketController {
-  NotificationSocketController({
-    required super.namespace,
-  });
-
-  Future onClientMessage() async {
-
-  }
-
+  NotificationSocketController();
 }

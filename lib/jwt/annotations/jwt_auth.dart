@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
+import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
+import 'package:dart_net_core_api/jwt/jwt_service.dart';
 
 import '../../annotations/controller_annotations.dart';
 import '../../server.dart';
@@ -18,10 +20,22 @@ class JwtAuth extends Authorization {
 
   @override
   Future authorize(HttpContext context) async {
-    // await Future.delayed(const Duration(milliseconds: 1000));
-    if (roles.contains('user')) {
+    if (context.authorizationHeader?.isNotEmpty != true) {
       throw ApiException(
-        message: 'Unauthorized, bitch',
+        message: 'Unauthorized',
+        traceId: context.traceId,
+        statusCode: HttpStatus.unauthorized,
+      );
+    }
+
+    final jwtService = context.getService<JwtService>();
+    final bearerData = jwtService!.decodeBearer(
+      token: context.authorizationHeader!,
+      config: context.getConfig<JwtConfig>()!,
+    );
+    if (bearerData == null) {
+      throw ApiException(
+        message: 'Unauthorized',
         traceId: context.traceId,
         statusCode: HttpStatus.unauthorized,
       );

@@ -32,6 +32,14 @@ class HttpContext {
     return headers.acceptLanguage ?? 'en-US';
   }
 
+  T? getService<T extends Service>() {
+    return serviceLocator(T) as T;
+  }
+
+  String? get authorizationHeader {
+    return headers.authorization;
+  }
+
   HttpHeaders get headers {
     return httpRequest.headers;
   }

@@ -24,9 +24,7 @@ void main(List<String> arguments) {
         MongoService(),
         SocketService(
           socketControllers: [
-            NotificationSocketController(
-              namespace: '/notifications',
-            ),
+            NotificationSocketController,
           ],
         ),
       ],

@@ -1,6 +1,10 @@
+// ignore_for_file: unused_element
+
+import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
 import 'package:dart_net_core_api/config.dart';
 import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:socket_io/socket_io.dart' as socket_io;
 
 part 'socket_client.dart';
@@ -13,6 +17,32 @@ class SocketService extends Service {
     this.connectionPort,
   });
 
+  void _instantiateControllers(
+    ServiceLocator serviceLocator,
+  ) {
+    final namespaces = <String>[];
+    for (final controllerType in socketControllers) {
+      final reflector = SocketControllerTypeReflector(controllerType);
+      final namespace = reflector.socketNamespace;
+      if (namespaces.contains(namespace)) {
+        throw '''$namespace is already used. If you want
+          to create a $SocketController with a different namespace
+          use $SocketNamespace on that controller
+          like in this example
+
+            @SocketNamespace(path: '/notifications')
+            class NotificationSocketController extends SocketController {
+              NotificationSocketController();
+            } 
+
+        ''';
+      } else {
+        namespaces.add(namespace);
+      }
+      
+    }
+  }
+
   @override
   void onReady() {
     _createConnections();
@@ -24,25 +54,25 @@ class SocketService extends Service {
     }
     final buffer = StringBuffer();
     io = socket_io.Server();
-    for (var namespace in socketControllers) {
-      buffer.writeln(namespace.namespace);
-      var nsp = io.of(namespace.namespace);
-      nsp.on(
-        'connection',
-        (socket) {
-          onConnect(
-            socket: socket,
-            namespace: namespace,
-          );
-        },
-      );
-      nsp.on('disconnect', (socket) {
-        onDisconnect(
-          socket: socket,
-          namespace: namespace,
-        );
-      });
-    }
+    // for (var namespace in socketControllers) {
+    //   buffer.writeln(namespace.namespace);
+    //   var nsp = io.of(namespace.namespace);
+    //   nsp.on(
+    //     'connection',
+    //     (socket) {
+    //       onConnect(
+    //         socket: socket,
+    //         namespace: namespace,
+    //       );
+    //     },
+    //   );
+    //   nsp.on('disconnect', (socket) {
+    //     onDisconnect(
+    //       socket: socket,
+    //       namespace: namespace,
+    //     );
+    //   });
+    // }
     await io.listen(
       _connectionPort,
     );
@@ -64,7 +94,7 @@ class SocketService extends Service {
     } catch (e) {
       print(e);
     }
-    print('CONNECTED A CLIENT ${namespace.namespace}. Client ID: ${client.id}');
+    // print('CONNECTED A CLIENT ${namespace.namespace}. Client ID: ${client.id}');
     // await Future.delayed(const Duration(seconds: 1));
     // socket.emit('fromServer', "ok");
     // client.on('msg', (data) {
@@ -77,13 +107,12 @@ class SocketService extends Service {
     required socket_io.Socket socket,
     required SocketController namespace,
   }) async {
-    print('DISCONNECTED A CLIENT ${namespace.namespace}. Client ID: ${socket.id}');
+    // print('DISCONNECTED A CLIENT ${namespace.namespace}. Client ID: ${socket.id}');
     // client.on('msg', (data) {
     //   print('data from /some => $data');
     //   client.emit('fromServer', "ok 2");
     // });
   }
-
 
   int get _connectionPort {
     if (connectionPort != null) {
@@ -98,9 +127,9 @@ class SocketService extends Service {
 
   late final socket_io.Server io;
 
-  /// [socketControllers] the service creates a connection for
-  /// every namespace you provide
-  final List<SocketController> socketControllers;
+  /// [socketControllers] Pass SocketController types here
+  /// they can also use annotation
+  final List<Type> socketControllers;
 
   /// [connectionPort] if you want your socket to connect
   /// on this port, just pass it here.
@@ -109,7 +138,6 @@ class SocketService extends Service {
   /// If it also is missing, then it will try to
   /// connect on port 3000 by default
   final int? connectionPort;
-
 }
 
 class SocketConfig implements IConfig {

@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
+import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
@@ -125,12 +126,7 @@ class _Server extends IServer {
     /// We need to pass configs to singleton services right here
     /// to make them ready
     for (var service in _singletonServices.values) {
-      service.callMethodRegardlessOfVisibility(
-        methodName: '_setConfigParser',
-        positionalArguments: [
-          _configParser,
-        ],
-      );
+      _trySetServiceDependencies(service);
     }
 
     _bindServer(
@@ -158,6 +154,30 @@ class _Server extends IServer {
 
   void addSingletonService(covariant Service service) {
     _singletonServices[service.runtimeType] = service;
+    _trySetServiceDependencies(service);
+  }
+
+  void _trySetServiceDependencies(
+    Service? service,
+  ) {
+    service?.callMethodRegardlessOfVisibility(
+      methodName: '_setConfigParser',
+      positionalArguments: [
+        _configParser,
+      ],
+    );
+
+    /// this is a special type of a built-in service
+    /// which can nest socket controllers. That's why
+    /// we need to instantiate them here
+    if (service is SocketService) {
+      service.callMethodRegardlessOfVisibility(
+        methodName: '_instantiateControllers',
+        positionalArguments: [
+          tryFindServiceByType,
+        ],
+      );
+    }
   }
 
   /// Creates a service instance on demand.
@@ -177,6 +197,9 @@ class _Server extends IServer {
       _lazyServiceInitializer.remove(serviceType);
       _singletonServices[serviceType] = newServiceInstance;
     }
+    _trySetServiceDependencies(
+      _singletonServices[serviceType],
+    );
     return _singletonServices[serviceType];
   }
 
