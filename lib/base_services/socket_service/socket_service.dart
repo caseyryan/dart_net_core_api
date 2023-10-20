@@ -17,7 +17,7 @@ class SocketService extends Service {
     this.connectionPort,
   });
 
-  void _instantiateControllers(
+  void _registerControllers(
     ServiceLocator serviceLocator,
   ) {
     final namespaces = <String>[];

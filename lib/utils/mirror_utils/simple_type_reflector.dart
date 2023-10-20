@@ -109,12 +109,6 @@ class SimpleTypeReflector {
   SimpleTypeReflector(Type fromType) {
     _classMirror = reflectType(fromType) as ClassMirror;
     isPrimitive = _isPrimitiveType(fromType);
-    // isApiController = _classMirror.isSubclassOf(
-    //   _baseApiControllerMirror,
-    // );
-    // isSocketController = _classMirror.isSubclassOf(
-    //   _baseSocketControllerMirror,
-    // );
     final methodMirrors =
         _classMirror.declarations.values.whereType<MethodMirror>().toList();
 
@@ -227,6 +221,10 @@ class MethodParameter {
   late final bool isOptional;
   late final Type type;
   late List<dynamic> _annotations;
+
+  bool isSubclassOf<T>() {
+    return reflectedType.isSubclassOf<T>();
+  }
 
   bool get isRequired {
     return !isOptional;

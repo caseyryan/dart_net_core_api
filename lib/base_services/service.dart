@@ -17,6 +17,9 @@ abstract class Service {
     onReady();
   }
 
+  /// Use this method as a starting point for your service.
+  /// When it's called you can be sure that the config is already 
+  /// attached to a service
   void onReady();
 
   T? getConfig<T extends IConfig>() {

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 part of 'simple_type_reflector.dart';
 
 class SocketControllerTypeReflector extends SimpleTypeReflector {
@@ -44,27 +46,31 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
   }) {
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
-    for (var param in _constructor.parameters) {
-      final service = serviceLocator(param.reflectedType);
-      if (service == null) {
-        if (!param.isOptional) {
-          throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
+    for (MethodParameter param in _constructor.parameters) {
+      /// Instantiating a service might require some special actions
+      /// So we check if it's a [Service] first
+      if (param.isSubclassOf<Service>()) {
+        final service = serviceLocator(param.reflectedType);
+        if (service == null) {
+          if (!param.isOptional) {
+            throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
+          }
         }
-      }
 
-      /// calling a private method. This is made this way
-      /// to avoid reveling it to other instances
-      service!.callMethodRegardlessOfVisibility(
-        methodName: '_setConfigParser',
-        positionalArguments: [
-          configParser,
-        ],
-      );
+        /// calling a private method. This is made this way
+        /// to avoid reveling it to other instances
+        service!.callMethodRegardlessOfVisibility(
+          methodName: '_setConfigParser',
+          positionalArguments: [
+            configParser,
+          ],
+        );
 
-      if (param.isNamed) {
-        namedArguments[Symbol(param.name)] = service;
-      } else {
-        positionalArgs.add(service);
+        if (param.isNamed) {
+          namedArguments[Symbol(param.name)] = service;
+        } else {
+          positionalArgs.add(service);
+        }
       }
     }
 

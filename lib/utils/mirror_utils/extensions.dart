@@ -23,6 +23,11 @@ extension TypeExtension on Type {
       return e.reflectedType == T;
     });
   }
+
+  bool isSubclassOf<T>() {
+    final classMirror = reflectType(this) as ClassMirror;
+    return classMirror.isSubclassOf(reflectType(T) as ClassMirror);
+  }
 }
 
 extension ObjectExtension on Object {

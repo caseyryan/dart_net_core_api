@@ -172,7 +172,7 @@ class _Server extends IServer {
     /// we need to instantiate them here
     if (service is SocketService) {
       service.callMethodRegardlessOfVisibility(
-        methodName: '_instantiateControllers',
+        methodName: '_registerControllers',
         positionalArguments: [
           tryFindServiceByType,
         ],

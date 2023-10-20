@@ -10,14 +10,13 @@
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 import 'dart:async';
 import 'dart:io';
+
 import 'package:logging/logging.dart';
 import 'package:socket_io/src/client.dart';
 import 'package:socket_io/src/engine/engine.dart';
 import 'package:socket_io/src/namespace.dart';
 import 'package:socket_io_common/src/parser/parser.dart';
 import 'package:stream/stream.dart';
-
-import 'namespace.dart';
 
 /// Socket.IO client source.
 /// Old settings for backwards compatibility
@@ -219,7 +218,11 @@ class Server {
   /// @param {Object} options passed to engine.io
   /// @return {Server} self
   /// @api public
-  Future<Server> attach(dynamic srv, [Map? opts]) async {
+  Future<Server> attach(
+    dynamic srv, [
+    Map? opts,
+    bool shared = true,
+  ]) async {
     if (srv is Function) {
       var msg = 'You are trying to attach socket.io to an express '
           'request handler function. Please pass a http.Server instance.';
@@ -244,16 +247,10 @@ class Server {
       _logger.fine('creating http server and binding to $srv');
       var port = srv.toInt();
       var server = StreamServer();
-      await server.start(port: port);
-//      HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((
-//          HttpServer server) {
-//        this.httpServer = server;
-////                server.listen((HttpRequest request) {
-////                    HttpResponse response = request.response;
-////                    response.statusCode = HttpStatus.NOT_FOUND;
-////                    response.close();
-////                });
-
+      await server.start(
+        port: port,
+        shared: shared,
+      );
       var completer = Completer();
       var connectPacket = {'type': CONNECT, 'nsp': '/'};
       var encodedPacket = encoder.encode(connectPacket);

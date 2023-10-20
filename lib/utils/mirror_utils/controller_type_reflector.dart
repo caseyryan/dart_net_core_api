@@ -44,10 +44,6 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     if (controllerAnnotations.length > 1) {
       throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
     }
-    // final controllerAuthAnnotations = controllerAnnotations.whereType<Authorization>();
-    // if (controllerAuthAnnotations.length > 1) {
-    //   throw 'A controller can\'t have more that one [$Authorization] but $controllerType has ${controllerAuthAnnotations.length}';
-    // }
 
     final controllerBasePathFromAnnotation = _fixEndpointPath(
       controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '',
@@ -100,26 +96,36 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
     for (var param in _constructor.parameters) {
-      final service = serviceLocator(param.reflectedType);
-      if (service == null) {
-        if (!param.isOptional) {
-          throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
+      dynamic value;
+
+      /// Instantiating a service might require some special actions
+      /// So we check if it's a [Service] first
+      if (param.isSubclassOf<Service>()) {
+        final service = serviceLocator(param.reflectedType);
+        if (service == null) {
+          if (!param.isOptional) {
+            throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
+          }
         }
-      }
+        value = service;
 
-      /// calling a private method. This is made this way
-      /// to avoid reveling it to other instances
-      service!.callMethodRegardlessOfVisibility(
-        methodName: '_setConfigParser',
-        positionalArguments: [
-          configParser,
-        ],
-      );
-
-      if (param.isNamed) {
-        namedArguments[Symbol(param.name)] = service;
+        /// calling a private method. This is made this way
+        /// to avoid reveling it to other instances
+        service!.callMethodRegardlessOfVisibility(
+          methodName: '_setConfigParser',
+          positionalArguments: [
+            configParser,
+          ],
+        );
       } else {
-        positionalArgs.add(service);
+        /// TODO: process other types
+      }
+      if (value != null) {
+        if (param.isNamed) {
+          namedArguments[Symbol(param.name)] = value;
+        } else {
+          positionalArgs.add(value);
+        }
       }
     }
 
