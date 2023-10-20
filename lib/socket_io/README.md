@@ -1,4 +1,5 @@
 This library is ported locally from this repository 
+All original licenses are saved
 https://github.com/113408/socket.io-dart
 
 :warning: **NOTE**: This fork is specifically for supporting some features of Socket.io v3. Please ensure you're in the right place before using this version.
@@ -10,7 +11,7 @@ Port of awesome JavaScript Node.js library - [Socket.io v2.0.1](https://github.c
 ## Usage
 
 ```dart
-import 'package:socket_io/socket_io.dart';
+import 'package:dart_net_core_api/socket_io/lib/socket_io.dart';
 
 main() {
     var io = new Server();

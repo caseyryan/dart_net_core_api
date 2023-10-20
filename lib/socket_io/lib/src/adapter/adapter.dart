@@ -9,9 +9,10 @@
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 import 'dart:async';
-import 'package:socket_io/src/namespace.dart';
+
+import 'package:dart_net_core_api/socket_io/lib/src/namespace.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/util/event_emitter.dart';
 import 'package:socket_io_common/src/parser/parser.dart';
-import 'package:socket_io/src/util/event_emitter.dart';
 
 abstract class Adapter {
   Map nsps = {};

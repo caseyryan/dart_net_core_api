@@ -11,10 +11,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dart_net_core_api/socket_io/lib/src/client.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/engine.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/namespace.dart';
 import 'package:logging/logging.dart';
-import 'package:socket_io/src/client.dart';
-import 'package:socket_io/src/engine/engine.dart';
-import 'package:socket_io/src/namespace.dart';
 import 'package:socket_io_common/src/parser/parser.dart';
 import 'package:stream/stream.dart';
 

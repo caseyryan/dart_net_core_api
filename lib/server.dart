@@ -160,24 +160,25 @@ class _Server extends IServer {
   void _trySetServiceDependencies(
     Service? service,
   ) {
-    service?.callMethodRegardlessOfVisibility(
+    /// this is a special type of a built-in service
+    /// which can nest socket controllers. That's why
+    /// we need to instantiate them here
+    if (service is SocketService) {
+      service.callMethodByName(
+        methodName: '_registerControllers',
+        positionalArguments: [
+          tryFindServiceByType,
+          _configParser,
+        ],
+      );
+    }
+    service?.callMethodByName(
       methodName: '_setConfigParser',
       positionalArguments: [
         _configParser,
       ],
     );
-
-    /// this is a special type of a built-in service
-    /// which can nest socket controllers. That's why
-    /// we need to instantiate them here
-    if (service is SocketService) {
-      service.callMethodRegardlessOfVisibility(
-        methodName: '_registerControllers',
-        positionalArguments: [
-          tryFindServiceByType,
-        ],
-      );
-    }
+    service?.onReady();
   }
 
   /// Creates a service instance on demand.

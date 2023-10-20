@@ -11,10 +11,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:dart_net_core_api/socket_io/lib/src/engine/connect.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/transports.dart';
 import 'package:logging/logging.dart';
-import 'package:socket_io/src/engine/connect.dart';
 import 'package:socket_io_common/src/engine/parser/parser.dart';
-import 'package:socket_io/src/engine/transport/transports.dart';
 
 class PollingTransport extends Transport {
   @override

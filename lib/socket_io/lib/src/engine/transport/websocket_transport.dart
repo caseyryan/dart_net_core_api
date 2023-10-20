@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/transports.dart';
 /// websocket_transport.dart
 ///
 /// Purpose:
@@ -12,7 +13,6 @@ import 'dart:async';
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 import 'package:logging/logging.dart';
 import 'package:socket_io_common/src/engine/parser/parser.dart';
-import 'package:socket_io/src/engine/transport/transports.dart';
 
 class WebSocketTransport extends Transport {
   static final Logger _logger =

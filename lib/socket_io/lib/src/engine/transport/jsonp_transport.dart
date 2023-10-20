@@ -9,8 +9,9 @@
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 import 'dart:convert';
-import 'package:socket_io/src/engine/connect.dart';
-import 'package:socket_io/src/engine/transport/polling_transport.dart';
+
+import 'package:dart_net_core_api/socket_io/lib/src/engine/connect.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/polling_transport.dart';
 
 class JSONPTransport extends PollingTransport {
   late String head;

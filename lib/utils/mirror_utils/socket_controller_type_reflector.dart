@@ -22,7 +22,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
     if (socketNamespaceAnnotations.length > 1) {
       throw 'A $SocketController can\'t have more than one $SocketNamespace annotation';
     } else if (socketNamespaceAnnotations.length == 1) {
-      _socketNamespace = _fixEndpointPath(socketNamespaceAnnotations.first.path);
+      _socketNamespace = socketNamespaceAnnotations.first.path.fixEndpointPath();
     }
   }
 
@@ -31,8 +31,8 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
   String _socketNamespace = '/';
   String get socketNamespace => _socketNamespace;
 
-  ApiController? _instance;
-  ApiController? get instance => _instance;
+  SocketController? _instance;
+  SocketController? get instance => _instance;
 
   Method get _constructor {
     return constructors.first;
@@ -43,6 +43,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
   InstanceMirror instantiateController({
     required ServiceLocator serviceLocator,
     required ConfigParser configParser,
+    required String namespace,
   }) {
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
@@ -59,7 +60,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
 
         /// calling a private method. This is made this way
         /// to avoid reveling it to other instances
-        service!.callMethodRegardlessOfVisibility(
+        service!.callMethodByName(
           methodName: '_setConfigParser',
           positionalArguments: [
             configParser,
@@ -81,6 +82,16 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
           namedArguments,
         )
         .reflectee;
+    /// Actual initialization of a socket controller
+    _instance!.callMethodByName(
+      methodName: '_init',
+      positionalArguments: [
+        _authAnnotations,
+        namespace,
+        serviceLocator,
+      ],
+    );
+
     return reflect(_instance);
   }
 

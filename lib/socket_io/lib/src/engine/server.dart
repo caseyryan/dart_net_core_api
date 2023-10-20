@@ -10,11 +10,12 @@
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 import 'dart:convert';
 import 'dart:io' hide Socket;
+
+import 'package:dart_net_core_api/socket_io/lib/src/engine/connect.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/engine.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/socket.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/transports.dart';
 import 'package:logging/logging.dart';
-import 'package:socket_io/src/engine/connect.dart';
-import 'package:socket_io/src/engine/engine.dart';
-import 'package:socket_io/src/engine/socket.dart';
-import 'package:socket_io/src/engine/transport/transports.dart';
 import 'package:stream/stream.dart';
 import 'package:uuid/uuid.dart';
 

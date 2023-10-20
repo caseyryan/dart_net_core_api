@@ -1,11 +1,17 @@
 // ignore_for_file: unused_element
 
+import 'dart:io';
+
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
 import 'package:dart_net_core_api/config.dart';
 import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/socket_io/lib/socket_io.dart' as socket_io;
+import 'package:dart_net_core_api/utils/extensions.dart';
+import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
-import 'package:socket_io/socket_io.dart' as socket_io;
+import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
+import 'package:socket_io_common/socket_io_common.dart';
 
 part 'socket_client.dart';
 
@@ -17,9 +23,19 @@ class SocketService extends Service {
     this.connectionPort,
   });
 
+  final Map<String, SocketController> _controllerInstances = {};
+  // ignore: unused_field
+  late ServiceLocator _serviceLocator;
+
+  SocketController? findControllerByNamespace(String namespace) {
+    return _controllerInstances[namespace.fixEndpointPath()];
+  }
+
   void _registerControllers(
     ServiceLocator serviceLocator,
+    ConfigParser configParser,
   ) {
+    _serviceLocator = serviceLocator;
     final namespaces = <String>[];
     for (final controllerType in socketControllers) {
       final reflector = SocketControllerTypeReflector(controllerType);
@@ -38,8 +54,14 @@ class SocketService extends Service {
         ''';
       } else {
         namespaces.add(namespace);
+        _controllerInstances[namespace] = reflector
+            .instantiateController(
+              serviceLocator: serviceLocator,
+              configParser: configParser,
+              namespace: namespace,
+            )
+            .reflectee as SocketController;
       }
-      
     }
   }
 
@@ -54,25 +76,25 @@ class SocketService extends Service {
     }
     final buffer = StringBuffer();
     io = socket_io.Server();
-    // for (var namespace in socketControllers) {
-    //   buffer.writeln(namespace.namespace);
-    //   var nsp = io.of(namespace.namespace);
-    //   nsp.on(
-    //     'connection',
-    //     (socket) {
-    //       onConnect(
-    //         socket: socket,
-    //         namespace: namespace,
-    //       );
-    //     },
-    //   );
-    //   nsp.on('disconnect', (socket) {
-    //     onDisconnect(
-    //       socket: socket,
-    //       namespace: namespace,
-    //     );
-    //   });
-    // }
+    for (var controller in _controllerInstances.values) {
+      buffer.writeln(controller.namespace);
+      var nsp = io.of(controller.namespace);
+      nsp.on(
+        'connection',
+        (socket) {
+          onConnect(
+            socket: socket,
+            controller: controller,
+          );
+        },
+      );
+      nsp.on('disconnect', (socket) {
+        onDisconnect(
+          socket: socket,
+          controller: controller,
+        );
+      });
+    }
     await io.listen(
       _connectionPort,
     );
@@ -82,16 +104,38 @@ class SocketService extends Service {
     }
   }
 
+  Future _tryCallAuthorization(
+    SocketClient client,
+    List<SocketAuthorization> authAnnotations,
+  ) async {
+    for (final annotation in authAnnotations) {
+      await annotation.authorize(
+        client,
+        _serviceLocator,
+      );
+    }
+  }
+
   Future onConnect({
     required socket_io.Socket socket,
-    required SocketController namespace,
+    required SocketController controller,
   }) async {
     final client = SocketClient(
       socket: socket,
     );
     try {
-      await namespace.tryCallAuthorization(client);
+      final authAnnotations = await controller.callMethodByName(
+        methodName: '_getAuthAnnotations',
+        positionalArguments: [],
+      );
+      await _tryCallAuthorization(
+        client,
+        authAnnotations,
+      );
+    } on String catch (e) {
+      client.disconnect(reason: e);
     } catch (e) {
+      /// TODO: Replace with logger
       print(e);
     }
     // print('CONNECTED A CLIENT ${namespace.namespace}. Client ID: ${client.id}');
@@ -105,7 +149,7 @@ class SocketService extends Service {
 
   Future onDisconnect({
     required socket_io.Socket socket,
-    required SocketController namespace,
+    required SocketController controller,
   }) async {
     // print('DISCONNECTED A CLIENT ${namespace.namespace}. Client ID: ${socket.id}');
     // client.on('msg', (data) {

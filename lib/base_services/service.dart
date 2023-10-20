@@ -13,8 +13,12 @@ abstract class Service {
   /// dynamically using an exact name
   // ignore: unused_element
   void _setConfigParser(ConfigParser value) {
+    if (_configParser != null) {
+      /// This check is required because this method may be called
+      /// several times but we don't want [onReady] to be called again 
+      return;
+    }
     _configParser = value;
-    onReady();
   }
 
   /// Use this method as a starting point for your service.

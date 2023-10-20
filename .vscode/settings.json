@@ -4,6 +4,10 @@
         "Bson",
         "Hmac",
         "jsonwebtoken",
+        "jumperchen",
+        "onclose",
+        "ondisconnect",
+        "Potix",
         "reflectee",
         "superinterfaces",
         "присвоениемкув"

@@ -9,13 +9,14 @@
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
 import 'dart:async';
+
+import 'package:dart_net_core_api/socket_io/lib/src/adapter/adapter.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/client.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/server.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/socket.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/util/event_emitter.dart';
 import 'package:logging/logging.dart';
-import 'package:socket_io/src/adapter/adapter.dart';
-import 'package:socket_io/src/client.dart';
 import 'package:socket_io_common/src/parser/parser.dart';
-import 'package:socket_io/src/server.dart';
-import 'package:socket_io/src/socket.dart';
-import 'package:socket_io/src/util/event_emitter.dart';
 
 /// Blacklisted events.
 

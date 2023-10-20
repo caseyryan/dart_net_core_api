@@ -8,13 +8,13 @@
 ///    17/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+import 'package:dart_net_core_api/socket_io/lib/src/engine/connect.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/jsonp_transport.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/websocket_transport.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/xhr_transport.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/util/event_emitter.dart';
 import 'package:logging/logging.dart';
-import 'package:socket_io/src/engine/connect.dart';
 import 'package:socket_io_common/src/engine/parser/parser.dart';
-import 'package:socket_io/src/engine/transport/jsonp_transport.dart';
-import 'package:socket_io/src/engine/transport/websocket_transport.dart';
-import 'package:socket_io/src/engine/transport/xhr_transport.dart';
-import 'package:socket_io/src/util/event_emitter.dart';
 
 class Transports {
   static List<String> upgradesTo(String from) {

@@ -1,22 +1,6 @@
 part of 'simple_type_reflector.dart';
 
-final _oddEndSlashRegexp = RegExp(r'[\/]+$');
-final _oddStartSlashRegexp = RegExp(r'^[\/]+');
 
-/// just removes unnecessary slashes from endpoint
-/// declaration. So you may write /api/v1/ or even
-/// /api/v1//// and it will still use the correct
-/// record /api/v1 without a trailing slash
-String _fixEndpointPath(String path) {
-  final result =
-      path.replaceAll(_oddEndSlashRegexp, '').replaceAll(_oddStartSlashRegexp, '/');
-  if (result.isNotEmpty) {
-    if (!result.startsWith('/')) {
-      return '/$result';
-    }
-  }
-  return result;
-}
 
 class ControllerTypeReflector extends SimpleTypeReflector {
   ControllerTypeReflector(
@@ -44,10 +28,8 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     if (controllerAnnotations.length > 1) {
       throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
     }
-
-    final controllerBasePathFromAnnotation = _fixEndpointPath(
-      controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '',
-    );
+    final path = controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '';
+    final controllerBasePathFromAnnotation = path.fixEndpointPath();
     if (controllerBasePathFromAnnotation.isNotEmpty) {
       basePath = controllerBasePathFromAnnotation;
     } else {
@@ -111,7 +93,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
 
         /// calling a private method. This is made this way
         /// to avoid reveling it to other instances
-        service!.callMethodRegardlessOfVisibility(
+        service!.callMethodByName(
           methodName: '_setConfigParser',
           positionalArguments: [
             configParser,

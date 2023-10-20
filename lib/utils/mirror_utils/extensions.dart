@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:mirrors';
 
 extension SymbolExtension on Symbol {
@@ -31,12 +32,13 @@ extension TypeExtension on Type {
 }
 
 extension ObjectExtension on Object {
-  /// This hack can be used to call private methods
-  void callMethodRegardlessOfVisibility({
+  /// This can be used to call even private methods
+  /// It doesn't care for a method visibility
+  FutureOr callMethodByName({
     required String methodName,
     required List<dynamic> positionalArguments,
     Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{},
-  }) {
+  }) async {
     final classMirror = _findClassContainingMethod(
       methodName: methodName,
       runtimeType: runtimeType,
@@ -48,11 +50,11 @@ extension ObjectExtension on Object {
           final name = methodMirror.simpleName.toName();
           if (name == methodName) {
             final instanceMirror = reflect(this);
-            instanceMirror.invoke(
+            return instanceMirror.invoke(
               methodMirror.simpleName,
               positionalArguments,
               namedArguments,
-            );
+            ).reflectee;
           }
         }
       }

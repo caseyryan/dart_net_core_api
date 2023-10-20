@@ -19,8 +19,9 @@ dependencies:
   mime: ^1.0.4
   dart_jsonwebtoken: ^2.12.0
   args: ^2.4.2
-  socket_io: 
-    path: ./socket_io
+  stream: ^3.0.0
+  socket_io_common: ^2.0.1
+  logging: ^1.0.0
   
 
 dev_dependencies:

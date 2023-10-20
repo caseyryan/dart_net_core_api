@@ -8,8 +8,8 @@
 ///    16/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
-import 'package:socket_io/src/engine/server.dart';
-import 'package:socket_io/src/util/event_emitter.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/server.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/util/event_emitter.dart';
 
 class Engine extends EventEmitter {
   static Engine attach(server, [Map? options]) {

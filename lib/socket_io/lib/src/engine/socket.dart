@@ -11,11 +11,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:dart_net_core_api/socket_io/lib/src/engine/connect.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/server.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/transports.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/util/event_emitter.dart';
 import 'package:logging/logging.dart';
-import 'package:socket_io/src/engine/connect.dart';
-import 'package:socket_io/src/engine/server.dart';
-import 'package:socket_io/src/engine/transport/transports.dart';
-import 'package:socket_io/src/util/event_emitter.dart';
 
 /// Client class (abstract).
 ///
@@ -311,24 +312,13 @@ class Socket extends EventEmitter {
   /// @api private
   void setupSendCallback() {
     // the message was sent successfully, execute the callback
-    var onDrain = (_) {
+    onDrain(_) {
       if (sentCallbackFn.isNotEmpty) {
         var seqFn = sentCallbackFn[0];
-        if (seqFn is Function) {
-          _logger.fine('executing send callback');
-          seqFn(transport);
-        }
-
-        /// else if (Array.isArray(seqFn)) {
-        /// _logger.fine('executing batch send callback');
-        /// for (var l = seqFn.length, i = 0; i < l; i++) {
-        /// if ('function' === typeof seqFn[i]) {
-        /// seqFn[i](self.transport);
-        /// }
-        /// }
-        ///            }
+        _logger.fine('executing send callback');
+        seqFn(transport);
       }
-    };
+    }
 
     transport.on('drain', onDrain);
 
