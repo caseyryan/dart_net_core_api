@@ -1,0 +1,35 @@
+import 'dart:async';
+
+import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
+import 'package:logging/logging.dart';
+
+/// This utility might be used to quickly log data from anywhere
+/// For example an annotation which required a const constructor.
+/// Just call log method from any where in your app
+
+Map<String, Logger> _loggers = {};
+
+Logger _getLogger(String loggerName) {
+  if (!_loggers.containsKey(loggerName)) {
+    _loggers[loggerName] = Logger(loggerName);
+  }
+  return _loggers[loggerName]!;
+}
+
+extension LogExtension on Object {
+  void logGlobal({
+    required Level level,
+    required Object error,
+    String? traceId, 
+    StackTrace? stackTrace,
+    Zone? zone,
+  }) {
+    _getLogger(toLoggerName()).log(
+      level,
+      traceId,
+      error,
+      stackTrace,
+      zone,
+    );
+  }
+}

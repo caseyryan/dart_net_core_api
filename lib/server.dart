@@ -13,7 +13,9 @@ import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
+import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
+import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
 import 'config.dart';
@@ -79,8 +81,6 @@ class Server {
 }
 
 class _Server extends IServer {
-  static const String tagError = 'ERROR';
-
   HttpServer? _httpServer;
   HttpServer? _httpsServer;
 
@@ -293,14 +293,6 @@ class _Server extends IServer {
     }
   }
 
-  void _logError(
-    String tag,
-    dynamic error,
-  ) {
-    /// TODO: добавить логгер
-    print('[$tag] ${error.toString()}');
-  }
-
   Future _onRequestError({
     required HttpRequest request,
     required String traceId,
@@ -321,11 +313,12 @@ class _Server extends IServer {
       try {
         message = exception.message;
       } catch (e, s) {
-        _logError(tagError, {
-          'traceId': traceId,
-          'error': e.toString(),
-          'stackTrace': s.toString(),
-        });
+        logGlobal(
+          level: Level.SEVERE,
+          traceId: traceId,
+          error: e,
+          stackTrace: s,
+        );
         message = 'Something went wrong';
       }
 
@@ -336,11 +329,12 @@ class _Server extends IServer {
         request: request,
       );
     } catch (e, s) {
-      _logError(tagError, {
-        'traceId': traceId,
-        'error': e.toString(),
-        'stackTrace': s.toString(),
-      });
+      logGlobal(
+        level: Level.SEVERE,
+        traceId: traceId,
+        error: e,
+        stackTrace: s,
+      );
     } finally {
       request.response.close();
     }
@@ -423,7 +417,7 @@ class _Server extends IServer {
         final result = await endpointMapper.tryCallEndpoint(
           path: path,
           server: this,
-          context: context,
+          httpContext: context,
           configParser: _configParser,
         );
         if (result != null) {
@@ -466,11 +460,12 @@ class _Server extends IServer {
         try {
           endpointMapper.controllerTypeReflection.instance?.dispose();
         } catch (e, s) {
-          _logError(tagError, {
-            'traceId': traceId,
-            'error': e.toString(),
-            'stackTrace': s.toString(),
-          });
+          logGlobal(
+            level: Level.SEVERE,
+            traceId: traceId,
+            error: e,
+            stackTrace: s,
+          );
         }
         request.response.close();
       }
@@ -483,10 +478,10 @@ class _Server extends IServer {
     if (_registeredControllers.any((c) => c.controllerType == type)) {
       throw 'You can\'t register the same controller more than once: $type';
     }
-    final simpleTypeReflection = ControllerTypeReflector(
+    final reflector = ControllerTypeReflector(
       type,
       settings.baseApiPath,
     );
-    _registeredControllers.add(simpleTypeReflection);
+    _registeredControllers.add(reflector);
   }
 }

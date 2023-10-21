@@ -32,6 +32,12 @@ extension TypeExtension on Type {
 }
 
 extension ObjectExtension on Object {
+
+  String toLoggerName() {
+    return runtimeType.toString();
+  }
+
+
   /// This can be used to call even private methods
   /// It doesn't care for a method visibility
   FutureOr callMethodByName({

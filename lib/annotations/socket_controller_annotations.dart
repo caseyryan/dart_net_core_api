@@ -35,9 +35,7 @@ class SocketJwtAuthorization extends SocketAuthorization {
     }
     final jwtService = serviceLocator(JwtService);
     if (jwtService != null) {
-      сделать LogService, который по умолчанию будет всегда добавляться, если его 
-      не добавил разработчик, и логировать все проблемы
-      print(jwtService);
+
     }
   }
 }

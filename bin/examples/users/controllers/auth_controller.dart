@@ -21,14 +21,11 @@ class AuthController extends ApiController {
     @FromBody() BasicAuthData authData,
   ) async {
     final jwtConfig = httpContext.getConfig<JwtConfig>();
-    if (jwtConfig != null) {
-      return TokenResponse(
-        bearerToken: jwtService.generateBearer(
-          config: jwtConfig,
-        ),
-        bearerExpirationDateTimeUtc: jwtConfig.bearerExpirationDateTime,
-      );
-    }
-    return null;
+    return TokenResponse(
+      bearerToken: jwtService.generateBearer(
+        config: jwtConfig!,
+      ),
+      bearerExpirationDateTimeUtc: jwtConfig.bearerExpirationDateTime,
+    );
   }
 }

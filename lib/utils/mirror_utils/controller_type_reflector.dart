@@ -178,7 +178,7 @@ class EndpointMapper {
   FutureOr<Object?> tryCallEndpoint({
     required String path,
     required IServer server,
-    required HttpContext context,
+    required HttpContext httpContext,
     required ConfigParser configParser,
   }) async {
     final InstanceMirror controllerMirror =
@@ -189,7 +189,7 @@ class EndpointMapper {
 
     server.updateControllerContext(
       controller: controllerMirror.reflectee,
-      context: context,
+      context: httpContext,
     );
 
     /// you can combine different auth annotations.
@@ -205,7 +205,7 @@ class EndpointMapper {
 
     if (authAnnotations.isNotEmpty) {
       for (var auth in authAnnotations) {
-        await auth.authorize(context);
+        await auth.authorize(httpContext);
       }
     }
 
@@ -213,8 +213,8 @@ class EndpointMapper {
     final List<dynamic> positionalArgs = [];
     final Map<Symbol, dynamic> namedArguments = {};
     final body = await tryReadRequestBody(
-      context.httpRequest,
-      context.traceId,
+      httpContext.httpRequest,
+      httpContext.traceId,
     );
 
     /// by calling these we fill all path variables in
@@ -240,7 +240,7 @@ class EndpointMapper {
           if (param.isRequired) {
             throw ApiException(
               message: 'Argument ${param.name} is required',
-              traceId: context.traceId,
+              traceId: httpContext.traceId,
             );
           }
         }

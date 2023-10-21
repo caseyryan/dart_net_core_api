@@ -10,7 +10,9 @@ import 'package:dart_net_core_api/socket_io/lib/socket_io.dart' as socket_io;
 import 'package:dart_net_core_api/utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
+import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
+import 'package:logging/logging.dart';
 import 'package:socket_io_common/socket_io_common.dart';
 
 part 'socket_client.dart';
@@ -134,17 +136,13 @@ class SocketService extends Service {
       );
     } on String catch (e) {
       client.disconnect(reason: e);
-    } catch (e) {
-      /// TODO: Replace with logger
-      print(e);
+    } catch (e, s) {
+      logGlobal(
+        level: Level.SEVERE,
+        error: e,
+        stackTrace: s,
+      );
     }
-    // print('CONNECTED A CLIENT ${namespace.namespace}. Client ID: ${client.id}');
-    // await Future.delayed(const Duration(seconds: 1));
-    // socket.emit('fromServer', "ok");
-    // client.on('msg', (data) {
-    //   print('data from /some => $data');
-    //   client.emit('fromServer', "ok 2");
-    // });
   }
 
   Future onDisconnect({

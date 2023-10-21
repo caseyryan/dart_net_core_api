@@ -8,6 +8,8 @@
 ///    22/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+// ignore_for_file: implementation_imports
+
 import 'package:dart_net_core_api/socket_io/lib/src/engine/socket.dart';
 import 'package:dart_net_core_api/socket_io/lib/src/server.dart';
 import 'package:logging/logging.dart';
