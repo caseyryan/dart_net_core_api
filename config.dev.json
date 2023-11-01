@@ -4,7 +4,10 @@
         "refreshTokenHmac": "3201iefUiljljrge789837452rg7fewfWWwr",
         "issuer": "https://localhost",
         "bearerLifeSeconds": 86400,
-        "refreshLifeSeconds": 2592000
+        "refreshLifeSeconds": 2592000,
+        "audiences": [
+            "https://localhost"
+        ]
     },
     "mongoConfig": {
         "connectionString": "mongodb://localhost:27017/dart_core_api_test_database",

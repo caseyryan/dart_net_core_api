@@ -19,7 +19,7 @@ Logger _getLogger(String loggerName) {
 extension LogExtension on Object {
   void logGlobal({
     required Level level,
-    required Object error,
+    required Object message,
     String? traceId, 
     StackTrace? stackTrace,
     Zone? zone,
@@ -27,7 +27,7 @@ extension LogExtension on Object {
     _getLogger(toLoggerName()).log(
       level,
       traceId,
-      error,
+      message,
       stackTrace,
       zone,
     );

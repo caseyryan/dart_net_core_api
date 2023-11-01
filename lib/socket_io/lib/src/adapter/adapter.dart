@@ -8,6 +8,8 @@
 ///    16/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+// ignore_for_file: implementation_imports
+
 import 'dart:async';
 
 import 'package:dart_net_core_api/socket_io/lib/src/namespace.dart';
@@ -45,8 +47,7 @@ class _MemoryStoreAdapter extends EventEmitter implements Adapter {
   late Encoder encoder;
   late Namespace nsp;
 
-  _MemoryStoreAdapter(Namespace nsp) {
-    this.nsp = nsp;
+  _MemoryStoreAdapter(this.nsp) {
     encoder = nsp.server.encoder;
   }
 

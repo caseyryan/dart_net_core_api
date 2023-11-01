@@ -8,12 +8,21 @@ class SocketClient {
   });
   final socket_io.Socket socket;
 
-  /// This will be set only for the clients 
+  /// This will be set only for the clients
   /// that require default JWT authorization
   /// To disconnect the client after its Bearer expires
   DateTime? _disconnectAfter;
 
-  /// The method is called dynamically from 
+  bool get isAuthorized {
+    if (_disconnectAfter == null) {
+      return false;
+    }
+    return DateTime.now().toUtc().isAfter(
+          _disconnectAfter!,
+        );
+  }
+
+  /// The method is called dynamically from
   /// [SocketJwtAuthorization] annotation (or other that might also need it)
   void _setDisconnectionTime(DateTime value) {
     _disconnectAfter = value;

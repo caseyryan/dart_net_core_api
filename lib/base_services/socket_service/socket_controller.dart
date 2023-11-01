@@ -19,7 +19,7 @@ abstract class SocketController {
   /// or pass the [Service] as a parameter to your controller
   /// it's up to you to choose which way is better for you
   T? getService<T extends Service>() {
-    return _serviceLocator(T) as T;
+    return _serviceLocator<T>();
   }
 
   /// This method is called dynamically. Do not remove!.

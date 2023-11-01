@@ -2,11 +2,14 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
 import 'package:dart_net_core_api/config.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/socket_io/lib/socket_io.dart' as socket_io;
+import 'package:dart_net_core_api/socket_io/lib/src/namespace.dart';
+import 'package:dart_net_core_api/socket_io/lib/src/util/event_emitter.dart';
 import 'package:dart_net_core_api/utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
@@ -28,10 +31,16 @@ class SocketService extends Service {
   final Map<String, SocketController> _controllerInstances = {};
   // ignore: unused_field
   late ServiceLocator _serviceLocator;
+  final List<Namespace> _namespaces = [];
+  bool _isConnectionReady = false;
 
   SocketController? findControllerByNamespace(String namespace) {
     return _controllerInstances[namespace.fixEndpointPath()];
   }
+
+  /// Override this method and use it as a starting point for
+  /// your custom logic
+  void onStart() {}
 
   void _registerControllers(
     ServiceLocator serviceLocator,
@@ -67,9 +76,44 @@ class SocketService extends Service {
     }
   }
 
+  /// a proxy method allowing you to subscribe to events
+  void on({
+    required String namespace,
+    required String event,
+    required EventHandler handler,
+  }) {
+    _checkIfReady();
+    final nsp = _namespaces.firstWhereOrNull((n) => n.name == namespace);
+    if (nsp != null) {
+      nsp.on(event, handler);
+    }
+  }
+
+  void off({
+    required String namespace,
+    required String event,
+    EventHandler? handler,
+  }) {
+    _checkIfReady();
+    final nsp = _namespaces.firstWhereOrNull((n) => n.name == namespace);
+    if (nsp != null) {
+      nsp.off(event, handler);
+    }
+  }
+
+  void _checkIfReady() {
+    if (!_isConnectionReady) {
+      throw '''
+      Please use `onStart()` method as an entry point for your custom logic. 
+      This method guarantees you have all of the namespaces ready''';
+    }
+  }
+
   @override
   void onReady() {
     _createConnections();
+    _isConnectionReady = true;
+    onStart();
   }
 
   Future _createConnections() async {
@@ -80,7 +124,8 @@ class SocketService extends Service {
     io = socket_io.Server();
     for (var controller in _controllerInstances.values) {
       buffer.writeln(controller.namespace);
-      var nsp = io.of(controller.namespace);
+      final nsp = io.of(controller.namespace);
+      _namespaces.add(nsp);
       nsp.on(
         'connection',
         (socket) {
@@ -101,8 +146,14 @@ class SocketService extends Service {
       _connectionPort,
     );
     if (getConfig<Config>()?.printDebugInfo == true) {
-      print('Socket connected on port: $_connectionPort');
-      print('Connection namespaces: ${buffer.toString()}');
+      logGlobal(
+        level: Level.INFO,
+        message: 'Socket connected on port: $_connectionPort',
+      );
+      logGlobal(
+        level: Level.INFO,
+        message: 'Connection namespaces: ${buffer.toString()}',
+      );
     }
   }
 
@@ -111,10 +162,16 @@ class SocketService extends Service {
     List<SocketAuthorization> authAnnotations,
   ) async {
     for (final annotation in authAnnotations) {
-      await annotation.authorize(
+      final result = await annotation.authorize(
         client,
         _serviceLocator,
       );
+      if (annotation is SocketJwtAuthorization && result is DateTime) {
+        /// in this situation, the date time is the expiration time of the token
+        /// I don't think it's the most elegant solution but I'll change it
+        /// as soon as I have ti for it
+        client._setDisconnectionTime(result);
+      }
     }
   }
 
@@ -139,7 +196,7 @@ class SocketService extends Service {
     } catch (e, s) {
       logGlobal(
         level: Level.SEVERE,
-        error: e,
+        message: e,
         stackTrace: s,
       );
     }
@@ -149,7 +206,7 @@ class SocketService extends Service {
     required socket_io.Socket socket,
     required SocketController controller,
   }) async {
-    // print('DISCONNECTED A CLIENT ${namespace.namespace}. Client ID: ${socket.id}');
+    print('DISCONNECTED A CLIENT. Client ID: ${socket.id}');
     // client.on('msg', (data) {
     //   print('data from /some => $data');
     //   client.emit('fromServer', "ok 2");

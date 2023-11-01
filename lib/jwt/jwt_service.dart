@@ -11,7 +11,7 @@ class JwtService extends Service {
   }
 
   int getBearerExpiration(int bearerLifeSeconds) {
-    return DateTime.now()
+    return DateTime.now().toUtc()
             .add(
               Duration(seconds: bearerLifeSeconds),
             )
@@ -27,6 +27,7 @@ class JwtService extends Service {
   String generateBearer({
     required JwtConfig config,
     Object? payload,
+    Audience? audience,
     JWTAlgorithm algorithm = JWTAlgorithm.HS512,
     int? iat,
     int? exp,
@@ -38,6 +39,9 @@ class JwtService extends Service {
             config.bearerLifeSeconds,
           ),
     };
+    if (audience?.isNotEmpty == true) {
+      body['aud'] = audience!.toList();
+    }
     if (payload != null) {
       final data = payload.toJson();
       body['payload'] = data;
@@ -57,6 +61,7 @@ class JwtService extends Service {
     required String token,
     required JwtConfig config,
     Type? payloadType,
+    Audience? audience,
   }) {
     final Map<String, dynamic>? data = JWT
         .tryVerify(
@@ -64,6 +69,7 @@ class JwtService extends Service {
           SecretKey(
             config.hmacKey,
           ),
+          audience: audience,
         )
         ?.payload;
     if (data == null) {

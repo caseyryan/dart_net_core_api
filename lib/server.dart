@@ -44,7 +44,7 @@ abstract class IServer {
     required HttpContext context,
   });
 
-  Service? tryFindServiceByType(Type serviceType);
+  T? tryFindServiceByType<T extends Service>([Type? serviceType]);
 }
 
 Future _runServerInIsolate(
@@ -192,16 +192,17 @@ class _Server extends IServer {
   }
 
   @override
-  Service? tryFindServiceByType(Type serviceType) {
-    if (_lazyServiceInitializer.containsKey(serviceType)) {
-      final newServiceInstance = _lazyServiceInitializer[serviceType]!();
-      _lazyServiceInitializer.remove(serviceType);
-      _singletonServices[serviceType] = newServiceInstance;
+  T? tryFindServiceByType<T extends Service>([Type? serviceType]) {
+    final type = serviceType ?? T;
+    if (_lazyServiceInitializer.containsKey(type)) {
+      final newServiceInstance = _lazyServiceInitializer[type]!();
+      _lazyServiceInitializer.remove(type);
+      _singletonServices[type] = newServiceInstance;
     }
     _trySetServiceDependencies(
-      _singletonServices[serviceType],
+      _singletonServices[type],
     );
-    return _singletonServices[serviceType];
+    return _singletonServices[type] as T?;
   }
 
   @override
@@ -316,7 +317,7 @@ class _Server extends IServer {
         logGlobal(
           level: Level.SEVERE,
           traceId: traceId,
-          error: e,
+          message: e,
           stackTrace: s,
         );
         message = 'Something went wrong';
@@ -332,7 +333,7 @@ class _Server extends IServer {
       logGlobal(
         level: Level.SEVERE,
         traceId: traceId,
-        error: e,
+        message: e,
         stackTrace: s,
       );
     } finally {
@@ -463,7 +464,7 @@ class _Server extends IServer {
           logGlobal(
             level: Level.SEVERE,
             traceId: traceId,
-            error: e,
+            message: e,
             stackTrace: s,
           );
         }
