@@ -3,6 +3,8 @@
 part of 'simple_type_reflector.dart';
 
 class SocketControllerTypeReflector extends SimpleTypeReflector {
+  late List<SocketMethod> _socketMethods;
+
   SocketControllerTypeReflector(
     this.controllerType,
   ) : super(controllerType) {
@@ -16,8 +18,16 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
     if (constructors.length > 1) {
       throw 'A $SocketController must have exactly one constructor but $controllerType has ${constructors.length}';
     }
+    
+    _socketMethods = methods
+        .where((e) => e.hasSocketMethodAnnotations)
+        .map((e) => SocketMethod(method: e))
+        .toList();
+
+    
 
     _authAnnotations = super._annotations.whereType<SocketAuthorization>().toList();
+
     final socketNamespaceAnnotations = super._annotations.whereType<SocketNamespace>();
     if (socketNamespaceAnnotations.length > 1) {
       throw 'A $SocketController can\'t have more than one $SocketNamespace annotation';
@@ -82,6 +92,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
           namedArguments,
         )
         .reflectee;
+
     /// Actual initialization of a socket controller
     _instance!.callMethodByName(
       methodName: '_init',
@@ -89,6 +100,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
         _authAnnotations,
         namespace,
         serviceLocator,
+        _socketMethods,
       ],
     );
 

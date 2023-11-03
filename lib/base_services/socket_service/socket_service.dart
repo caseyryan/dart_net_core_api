@@ -141,6 +141,17 @@ class SocketService extends Service {
           controller: controller,
         );
       });
+      if (controller.socketMethods.isNotEmpty) {
+        for (var method in controller.socketMethods) {
+          // print(method.name);
+          nsp.on(method.name, (data) {
+            _onRemoteMethodCall(
+              method,
+              data,
+            );
+          });
+        }
+      }
     }
     await io.listen(
       _connectionPort,
@@ -155,6 +166,13 @@ class SocketService extends Service {
         message: 'Connection namespaces: ${buffer.toString()}',
       );
     }
+  }
+
+  Future _onRemoteMethodCall(
+    SocketMethod method,
+    dynamic data,
+  ) async {
+    print(data);
   }
 
   Future _tryCallAuthorization(

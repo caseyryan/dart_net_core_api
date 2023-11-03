@@ -5,6 +5,7 @@
         "Hmac",
         "jsonwebtoken",
         "jumperchen",
+        "nsps",
         "onclose",
         "ondisconnect",
         "Potix",

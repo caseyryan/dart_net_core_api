@@ -8,7 +8,7 @@
 ///    16/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
-// ignore_for_file: implementation_imports
+// ignore_for_file: implementation_imports, library_private_types_in_public_api, prefer_typing_uninitialized_variables
 
 import 'dart:async';
 

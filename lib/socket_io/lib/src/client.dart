@@ -186,12 +186,12 @@ class Client {
 
   /// Handles an error.
   ///
-  /// @param {Objcet} error object
+  /// @param {Object} error object
   /// @api private
   void onerror(err) {
-    sockets.forEach((socket) {
+    for (var socket in sockets) {
       socket.onerror(err);
-    });
+    }
     onclose('client error');
   }
 
@@ -207,9 +207,9 @@ class Client {
 
     // `nsps` and `sockets` are cleaned up seamlessly
     if (sockets.isNotEmpty) {
-      List.from(sockets).forEach((socket) {
+      for (var socket in List.from(sockets)) {
         socket.onclose(reason);
-      });
+      }
       sockets.clear();
     }
     decoder.destroy(); // clean up decoder

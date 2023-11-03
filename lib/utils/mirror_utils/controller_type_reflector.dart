@@ -1,7 +1,5 @@
 part of 'simple_type_reflector.dart';
 
-
-
 class ControllerTypeReflector extends SimpleTypeReflector {
   ControllerTypeReflector(
     this.controllerType,
@@ -22,13 +20,19 @@ class ControllerTypeReflector extends SimpleTypeReflector {
       throw 'A controller must have exactly one constructor but $controllerType has ${constructors.length}';
     }
 
-    _endpointMethods ??= methods.where((e) => e.hasEndpointAnnotations).toList();
+    _endpointMethods ??= methods
+        .where((e) => e.hasEndpointAnnotations)
+        .map(
+          (e) => EndpointMethod(method: e),
+        )
+        .toList();
     final controllerAnnotations =
         super._annotations.whereType<ControllerAnnotation>().toList();
     if (controllerAnnotations.length > 1) {
       throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
     }
-    final path = controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '';
+    final path =
+        controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '';
     final controllerBasePathFromAnnotation = path.fixEndpointPath();
     if (controllerBasePathFromAnnotation.isNotEmpty) {
       basePath = controllerBasePathFromAnnotation;
@@ -36,9 +40,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
       basePath = baseApiPath;
     }
     _endpointMappers ??= [];
-    for (var em in _endpointMethods!) {
+    for (var endpointMethod in _endpointMethods!) {
       int numBodyParams = 0;
-      for (var p in em.parameters) {
+      for (var p in endpointMethod.parameters) {
         if (p._annotations.whereType<FromBody>().isNotEmpty) {
           numBodyParams++;
           if (numBodyParams > 1) {
@@ -46,14 +50,14 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           }
         }
       }
-      final endPointAnnotations = em._annotations.whereType<EndpointAnnotation>();
+      final endPointAnnotations = endpointMethod._annotations.whereType<EndpointAnnotation>();
       if (endPointAnnotations.length > 1) {
-        throw 'An endpoint can have only one EndpointAnnotation. But $controllerType -> ${em.name}() has ${endPointAnnotations.length}';
+        throw 'An endpoint can have only one EndpointAnnotation. But $controllerType -> ${endpointMethod.name}() has ${endPointAnnotations.length}';
       }
       final endPointAnnotation = endPointAnnotations.first;
       _endpointMappers!.add(
         EndpointMapper(
-          instanceMethod: em,
+          endpointMethod: endpointMethod,
           restMethodName: endPointAnnotation.method,
           fullPath: '$basePath${endPointAnnotation.path}',
           controllerTypeReflection: this,
@@ -100,7 +104,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           ],
         );
       } else {
-        /// TODO: process other types
+        /// TODO: process other types too, not only services
       }
       if (value != null) {
         if (param.isNamed) {
@@ -149,13 +153,13 @@ class ControllerTypeReflector extends SimpleTypeReflector {
 
   late final String basePath;
   final Type controllerType;
-  List<Method>? _endpointMethods;
+  List<EndpointMethod>? _endpointMethods;
   List<EndpointMapper>? _endpointMappers;
 }
 
 class EndpointMapper {
   EndpointMapper({
-    required this.instanceMethod,
+    required this.endpointMethod,
     required this.restMethodName,
     required this.fullPath,
     required this.controllerTypeReflection,
@@ -169,7 +173,7 @@ class EndpointMapper {
     ControllerTypeReflector._allMappers.add(this);
   }
 
-  final Method instanceMethod;
+  final EndpointMethod endpointMethod;
   final String restMethodName;
   final String fullPath;
   final ControllerTypeReflector controllerTypeReflection;
@@ -198,7 +202,7 @@ class EndpointMapper {
     ///
     /// Notice: method annotations have the highest priority
     Iterable<Authorization> authAnnotations;
-    authAnnotations = instanceMethod._annotations.whereType<Authorization>();
+    authAnnotations = endpointMethod._annotations.whereType<Authorization>();
     if (authAnnotations.isEmpty) {
       authAnnotations = controllerTypeReflection._annotations.whereType<Authorization>();
     }
@@ -220,7 +224,7 @@ class EndpointMapper {
     /// by calling these we fill all path variables in
     /// the incomingPathParser
     endpointPathParser.tryMatchPath(incomingPathParser);
-    for (var param in instanceMethod.parameters) {
+    for (var param in endpointMethod.parameters) {
       Object? value;
       if (param.isBodyParam) {
         if (body is Map) {
@@ -259,7 +263,7 @@ class EndpointMapper {
 
     return controllerMirror
         .invoke(
-          Symbol(instanceMethod.name),
+          Symbol(endpointMethod.name),
           positionalArgs,
           namedArguments,
         )

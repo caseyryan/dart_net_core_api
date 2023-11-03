@@ -141,10 +141,10 @@ class Socket extends EventEmitter {
   void setTransport(Transport transport) {
     var onError = this.onError;
     var onPacket = this.onPacket;
-    var flush = (_) => this.flush();
-    var onClose = (_) {
+    flush(_) => this.flush();
+    onClose(_) {
       this.onClose('transport close');
-    };
+    }
 
     this.transport = transport;
     this.transport.once('error', onError);
@@ -183,16 +183,16 @@ class Socket extends EventEmitter {
     });
 
     // we force a polling cycle to ensure a fast upgrade
-    var check = () {
+    check() {
       if ('polling' == this.transport.name && this.transport.writable == true) {
         _logger.fine('writing a noop packet to polling for fast upgrade');
         this.transport.send([
           {'type': 'noop'}
         ]);
       }
-    };
+    }
 
-    var onPacket = (packet) {
+    onPacket(packet) {
       if ('ping' == packet['type'] && 'probe' == packet['data']) {
         transport.send([
           {'type': 'pong', 'data': 'probe'}
@@ -222,24 +222,24 @@ class Socket extends EventEmitter {
         cleanupFn['cleanup']();
         transport.close();
       }
-    };
+    }
 
-    var onError = (err) {
+    onError(err) {
       _logger.fine('client did not complete upgrade - $err');
       cleanupFn['cleanup']();
       transport.close();
       transport = null;
-    };
+    }
 
-    var onTransportClose = (_) {
+    onTransportClose(_) {
       onError('transport closed');
-    };
+    }
 
-    var onClose = (_) {
+    onClose(_) {
       onError('socket closed');
-    };
+    }
 
-    var cleanup = () {
+    cleanup() {
       upgrading = false;
       checkIntervalTimer?.cancel();
       checkIntervalTimer = null;
@@ -251,7 +251,7 @@ class Socket extends EventEmitter {
       transport.off('close', onTransportClose);
       transport.off('error', onError);
       off('close', onClose);
-    };
+    }
     cleanupFn['cleanup'] = cleanup; // define it later
     transport.on('packet', onPacket);
     transport.once('close', onTransportClose);

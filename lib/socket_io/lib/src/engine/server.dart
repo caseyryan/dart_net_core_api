@@ -91,33 +91,33 @@ class Server extends Engine {
     }
 
     initialPacket = opts['initialPacket'];
-    _init();
+    // _init();
   }
 
   /// Initialize websocket server
   ///
   /// @api private
 
-  void _init() {
-//  if (this.transports.indexOf('websocket') == -1) return;
+//   void _init() {
+// //  if (this.transports.indexOf('websocket') == -1) return;
 
-//  if (this.ws) this.ws.close();
-//
-//  var wsModule;
-//  try {
-//    wsModule = require(this.wsEngine);
-//  } catch (ex) {
-//    this.wsEngine = 'ws';
-//    // keep require('ws') as separate expression for packers (browserify, etc)
-//    wsModule = require('ws');
-//  }
-//  this.ws = new wsModule.Server({
-//    noServer: true,
-//    clientTracking: false,
-//    perMessageDeflate: this.perMessageDeflate,
-//    maxPayload: this.maxHttpBufferSize
-//  });
-  }
+// //  if (this.ws) this.ws.close();
+// //
+// //  var wsModule;
+// //  try {
+// //    wsModule = require(this.wsEngine);
+// //  } catch (ex) {
+// //    this.wsEngine = 'ws';
+// //    // keep require('ws') as separate expression for packers (browserify, etc)
+// //    wsModule = require('ws');
+// //  }
+// //  this.ws = new wsModule.Server({
+// //    noServer: true,
+// //    clientTracking: false,
+// //    perMessageDeflate: this.perMessageDeflate,
+// //    maxPayload: this.maxHttpBufferSize
+// //  });
+//   }
 
   /// Returns a list of available transports for upgrade given a certain transport.
   ///

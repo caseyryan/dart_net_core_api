@@ -14,18 +14,17 @@ import 'package:dart_net_core_api/utils/incoming_path_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/server_utils/body_reader.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
+import 'package:reflect_buddy/reflect_buddy.dart';
 
 part 'controller_type_reflector.dart';
 part 'socket_controller_type_reflector.dart';
 
-
-final ClassMirror _baseApiControllerMirror = reflectType(
-  ApiController,
-) as ClassMirror;
-final ClassMirror _baseSocketControllerMirror = reflectType(
-  SocketController,
-) as ClassMirror;
-
+// final ClassMirror _baseApiControllerMirror = reflectType(
+//   ApiController,
+// ) as ClassMirror;
+// final ClassMirror _baseSocketControllerMirror = reflectType(
+//   SocketController,
+// ) as ClassMirror;
 
 extension ClassMirrorExtension on ClassMirror {
   List<MethodMirror> getConstructors() {
@@ -152,6 +151,10 @@ class SimpleTypeReflector {
     return methods.any((m) => m.hasEndpointAnnotations);
   }
 
+  bool get hasSocketMethods {
+    return methods.any((m) => m.hasSocketMethodAnnotations);
+  }
+
   bool hasAnnotationOfType<T>() {
     return _annotations.any((element) => element is T);
   }
@@ -159,6 +162,7 @@ class SimpleTypeReflector {
   T? tryGetAnnotation<T>() {
     return _annotations.firstWhereOrNull((element) => element is T) as T?;
   }
+
   List<T> tryGetAnnotations<T>() {
     return _annotations.whereType<T>().toList();
   }
@@ -175,11 +179,78 @@ class SimpleTypeReflector {
   }
 }
 
+/// Just a wrapper to simplify
+class SocketMethod extends Method {
+  SocketMethod({
+    required Method method,
+  }) : super(methodMirror: method.methodMirror);
+}
+
+class EndpointMethod extends Method {
+  EndpointMethod({
+    required Method method,
+  }) : super(methodMirror: method.methodMirror);
+}
+
 class Method {
   final MethodMirror methodMirror;
   late final List<MethodParameter> parameters;
   late List<dynamic> _annotations;
   late final String name;
+
+  /// This is the mirror of a class instance where this method is
+  /// attached
+  InstanceMirror? _instanceMirror;
+  void setInstanceMirror(InstanceMirror? mirror) {
+    _instanceMirror = mirror;
+  }
+
+  late List<MethodParameter> _positionalParams;
+  late List<MethodParameter> _namedParams;
+
+  /// This method can throw different exceptions
+  /// They must pro processed
+  dynamic call([
+    List<dynamic> positionalArguments = const [],
+    Map<String, dynamic> namedArguments = const <String, dynamic>{},
+  ]) {
+    final convertedPositionalArgs = <dynamic>[];
+    final convertedNamedArguments = <Symbol, dynamic>{};
+    for (var i = 0; i < _positionalParams.length; i++) {
+      final param = _positionalParams[i];
+      final expectedType = param.reflectedType;
+      final actualValue = positionalArguments[i];
+      if (expectedType.isPrimitive) {
+        convertedPositionalArgs.add(actualValue);
+      } else {
+        convertedPositionalArgs.add(expectedType.fromJson(actualValue));
+      }
+    }
+
+    // try {
+    for (var param in _namedParams) {
+      final Object? actualValue = namedArguments[param.name];
+      if (actualValue != null) {
+        if (actualValue.runtimeType.isPrimitive) {
+          convertedNamedArguments[Symbol(param.name)] = actualValue;
+        } else {
+          final expectedType = param.reflectedType;
+          convertedNamedArguments[Symbol(param.name)] =
+              expectedType.fromJson(actualValue);
+        }
+      }
+    }
+    return _instanceMirror!
+        .invoke(
+          methodMirror.simpleName,
+          convertedPositionalArgs,
+          convertedNamedArguments,
+        )
+        .reflectee;
+    // } catch (e) {
+    //   print(e);
+    // }
+  }
 
   Method({
     required this.methodMirror,
@@ -196,10 +267,16 @@ class Method {
           (e) => MethodParameter(parameterMirror: e),
         )
         .toList();
+    _namedParams = parameters.where((e) => e.isNamed).toList();
+    _positionalParams = parameters.where((e) => e.isPositional).toList();
   }
 
   bool get hasEndpointAnnotations {
     return _annotations.any((e) => e is EndpointAnnotation);
+  }
+
+  bool get hasSocketMethodAnnotations {
+    return _annotations.any((e) => e is RemoteMethod);
   }
 
   int get numParams {
