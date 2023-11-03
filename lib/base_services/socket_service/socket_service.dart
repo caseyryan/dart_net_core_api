@@ -173,6 +173,7 @@ class SocketService extends Service {
     dynamic data,
   ) async {
     print(data);
+    print(data.remoteMethodAnnotations);
   }
 
   Future _tryCallAuthorization(

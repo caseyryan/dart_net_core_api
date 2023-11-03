@@ -184,6 +184,15 @@ class SocketMethod extends Method {
   SocketMethod({
     required Method method,
   }) : super(methodMirror: method.methodMirror);
+
+  List<RemoteMethod>? _remoteMethodAnnotations;
+  List<RemoteMethod> get remoteMethodAnnotations {
+    if (_remoteMethodAnnotations != null) {
+      return _remoteMethodAnnotations!;
+    }
+    _remoteMethodAnnotations = _annotations.whereType<RemoteMethod>().toList();
+    return _remoteMethodAnnotations!;
+  }
 }
 
 class EndpointMethod extends Method {
