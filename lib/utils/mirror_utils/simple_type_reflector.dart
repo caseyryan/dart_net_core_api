@@ -191,6 +191,9 @@ class SocketMethod extends Method {
       return _remoteMethodAnnotations!;
     }
     _remoteMethodAnnotations = _annotations.whereType<RemoteMethod>().toList();
+    if (_remoteMethodAnnotations!.length > 1) {
+      throw 'You cannot apply more than one `$RemoteMethod` annotations on a method';
+    }
     return _remoteMethodAnnotations!;
   }
 }
