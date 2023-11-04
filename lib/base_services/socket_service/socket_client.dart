@@ -3,10 +3,37 @@
 part of 'socket_service.dart';
 
 class SocketClient {
+  final List<SocketController> _attachedControllers = [];
+
+  void attachController(SocketController controller) {
+    if (!_attachedControllers.contains(controller)) {
+      _attachedControllers.add(controller);
+    }
+  }
+
+  void _disconnectControllers() {
+    for (var controller in _attachedControllers) {
+      controller.onDisconnected();
+      controller.dispose();
+    }
+  }
+
   SocketClient({
-    required this.socket,
-  });
-  final socket_io.Socket socket;
+    required socket_io.Socket socket,
+  }) {
+    _socket = socket;
+  }
+  late socket_io.Socket _socket;
+
+  @override
+  bool operator ==(covariant SocketClient other) {
+    return other.id == id;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode;
+  }
 
   /// This will be set only for the clients
   /// that require default JWT authorization
@@ -28,7 +55,7 @@ class SocketClient {
     _disconnectAfter = value;
   }
 
-  void disconnectIfSocketExpired() {
+  void disconnectIfTokenExpired() {
     if (_disconnectAfter == null) {
       return;
     } else {
@@ -39,17 +66,17 @@ class SocketClient {
   }
 
   HttpHeaders get headers {
-    return socket.request.headers;
+    return _socket.request.headers;
   }
 
   void disconnect({
     required String reason,
   }) {
-    socket.error(reason);
-    socket.disconnect(<dynamic, dynamic>{
+    _socket.error(reason);
+    _socket.disconnect(<dynamic, dynamic>{
       'type': DISCONNECT,
     });
-    socket.onclose();
+    _socket.onclose();
   }
 
   String? get authorizationHeader {
@@ -57,6 +84,6 @@ class SocketClient {
   }
 
   String get id {
-    return socket.id;
+    return _socket.id;
   }
 }

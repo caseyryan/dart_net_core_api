@@ -8,6 +8,8 @@
 ///    17/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+// ignore_for_file: prefer_typing_uninitialized_variables, avoid_function_literals_in_foreach_calls
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -378,7 +380,7 @@ class Socket extends EventEmitter {
       _logger.fine('flushing buffer to transport');
       emit('flush', writeBuffer);
       server.emit('flush', [this, writeBuffer]);
-      var wbuf = writeBuffer;
+      var temp = writeBuffer;
       writeBuffer = [];
       if (transport.supportsFraming == false) {
         sentCallbackFn.add((_) => packetsFn.forEach((f) => f(_)));
@@ -386,7 +388,7 @@ class Socket extends EventEmitter {
         sentCallbackFn.addAll(packetsFn);
       }
       packetsFn = [];
-      transport.send(wbuf);
+      transport.send(temp);
       emit('drain');
       server.emit('drain', this);
     }

@@ -54,6 +54,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
     required ServiceLocator serviceLocator,
     required ConfigParser configParser,
     required String namespace,
+    required SocketClient client,
   }) {
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
@@ -82,6 +83,8 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
         } else {
           positionalArgs.add(service);
         }
+      } else {
+        /// TODO: also add other types of params here
       }
     }
 
@@ -101,6 +104,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
         namespace,
         serviceLocator,
         _socketMethods,
+        client,
       ],
     );
 

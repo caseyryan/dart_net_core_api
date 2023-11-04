@@ -8,18 +8,33 @@ import '../models/user.dart';
 class NotificationSocketController extends SocketController {
   NotificationSocketController();
 
-  @RemoteMethod(name: 'getProfile', responseReceiverName: 'onProfile')
-  Future<User?> getProfile(
+  @RemoteMethod(
+    name: 'getProfile',
+    responseReceiverName: 'onProfile',
+  )
+  Future<void> getProfile(
     int id,
     bool withAge, {
     String? firstName,
     required String lastName,
   }) async {
     print('CLIENT CALLED REMOTE METHOD');
-    return User()
+    final user = User()
       ..firstName = firstName
       ..lastName = lastName
       ..age = 18;
     // return null;
+  }
+
+  @override
+  void dispose() {}
+
+  @override
+  void onConnected() {
+  }
+  
+  @override
+  void onDisconnected() {
+    // TODO: implement onDisconnected
   }
 }

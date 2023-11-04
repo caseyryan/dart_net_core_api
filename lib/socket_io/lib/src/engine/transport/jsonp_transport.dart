@@ -17,10 +17,8 @@ class JSONPTransport extends PollingTransport {
   late String head;
   late String foot;
   JSONPTransport(SocketConnect connect) : super(connect) {
-    head = '___eio[' +
-        (connect.request.uri.queryParameters['j'] ?? '')
-            .replaceAll(RegExp('[^0-9]'), '') +
-        '](';
+    head = '___eio[${(connect.request.uri.queryParameters['j'] ?? '')
+            .replaceAll(RegExp('[^0-9]'), '')}](';
     foot = ');';
   }
 

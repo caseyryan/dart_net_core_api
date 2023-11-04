@@ -8,6 +8,8 @@
 ///    17/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+// ignore_for_file: implementation_imports
+
 import 'dart:async';
 
 import 'package:dart_net_core_api/socket_io/lib/src/adapter/adapter.dart';
@@ -79,9 +81,12 @@ class Namespace extends EventEmitter {
     run0(0, fns, socket, fn);
   }
 
-  //TODO: Figure out return type for this method
   static Object run0(
-      int index, List<Function> fns, Socket socket, Function fn) {
+    int index,
+    List<Function> fns,
+    Socket socket,
+    Function fn,
+  ) {
     return fns[index](socket, (err) {
       // upon error, short-circuit
       if (err) return fn(err);
@@ -93,16 +98,7 @@ class Namespace extends EventEmitter {
       return run0(index + 1, fns, socket, fn);
     });
   }
-
-  /// Targets a room when emitting.
-  ///
-  /// @param {String} name
-  /// @return {Namespace} self
-  /// @api public
-//    in(String name) {
-//        to(name);
-//    }
-
+  
   /// Targets a room when emitting.
   ///
   /// @param {String} name

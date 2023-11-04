@@ -8,6 +8,8 @@
 ///    17/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+// ignore_for_file: implementation_imports
+
 import 'package:dart_net_core_api/socket_io/lib/src/engine/connect.dart';
 import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/jsonp_transport.dart';
 import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/websocket_transport.dart';

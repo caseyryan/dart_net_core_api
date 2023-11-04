@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
+import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
+import 'package:logging/logging.dart';
 import 'package:mime/mime.dart';
 
 import 'codec_utils.dart';
@@ -135,13 +137,17 @@ class _BodyData {
             ),
           );
         } else {
-          /// The base form entry may contain a few files 
+          /// The base form entry may contain a few files
           files.add(file);
         }
       }
       return files.where((e) => e.isValid).toList();
-    } catch (e) {
-      /// TODO: add logger here
+    } catch (e, s) {
+      logGlobal(
+        level: Level.SEVERE,
+        message: e.toString(),
+        stackTrace: s,
+      );
     }
     return [];
   }

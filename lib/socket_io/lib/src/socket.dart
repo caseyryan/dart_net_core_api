@@ -8,7 +8,7 @@
 ///    22/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
-// ignore_for_file: unnecessary_type_check, implementation_imports
+// ignore_for_file: unnecessary_type_check, implementation_imports, constant_identifier_names, prefer_typing_uninitialized_variables
 
 import 'dart:io';
 

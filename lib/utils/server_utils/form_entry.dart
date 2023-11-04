@@ -208,7 +208,7 @@ class FormEntry {
         bytes: listOfByteLists,
       );
     } catch (e) {
-      /// TODO: add logger here
+      print('FormEntry -> $e');
     }
     return FormEntry(
       name: '',

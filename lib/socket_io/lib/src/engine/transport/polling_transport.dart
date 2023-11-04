@@ -8,6 +8,8 @@
 ///    22/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+// ignore_for_file: implementation_imports
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -68,14 +70,14 @@ class PollingTransport extends Transport {
 
     this.connect = connect;
 
-    var onClose = () {
+    onClose() {
       onError('poll connection closed prematurely');
-    };
+    }
 
-    var cleanup = () {
+    cleanup() {
       _reqCloses.remove(connect);
       this.connect = null;
-    };
+    }
 
     _reqCleanups[connect] = cleanup;
     _reqCloses[connect] = onClose;
@@ -112,16 +114,16 @@ class PollingTransport extends Transport {
     dynamic chunks = isBinary ? [0] : '';
     var self = this;
     StreamSubscription? subscription;
-    var cleanup = () {
+    cleanup() {
       chunks = isBinary ? [0] : '';
       if (subscription != null) {
         subscription.cancel();
       }
       self.dataReq = null;
-    };
+    }
 
-    var onData = (List<int> data) {
-      var contentLength;
+    onData(List<int> data) {
+      num contentLength;
       if (data is String) {
         chunks += data;
         contentLength = utf8.encode(chunks).length;
@@ -137,13 +139,13 @@ class PollingTransport extends Transport {
         contentLength = chunks.length;
       }
 
-      if (contentLength > self.maxHttpBufferSize) {
+      if (contentLength > self.maxHttpBufferSize!) {
         chunks = '';
         connect.close();
       }
-    };
+    }
 
-    var onEnd = () {
+    onEnd() {
       self.onData(chunks);
 
       var headers = {'Content-Type': 'text/html', 'Content-Length': 2};
@@ -161,7 +163,7 @@ class PollingTransport extends Transport {
       res.write('ok');
       connect.close();
       cleanup();
-    };
+    }
 
     subscription = connect.request.listen(onData, onDone: onEnd);
     if (!isBinary) {
@@ -181,7 +183,7 @@ class PollingTransport extends Transport {
       messageHandler!.handle(this, data);
     } else {
       var self = this;
-      var callback = (packet, [foo, bar]) {
+      callback(packet, [foo, bar]) {
         if ('close' == packet['type']) {
           _logger.fine('got xhr close packet');
           self.onClose();
@@ -190,7 +192,7 @@ class PollingTransport extends Transport {
 
         self.onPacket(packet);
         return true;
-      };
+      }
 
       var packets = PacketParser.decodePayload(data, '');
 
@@ -265,7 +267,7 @@ class PollingTransport extends Transport {
 
     final headers = <String, dynamic>{'Content-Type': contentType};
 
-    var respond = (data) {
+    respond(data) {
       headers[HttpHeaders.contentLengthHeader] =
           data is String ? utf8.encode(data).length : data.length;
       var res = self.connect!.response;
@@ -299,7 +301,7 @@ class PollingTransport extends Transport {
         }
       }
       callback();
-    };
+    }
 
     if (httpCompression == null || options['compress'] != true) {
       respond(data);
@@ -350,11 +352,11 @@ class PollingTransport extends Transport {
       dataReq = null;
     }
 
-    var onClose = () {
+    onClose() {
       if (closeTimeoutTimer != null) closeTimeoutTimer.cancel();
       if (fn != null) fn();
       self.onClose();
-    };
+    }
     if (writable == true) {
       _logger.fine('transport writable - closing right away');
       send([

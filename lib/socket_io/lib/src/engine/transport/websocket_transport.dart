@@ -1,3 +1,5 @@
+// ignore_for_file: implementation_imports, avoid_renaming_method_parameters
+
 import 'dart:async';
 
 import 'package:dart_net_core_api/socket_io/lib/src/engine/transport/transports.dart';
@@ -31,34 +33,14 @@ class WebSocketTransport extends Transport {
   }
 
   @override
-  void send(List<Map> packets) {
-    var send = (data, Map packet) {
+  void send(List<Map> data) {
+    send(data, Map packet) {
       _logger.fine('writing "$data"');
-
-      // always creates a new object since ws modifies it
-//      var opts = {};
-//      if (packet.options != null) {
-//        opts['compress'] = packet.options['compress'];
-//      }
-//
-//      if (this.perMessageDeflate != null) {
-//        var len = data is String ? UTF8.encode(data).length : data.length;
-//        if (len < this.perMessageDeflate['threshold']) {
-//          opts['compress'] = false;
-//        }
-//      }
-
-//      this.writable = false;
       connect!.websocket?.add(data);
-    };
-
-//    function onEnd (err) {
-//      if (err) return self.onError('write error', err.stack);
-//      self.writable = true;
-//      self.emit('drain');
-//    }
-    for (var i = 0; i < packets.length; i++) {
-      var packet = packets[i];
+    }
+    
+    for (var i = 0; i < data.length; i++) {
+      var packet = data[i];
       PacketParser.encodePacket(packet,
           supportsBinary: supportsBinary, callback: (_) => send(_, packet));
     }

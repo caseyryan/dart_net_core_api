@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
+import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/argument_value_type_converter.dart';
@@ -12,8 +13,10 @@ import 'package:dart_net_core_api/utils/endpoint_path_parser.dart';
 import 'package:dart_net_core_api/utils/extensions.dart';
 import 'package:dart_net_core_api/utils/incoming_path_parser.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
+import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
 import 'package:dart_net_core_api/utils/server_utils/body_reader.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
+import 'package:logging/logging.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 part 'controller_type_reflector.dart';
@@ -196,6 +199,10 @@ class SocketMethod extends Method {
     }
     return _remoteMethodAnnotations!;
   }
+
+  /// At this point we can be sure there is exactly one remote method annotations
+  /// so there cannot be a null value and there's no need to check for it
+  RemoteMethod get remoteMethod => remoteMethodAnnotations.first;
 }
 
 class EndpointMethod extends Method {
@@ -210,58 +217,58 @@ class Method {
   late List<dynamic> _annotations;
   late final String name;
 
-  /// This is the mirror of a class instance where this method is
-  /// attached
-  InstanceMirror? _instanceMirror;
-  void setInstanceMirror(InstanceMirror? mirror) {
-    _instanceMirror = mirror;
-  }
-
   late List<MethodParameter> _positionalParams;
   late List<MethodParameter> _namedParams;
 
+  /// [classInstanceMirror] is an instance mirror of the class to call
+  /// the method on
   /// This method can throw different exceptions
   /// They must pro processed
-  dynamic call([
+  dynamic call({
+    required InstanceMirror classInstanceMirror,
     List<dynamic> positionalArguments = const [],
     Map<String, dynamic> namedArguments = const <String, dynamic>{},
-  ]) {
+  }) {
     final convertedPositionalArgs = <dynamic>[];
     final convertedNamedArguments = <Symbol, dynamic>{};
-    for (var i = 0; i < _positionalParams.length; i++) {
-      final param = _positionalParams[i];
-      final expectedType = param.reflectedType;
-      final actualValue = positionalArguments[i];
-      if (expectedType.isPrimitive) {
-        convertedPositionalArgs.add(actualValue);
-      } else {
-        convertedPositionalArgs.add(expectedType.fromJson(actualValue));
-      }
-    }
-
-    // try {
-    for (var param in _namedParams) {
-      final Object? actualValue = namedArguments[param.name];
-      if (actualValue != null) {
-        if (actualValue.runtimeType.isPrimitive) {
-          convertedNamedArguments[Symbol(param.name)] = actualValue;
+    try {
+      for (var i = 0; i < _positionalParams.length; i++) {
+        final param = _positionalParams[i];
+        final expectedType = param.reflectedType;
+        final actualValue = positionalArguments[i];
+        if (expectedType.isPrimitive) {
+          convertedPositionalArgs.add(actualValue);
         } else {
-          final expectedType = param.reflectedType;
-          convertedNamedArguments[Symbol(param.name)] =
-              expectedType.fromJson(actualValue);
+          convertedPositionalArgs.add(expectedType.fromJson(actualValue));
         }
       }
+
+      for (var param in _namedParams) {
+        final Object? actualValue = namedArguments[param.name];
+        if (actualValue != null) {
+          if (actualValue.runtimeType.isPrimitive) {
+            convertedNamedArguments[Symbol(param.name)] = actualValue;
+          } else {
+            final expectedType = param.reflectedType;
+            convertedNamedArguments[Symbol(param.name)] =
+                expectedType.fromJson(actualValue);
+          }
+        }
+      }
+      return classInstanceMirror
+          .invoke(
+            methodMirror.simpleName,
+            convertedPositionalArgs,
+            convertedNamedArguments,
+          )
+          .reflectee;
+    } catch (e, s) {
+      logGlobal(
+        level: Level.SEVERE,
+        message: e.toString(),
+        stackTrace: s,
+      );
     }
-    return _instanceMirror!
-        .invoke(
-          methodMirror.simpleName,
-          convertedPositionalArgs,
-          convertedNamedArguments,
-        )
-        .reflectee;
-    // } catch (e) {
-    //   print(e);
-    // }
   }
 
   Method({
