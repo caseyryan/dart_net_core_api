@@ -16,13 +16,19 @@ import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart'
 import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
 import 'package:logging/logging.dart';
+import 'package:reflect_buddy/reflect_buddy.dart';
 import 'package:socket_io_common/socket_io_common.dart';
 
 part 'socket_client.dart';
 
 /// This is the base Socket service.
 /// Extend this class to create a custom socket server with custom logic
-class SocketService extends Service {
+///
+/// [T] if you need a custom [SocketClient] just extend [SocketClient] and
+/// pass the type here.
+///
+/// Notice: your class MUST have a default constructor without params
+class SocketService<T extends SocketClient> extends Service {
   SocketService({
     this.socketControllers = const [],
     this.connectionPort,
@@ -36,10 +42,6 @@ class SocketService extends Service {
   bool _isConnectionReady = false;
 
   final Map<String, SocketClient> _connectedClients = {};
-
-  // SocketController? findControllerByNamespace(String namespace) {
-  //   return _controllerInstances[namespace.fixEndpointPath()];
-  // }
 
   /// Override this method and use it as a starting point for
   /// your custom logic
@@ -120,6 +122,7 @@ class SocketService extends Service {
     }
     final buffer = StringBuffer();
     io = socket_io.Server();
+
     for (var controller in _controllerReflectors.entries) {
       buffer.writeln(controller.key);
       final nsp = io.of(controller.key);
@@ -134,12 +137,6 @@ class SocketService extends Service {
           );
         },
       );
-      nsp.on('disconnect', (socket) {
-        onDisconnect(
-          socket: socket,
-          controller: controller.value,
-        );
-      });
     }
     await io.listen(
       _connectionPort,
@@ -156,41 +153,32 @@ class SocketService extends Service {
     }
   }
 
-  // Future _onRemoteMethodCall(
-  //   SocketMethod method,
-  //   dynamic data,
-  // ) async {
-  //   print(data);
-  //   print(data.remoteMethodAnnotations);
-  // }
-
   Future _tryCallAuthorization(
     SocketClient client,
     List<SocketAuthorization> authAnnotations,
   ) async {
     for (final annotation in authAnnotations) {
-      final result = await annotation.authorize(
+      final bearerData = await annotation.authorize(
         client,
         _serviceLocator,
       );
-      if (annotation is SocketJwtAuthorization && result is DateTime) {
+      if (annotation is SocketJwtAuthorization && bearerData is Map) {
         /// in this situation, the date time is the expiration time of the token
         /// I don't think it's the most elegant solution but I'll change it
         /// as soon as I have ti for it
-        client._setDisconnectionTime(result);
+        client._setBearerData(bearerData);
       }
     }
   }
-
 
   Future onConnect({
     required socket_io.Socket socket,
     required SocketControllerTypeReflector controllerReflector,
     required String namespace,
   }) async {
-    final client = SocketClient(
-      socket: socket,
-    );
+    final client = T.instantiate() as SocketClient;
+    client._attachSocket(socket);
+
     _connectedClients[socket.id] = client;
     try {
       final SocketController controllerInstance = controllerReflector
@@ -212,6 +200,9 @@ class SocketService extends Service {
         authAnnotations,
       );
       List<SocketMethod> methods = controllerInstance.socketMethods;
+      socket.on('disconnect', (data) {
+        onDisconnect(socketClient: client);
+      });
 
       for (var method in methods) {
         socket.on(method.name, (data) async {
@@ -219,7 +210,7 @@ class SocketService extends Service {
             if (data is Map) {
               final positionalArgs = data['positionalArgs'];
               final namedArgs = data['namedArgs'];
-              final result = await method.call(
+              final Object? result = await method.call(
                 classInstanceMirror: controllerInstanceMirror,
                 positionalArguments: positionalArgs,
                 namedArguments: namedArgs,
@@ -227,7 +218,11 @@ class SocketService extends Service {
               if (result != null) {
                 if (method.remoteMethod.responseReceiverName != null) {
                   /// if we have a receiver, we need to send a response there
-                  print(method.remoteMethod.responseReceiverName);
+                  final serializedResponse = result.toJson();
+                  socket.emit(
+                    method.remoteMethod.responseReceiverName!,
+                    serializedResponse,
+                  );
                 }
               }
             }
@@ -253,16 +248,10 @@ class SocketService extends Service {
   }
 
   Future onDisconnect({
-    required socket_io.Socket socket,
-    required SocketControllerTypeReflector controller,
+    required SocketClient socketClient,
   }) async {
-    final connectedClient = _connectedClients[socket.id];
-    connectedClient?._disconnectControllers();
-    print('DISCONNECTED A CLIENT. Client ID: ${socket.id}');
-    // client.on('msg', (data) {
-    //   print('data from /some => $data');
-    //   client.emit('fromServer', "ok 2");
-    // });
+    socketClient._disconnectControllers();
+    // print('DISCONNECTED A CLIENT. Client ID: ${socketClient.id}');
   }
 
   int get _connectionPort {

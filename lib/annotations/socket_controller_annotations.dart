@@ -66,15 +66,15 @@ class SocketJwtAuthorization extends SocketAuthorization {
     final jwtService = serviceLocator<JwtService>();
     if (jwtService != null) {
       final jwtConfig = jwtService.getConfig<JwtConfig>()!;
-      final bearerData = jwtService.decodeBearer(
+      return jwtService.decodeBearer(
         token: client.authorizationHeader!,
         config: jwtConfig,
       );
-      final expSeconds = bearerData!['exp'] * 1000;
-      final expiresAt = DateTime.fromMillisecondsSinceEpoch(
-        expSeconds,
-      );
-      return expiresAt;
+      // final expSeconds = bearerData!['exp'] * 1000;
+      // final expiresAt = DateTime.fromMillisecondsSinceEpoch(
+      //   expSeconds,
+      // );
+      // return expiresAt;
     }
     return null;
   }

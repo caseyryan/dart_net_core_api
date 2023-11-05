@@ -24,7 +24,7 @@ void main(List<String> arguments) {
       configType: Config,
       singletonServices: [
         MongoService(),
-        SocketService(
+        SocketService<SocketClient>(
           socketControllers: [
             NotificationSocketController,
           ],

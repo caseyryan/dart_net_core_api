@@ -29,14 +29,26 @@ extension TypeExtension on Type {
     final classMirror = reflectType(this) as ClassMirror;
     return classMirror.isSubclassOf(reflectType(T) as ClassMirror);
   }
+
+  T instantiate<T>([
+    List<dynamic> positionalArguments = const [],
+    Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{},
+  ]) {
+    final classMirror = reflectType(this) as ClassMirror;
+    return classMirror
+        .newInstance(
+          Symbol.empty,
+          [],
+          namedArguments,
+        )
+        .reflectee;
+  }
 }
 
 extension ObjectExtension on Object {
-
   String toLoggerName() {
     return runtimeType.toString();
   }
-
 
   /// This can be used to call even private methods
   /// It doesn't care for a method visibility
@@ -56,11 +68,13 @@ extension ObjectExtension on Object {
           final name = methodMirror.simpleName.toName();
           if (name == methodName) {
             final instanceMirror = reflect(this);
-            return instanceMirror.invoke(
-              methodMirror.simpleName,
-              positionalArguments,
-              namedArguments,
-            ).reflectee;
+            return instanceMirror
+                .invoke(
+                  methodMirror.simpleName,
+                  positionalArguments,
+                  namedArguments,
+                )
+                .reflectee;
           }
         }
       }

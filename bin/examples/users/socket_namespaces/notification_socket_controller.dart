@@ -12,29 +12,32 @@ class NotificationSocketController extends SocketController {
     name: 'getProfile',
     responseReceiverName: 'onProfile',
   )
-  Future<void> getProfile(
+  Future<User?> getProfile(
     int id,
     bool withAge, {
     String? firstName,
     required String lastName,
   }) async {
-    print('CLIENT CALLED REMOTE METHOD');
+    print('CLIENT CALLED REMOTE METHOD $client');
     final user = User()
       ..firstName = firstName
       ..lastName = lastName
       ..age = 18;
-    // return null;
+    return user;
   }
 
   @override
-  void dispose() {}
+  void dispose() {
+    print('Dispose Called');
+  }
 
   @override
   void onConnected() {
+    print('On Connected');
   }
   
   @override
   void onDisconnected() {
-    // TODO: implement onDisconnected
+    print('On Disconnected');
   }
 }
