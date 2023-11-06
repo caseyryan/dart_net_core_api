@@ -4,10 +4,14 @@ part of 'server.dart';
 
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/
 abstract class ApiController {
-
   HttpContext? _httpContext;
   HttpContext get httpContext => _httpContext!;
 
+  /// Override this method if you need to do anything 
+  /// before the actual endpoint call and you don't want to do it in an 
+  /// Annotation. By the moment this method is called, it is guaranteed that 
+  /// [httpContext] is already assigned
+  void onBeforeCall() {}
 
   HttpHeaders get headers {
     return httpContext.headers;

@@ -211,6 +211,7 @@ class _Server extends IServer {
     required HttpContext context,
   }) {
     controller?._httpContext = context;
+    controller?.onBeforeCall();
   }
 
   void _printStartMessage({

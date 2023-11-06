@@ -190,9 +190,9 @@ class EndpointMapper {
       serviceLocator: server.tryFindServiceByType,
       configParser: configParser,
     );
-
+    final ApiController controller = controllerMirror.reflectee;
     server.updateControllerContext(
-      controller: controllerMirror.reflectee,
+      controller: controller,
       context: httpContext,
     );
 
