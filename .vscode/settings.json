@@ -7,12 +7,18 @@
         "jumperchen",
         "MSIE",
         "nsps",
+        "onack",
         "onclose",
         "onconnect",
         "ondisconnect",
+        "onevent",
+        "onpacket",
         "Potix",
         "reflectee",
+        "sublist",
         "superinterfaces",
+        "upsert",
+        "xdomain",
         "присвоениемкув"
     ]
 }

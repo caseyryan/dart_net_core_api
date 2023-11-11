@@ -50,7 +50,8 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           }
         }
       }
-      final endPointAnnotations = endpointMethod._annotations.whereType<EndpointAnnotation>();
+      final endPointAnnotations =
+          endpointMethod._annotations.whereType<EndpointAnnotation>();
       if (endPointAnnotations.length > 1) {
         throw 'An endpoint can have only one EndpointAnnotation. But $controllerType -> ${endpointMethod.name}() has ${endPointAnnotations.length}';
       }
@@ -81,6 +82,10 @@ class ControllerTypeReflector extends SimpleTypeReflector {
   }) {
     final positionalArgs = <dynamic>[];
     final Map<Symbol, dynamic> namedArguments = {};
+
+    /// Only the services that are supposed to be destroyed
+    /// after the endpoint call
+    final List<Service> tempServices = [];
     for (var param in _constructor.parameters) {
       dynamic value;
 
@@ -92,6 +97,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           if (!param.isOptional) {
             throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
           }
+        }
+        if (service?.isSingleton == false) {
+          tempServices.add(service!);
         }
         value = service;
 
@@ -122,6 +130,14 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           namedArguments,
         )
         .reflectee;
+
+    _instance!.callMethodByName(
+      methodName: '_setTempServices',
+      positionalArguments: [
+        tempServices,
+      ],
+    );
+
     return reflect(_instance);
   }
 

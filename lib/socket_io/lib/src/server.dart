@@ -8,6 +8,8 @@
 ///    22/02/2017, Created by jumperchen
 ///
 /// Copyright (C) 2017 Potix Corporation. All Rights Reserved.
+// ignore_for_file: implementation_imports
+
 import 'dart:async';
 import 'dart:io';
 
@@ -132,7 +134,7 @@ class Server {
     return this;
   }
 
-  /// Backwards compatiblity.
+  /// Backwards compatibility.
   ///
   /// @api public
   Server set(String key, [val]) {
@@ -142,7 +144,6 @@ class Server {
           if (err) {
             return next(Exception(err));
           }
-          ;
           if (!authorized) {
             return next(Exception('Not authorized'));
           }
@@ -297,53 +298,6 @@ class Server {
 
     return this;
   }
-
-  /// Attaches the static file serving.
-  ///
-  /// @param {Function|http.Server} http server
-  /// @api private
-  /// @todo Include better way to serve files
-//    attachServe(srv){
-//        _logger.fine()('attaching client serving req handler');
-//        var url = this._path + '/socket.io.js';
-//        var evs = srv.listeners('request').slice(0);
-//        var self = this;
-//        srv.removeAllListeners('request');
-//        srv.on('request', function(req, res) {
-//        if (0 === req.url.indexOf(url)) {
-//        self.serve(req, res);
-//        } else {
-//        for (var i = 0; i < evs.length; i++) {
-//        evs[i].call(srv, req, res);
-//        }
-//        }
-//        })
-//    }
-
-  /// Handles a request serving `/socket.io.js`
-  ///
-  /// @param {http.Request} req
-  /// @param {http.Response} res
-  /// @api private
-  /// @todo Include better way to serve files
-
-//    serve(req, res){
-//        var etag = req.headers['if-none-match'];
-//        if (etag) {
-//            if (clientVersion == etag) {
-//                debug('serve client 304');
-//                res.writeHead(304);
-//                res.end();
-//                return;
-//            }
-//        }
-//
-//        debug('serve client source');
-//        res.setHeader('Content-Type', 'application/javascript');
-//        res.setHeader('ETag', clientVersion);
-//        res.writeHead(200);
-//        res.end(clientSource);
-//    }
 
   /// Binds socket.io to an engine.io instance.
   ///

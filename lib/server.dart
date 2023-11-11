@@ -194,15 +194,18 @@ class _Server extends IServer {
   @override
   T? tryFindServiceByType<T extends Service>([Type? serviceType]) {
     final type = serviceType ?? T;
+    Service? service;
     if (_lazyServiceInitializer.containsKey(type)) {
-      final newServiceInstance = _lazyServiceInitializer[type]!();
-      _lazyServiceInitializer.remove(type);
-      _singletonServices[type] = newServiceInstance;
+      service = _lazyServiceInitializer[type]!();
+      service.isSingleton = false;
+    } else {
+      service = _singletonServices[type];
+      service?.isSingleton = true;
     }
     _trySetServiceDependencies(
-      _singletonServices[type],
+      service,
     );
-    return _singletonServices[type] as T?;
+    return service as T?;
   }
 
   @override

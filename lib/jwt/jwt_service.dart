@@ -11,7 +11,8 @@ class JwtService extends Service {
   }
 
   int getBearerExpiration(int bearerLifeSeconds) {
-    return DateTime.now().toUtc()
+    return DateTime.now()
+            .toUtc()
             .add(
               Duration(seconds: bearerLifeSeconds),
             )
@@ -85,7 +86,10 @@ class JwtService extends Service {
   }
 
   @override
-  void onReady() {}
+  Future onReady() async {}
+
+  @override
+  Future dispose() async {}
 
   // Map? decodeRefreshToken(String refreshToken) {
   //   final data = JWT
@@ -97,7 +101,7 @@ class JwtService extends Service {
   //       )
   //       ?.payload as Map?;
   //   if (data == null) {
-  //     throw 'Невалидный refreshToken';
+  //     throw 'Invalid refreshToken';
   //   }
   //   return data;
   // }
@@ -112,7 +116,7 @@ class JwtService extends Service {
   //       )
   //       ?.payload as Map?;
   //   if (data == null) {
-  //     throw 'Невалидный Bearer';
+  //     throw 'Invalid Bearer';
   //   }
   //   return data;
   // }

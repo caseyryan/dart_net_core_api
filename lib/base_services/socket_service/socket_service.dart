@@ -110,7 +110,7 @@ class SocketService<T extends SocketClient> extends Service {
   }
 
   @override
-  void onReady() {
+  Future onReady() async {
     _createConnections();
     _isConnectionReady = true;
     onStart();
@@ -278,6 +278,9 @@ class SocketService<T extends SocketClient> extends Service {
   /// If it also is missing, then it will try to
   /// connect on port 3000 by default
   final int? connectionPort;
+  
+  @override
+  Future dispose() async {}
 }
 
 class SocketConfig implements IConfig {

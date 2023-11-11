@@ -27,13 +27,7 @@ import 'package:socket_io_common/src/parser/parser.dart';
 ///
 /// @api public
 
-List events = [
-  'error',
-  'connect',
-  'disconnect',
-  'newListener',
-  'removeListener'
-];
+List events = ['error', 'connect', 'disconnect', 'newListener', 'removeListener'];
 
 /// Flags.
 ///
@@ -82,19 +76,18 @@ class Socket extends EventEmitter {
   ///
   /// @api private
   Map buildHandshake(query) {
-    final buildQuery = () {
+    buildQuery() {
       var requestQuery = request.uri.queryParameters;
       //if socket-specific query exist, replace query strings in requestQuery
-      return query != null
-          ? (Map.from(query)..addAll(requestQuery))
-          : requestQuery;
-    };
+      return query != null ? (Map.from(query)..addAll(requestQuery)) : requestQuery;
+    }
+
     return {
       'headers': request.headers,
       'time': DateTime.now().toString(),
       'address': conn.remoteAddress,
       'xdomain': request.headers.value('origin') != null,
-      // TODO  'secure': ! !this.request.connectionInfo.encrypted,
+      // 'secure': ! !this.request.connectionInfo.encrypted,
       'issued': DateTime.now().millisecondsSinceEpoch,
       'url': request.uri.path,
       'query': buildQuery()
@@ -132,8 +125,7 @@ class Socket extends EventEmitter {
   ///
   /// @return {Socket} self
   /// @api public
-  void emitWithAck(String event, dynamic data,
-      {Function? ack, bool binary = false}) {
+  void emitWithAck(String event, dynamic data, {Function? ack, bool binary = false}) {
     if (EVENTS.contains(event)) {
       super.emit(event, data);
     } else {
@@ -144,8 +136,7 @@ class Socket extends EventEmitter {
 
       if (ack != null) {
         if (roomList.isNotEmpty || flags['broadcast'] == true) {
-          throw UnsupportedError(
-              'Callbacks are not supported when broadcasting');
+          throw UnsupportedError('Callbacks are not supported when broadcasting');
         }
 
         acks['${nsp.ids}'] = ack;
@@ -163,8 +154,7 @@ class Socket extends EventEmitter {
         });
       } else {
         // dispatch packet
-        this.packet(packet,
-            {'volatile': flags['volatile'], compress: flags['compress']});
+        this.packet(packet, {'volatile': flags['volatile'], compress: flags['compress']});
       }
 
 //      // reset flags
@@ -260,7 +250,7 @@ class Socket extends EventEmitter {
     roomMap = {};
   }
 
-  /// Called by `Namespace` upon succesful
+  /// Called by `Namespace` upon successful
   /// middleware execution (ie: authorization).
   ///
   /// @api private
@@ -269,7 +259,10 @@ class Socket extends EventEmitter {
 //    debug('socket connected - writing packet');
     nsp.connected[id] = this;
     join(id);
-    packet(<dynamic, dynamic>{'type': CONNECT,  'data': {'sid': id}});
+    packet(<dynamic, dynamic>{
+      'type': CONNECT,
+      'data': {'sid': id}
+    });
   }
 
   /// Called with each packet. Called by `Client`.

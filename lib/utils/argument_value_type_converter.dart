@@ -1,12 +1,11 @@
 // ignore_for_file: empty_catches
 
-
 import 'default_date_parser.dart';
 
 Object? tryConvertQueryArgumentType({
   required String? actual,
   required Type expectedType,
-  required DateParser dateParser, 
+  required DateParser dateParser,
 }) {
   if (actual == null) {
     return null;
@@ -20,7 +19,7 @@ Object? tryConvertQueryArgumentType({
       case String:
         return actual;
       case DateTime:
-        return parseDateTime(actual);
+        return parseDateTime(actual, dateParser);
       case bool:
         return bool.fromEnvironment(
           actual,
@@ -31,8 +30,9 @@ Object? tryConvertQueryArgumentType({
   return null;
 }
 
-
-/// TODO: Implement different format processing
-DateTime? parseDateTime(String value) {
-  return DateTime.tryParse(value);
+DateTime? parseDateTime(
+  String value,
+  DateParser dateParser,
+) {
+  return dateParser.call(value) ?? DateTime.tryParse(value);
 }

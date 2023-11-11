@@ -74,9 +74,11 @@ class Namespace extends EventEmitter {
   /// @param {Socket} socket that will get added
   /// @param {Function} last fn call in the middleware
   /// @api private
-  void run(socket, Function fn) {
+  dynamic run(socket, Function fn) {
     var fns = this.fns.sublist(0);
-    if (fns.isEmpty) return fn(null);
+    if (fns.isEmpty) {
+      return fn(null);
+    }
 
     run0(0, fns, socket, fn);
   }
@@ -98,7 +100,7 @@ class Namespace extends EventEmitter {
       return run0(index + 1, fns, socket, fn);
     });
   }
-  
+
   /// Targets a room when emitting.
   ///
   /// @param {String} name
@@ -197,7 +199,6 @@ class Namespace extends EventEmitter {
   /// @return {Namespace} self
   /// @api public
   ///
-  /// TODO: Fix this description or code. Add type parameters to [fn([_])]
   ///
   // ignore: use_function_type_syntax_for_parameters
   Namespace clients(fn([_])) {

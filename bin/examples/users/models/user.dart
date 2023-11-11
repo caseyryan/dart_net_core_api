@@ -49,6 +49,9 @@ class User {
   )
   int? age;
 
+  String? email;
+  String? passwordHash;
+
   @override
   bool operator ==(covariant User other) {
     return other._id == _id;

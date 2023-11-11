@@ -7,9 +7,9 @@ abstract class ApiController {
   HttpContext? _httpContext;
   HttpContext get httpContext => _httpContext!;
 
-  /// Override this method if you need to do anything 
-  /// before the actual endpoint call and you don't want to do it in an 
-  /// Annotation. By the moment this method is called, it is guaranteed that 
+  /// Override this method if you need to do anything
+  /// before the actual endpoint call and you don't want to do it in an
+  /// Annotation. By the moment this method is called, it is guaranteed that
   /// [httpContext] is already assigned
   void onBeforeCall() {}
 
@@ -30,7 +30,19 @@ abstract class ApiController {
     return _httpContext?.isStage == true;
   }
 
+  List<Service> _tempServices = const [];
+
+  /// sets a list of single-use services that will be disposed
+  /// after the endpoint call is ended
+  void _setTempServices(List<Service> value) {
+    _tempServices = value;
+  }
+
   /// This method is always called after the response if
   /// finished. You can override it if you need to clean up some resources
-  void dispose() {}
+  void dispose() {
+    for (var service in _tempServices) {
+      service.dispose();
+    }
+  }
 }
