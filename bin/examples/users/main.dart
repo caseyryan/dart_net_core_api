@@ -11,6 +11,7 @@ import 'services/user_service.dart';
 import 'socket_namespaces/notification_socket_controller.dart';
 
 void main(List<String> arguments) {
+  
   Logger.root.level = Level.ALL;
   Server(
     numInstances: 2,

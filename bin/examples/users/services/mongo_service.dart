@@ -4,9 +4,9 @@ import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 class MongoService<T> extends Service {
-  final String collectionName;
+  final String? collectionName;
   MongoService({
-    required this.collectionName,
+    this.collectionName,
   });
 
   Db? _db;
@@ -93,7 +93,8 @@ class MongoService<T> extends Service {
     }
     _db = await Db.create(_config.connectionString!);
     await _db!.open();
-    _collection = _db!.collection(collectionName);
+    final name = collectionName ?? '${T.toString().camelToSnake()}s';
+    _collection = _db!.collection(name);
   }
 
   @override

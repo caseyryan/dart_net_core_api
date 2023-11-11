@@ -4,7 +4,7 @@ import 'mongo_service.dart';
 class UserService extends MongoService<User> {
   UserService()
       : super(
-          collectionName: 'users',
+          // collectionName: 'users',
         );
 
   Future<User?> getUserByEmail() async {
