@@ -7,6 +7,10 @@ class HttpContext {
   final HttpRequest httpRequest;
   final ServiceLocator serviceLocator;
 
+  /// Might be used in JwtAuth annotation to
+  /// be able to get the data from token
+  JwtPayload? jwtPayload;
+
   late String _environment;
   late ConfigParser _configParser;
 
@@ -24,9 +28,7 @@ class HttpContext {
     required this.httpRequest,
     required this.serviceLocator,
     required this.traceId,
-  }) {
-    if (httpRequest.contentLength > 0) {}
-  }
+  });
 
   String get language {
     return headers.acceptLanguage ?? 'en-US';
@@ -45,7 +47,14 @@ class HttpContext {
   }
 
   bool get shouldSerializeToJson {
-    return headers.contentType?.primaryType == ContentType.json.primaryType &&
-        headers.contentType?.subType == ContentType.json.subType;
+    final primaryType = headers.contentType?.primaryType;
+    final subType = headers.contentType?.subType;
+    if (primaryType == null) {
+      /// If no primary type is provided it will try to serialize 
+      /// response to JSON
+      return true;
+    }
+    return primaryType == ContentType.json.primaryType &&
+        subType == ContentType.json.subType;
   }
 }

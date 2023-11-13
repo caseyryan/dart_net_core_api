@@ -21,8 +21,7 @@ class NotificationSocketController extends SocketController {
     print('CLIENT CALLED REMOTE METHOD $client');
     final user = User()
       ..firstName = firstName
-      ..lastName = lastName
-      ..age = 18;
+      ..lastName = lastName;
     return user;
   }
 

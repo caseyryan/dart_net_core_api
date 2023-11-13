@@ -1,4 +1,5 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/server.dart';
 
@@ -11,7 +12,7 @@ import '../services/user_service.dart';
 /// This is done here for demonstration purposes and is not obligatory
 /// if you don't specify it here, the baseApiPath from [_Server] will be
 /// used instead
-@BaseApiPath('/api/v2')
+// @BaseApiPath('/api/v2')
 @JwtAuth()
 class UserController extends ApiController {
   /// Notice [userService] is a dependency injection here
@@ -40,20 +41,34 @@ class UserController extends ApiController {
   /// exactly match the name specified in the annotation path
   /// in this case it's `id`
   @HttpGet('/user/{:id}')
-  Future<User?> getUser({
+  @JwtAuth(roles: [Role.moderator])
+  Future<User?> getUserById({
     required String id,
   }) async {
-    return await userService.getUserById(id);
+    return await userService.findUserById(id);
+  }
+
+  @HttpGet('/user')
+  @JwtAuth(roles: [Role.guest])
+  Future<User?> getUser() async {
+    final String id = httpContext.jwtPayload!.id;
+    final user = await userService.findUserById(id);
+    if (user == null) {
+      throw NotFoundException(message: 'User not found');
+    }
+    return user;
   }
 
   @HttpDelete('/user/{:id}')
-  Future<User?> deleteUser({
+  @JwtAuth(roles: [Role.admin])
+  Future<User?> deleteUserById({
     required String id,
   }) async {
     return await userService.deleteUserById(id);
   }
 
   @HttpPost('/user')
+  @JwtAuth(roles: [Role.admin])
   Future<Object?> insertUser(
     @FromBody() User user,
   ) async {

@@ -1,13 +1,13 @@
 class TokenResponse {
   String? bearerToken;
   String? refreshToken;
-  DateTime? bearerExpirationDateTimeUtc;
-  DateTime? refreshExpirationDateTimeUtc;
+  DateTime? bearerExpiresAt;
+  DateTime? refreshExpiresAt;
   
   TokenResponse({
     this.bearerToken,
     this.refreshToken,
-    this.bearerExpirationDateTimeUtc,
-    this.refreshExpirationDateTimeUtc,
+    this.bearerExpiresAt,
+    this.refreshExpiresAt,
   });
 }

@@ -1,9 +1,36 @@
+import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-class BasicAuthData {
+class BasicSignupData {
 
-  @EmailValidator(canBeNull: false)
-  late String email;
+  @JsonTrimString()
+  @EmailValidator(canBeNull: true)
+  String? email;
+
+  @JsonTrimString()
+  @PhoneValidator(canBeNull: true)
+  @JsonPhoneConverter(
+    addLeadingPlus: true,
+    type: PhoneStringType.unformatted,
+  )
+  String? phone;
   @PasswordValidator()
   late String password;
+
+  @JsonTrimString()
+  @NameValidator(canBeNull: true)
+  String? firstName;
+
+  @JsonTrimString()
+  @NameValidator(canBeNull: true)
+  String? lastName;
+
+
+  void validate() {
+    if (email?.isNotEmpty != true && phone?.isNotEmpty != true) {
+      throw ApiException(
+        message: 'You must provide either email of a phone number',
+      );
+    }
+  }
 }

@@ -19,6 +19,7 @@ import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
 import 'config.dart';
+import 'jwt/jwt_service.dart';
 
 part 'api_controller.dart';
 part 'base_services/service.dart';
@@ -27,11 +28,25 @@ part 'utils/server_utils/parts/http_context.dart';
 part 'utils/server_utils/parts/http_request_extension.dart';
 part 'utils/server_utils/parts/server_settings.dart';
 
+enum Role {
+  guest(0),
+  user(1),
+  editor(3),
+  moderator(100),
+  admin(200),
+  owner(300);
+
+  const Role(this.priority);
+  final int priority;
+}
+
 typedef ExceptionHandler = Object? Function({
   required String traceId,
   required String message,
   required int statusCode,
   required HttpRequest request,
+  String? code,
+  Object? exception,
 });
 
 abstract class IServer {
@@ -332,6 +347,8 @@ class _Server extends IServer {
         statusCode: request.response.statusCode,
         traceId: traceId,
         request: request,
+        code: exception.code,
+        exception: exception,
       );
     } catch (e, s) {
       logGlobal(
@@ -350,6 +367,12 @@ class _Server extends IServer {
     required String message,
     required int statusCode,
     required HttpRequest request,
+
+    /// if it was converted from an [ApiException]
+    /// its code might be passed here. This code is used to customize some
+    /// error responses
+    String? code,
+    Object? exception,
   }) {
     final response = {
       'error': {
@@ -357,6 +380,10 @@ class _Server extends IServer {
         'traceId': traceId,
       }
     };
+    if (code?.isNotEmpty == true) {
+      response['error']!['code'] = code!;
+    }
+
     request.response.headers.contentType = ContentType.json;
     request.response.write(jsonEncode(response));
     return response;

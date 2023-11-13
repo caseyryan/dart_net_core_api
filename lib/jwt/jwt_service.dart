@@ -3,6 +3,29 @@ import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
+class JwtPayload {
+  JwtPayload({
+    this.roles = const [],
+    this.id,
+    this.publicKey,
+  });
+  List<Role> roles;
+  dynamic id;
+  String? publicKey;
+
+  bool containsRequiredRoles(List<Role> requiredRoles) {
+    if (roles.contains(Role.owner)) {
+      return true;
+    }
+    for (var requiredRole in requiredRoles) {
+      if (!roles.any((e) => e.priority >= requiredRole.priority)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 /// It's a basic JwtService. You can extend this class
 /// and write your own validation and generation logic if you need
 class JwtService extends Service {
@@ -10,35 +33,34 @@ class JwtService extends Service {
     return DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
   }
 
-  int getBearerExpiration(int bearerLifeSeconds) {
+  int getExpirationSecondsFromNow(int seconds) {
     return DateTime.now()
             .toUtc()
             .add(
-              Duration(seconds: bearerLifeSeconds),
+              Duration(seconds: seconds),
             )
             .millisecondsSinceEpoch ~/
         1000;
   }
 
-  /// Generates a Bearer token
+  /// Generates a JWT token
   /// [payload] any object that will be serialized and saved in this
   /// token. Typically it contains some data you want to add to a token
   /// like user id or some unique key. It's better
   /// be a flat structure with some simple data
-  String generateBearer({
-    required JwtConfig config,
-    Object? payload,
+  String generateJsonWebToken({
+    // required JwtConfig config,
+    required String hmacKey,
+    required String issuer,
+    required int exp,
+    JwtPayload? payload,
     Audience? audience,
     JWTAlgorithm algorithm = JWTAlgorithm.HS512,
     int? iat,
-    int? exp,
   }) {
     final body = <String, dynamic>{
       'iat': iat ?? _issuedAt,
-      'exp': exp ??
-          getBearerExpiration(
-            config.bearerLifeSeconds,
-          ),
+      'exp': exp,
     };
     if (audience?.isNotEmpty == true) {
       body['aud'] = audience!.toList();
@@ -49,11 +71,11 @@ class JwtService extends Service {
     }
     final jwt = JWT(
       body,
-      issuer: config.issuer,
+      issuer: issuer,
     );
 
     return jwt.sign(
-      SecretKey(config.hmacKey),
+      SecretKey(hmacKey),
       algorithm: algorithm,
     );
   }
@@ -96,7 +118,7 @@ class JwtService extends Service {
   //       .tryVerify(
   //         refreshToken,
   //         SecretKey(
-  //           config.jwt.refreshTokenHmac,
+  //           config.jwt.refreshTokenHmacKey,
   //         ),
   //       )
   //       ?.payload as Map?;
@@ -131,7 +153,7 @@ class JwtService extends Service {
   //     JWT.verify(
   //       refreshToken,
   //       SecretKey(
-  //         config.jwt.refreshTokenHmac,
+  //         config.jwt.refreshTokenHmacKey,
   //       ),
   //     );
   //     return true;

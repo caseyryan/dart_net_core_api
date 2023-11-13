@@ -1,6 +1,8 @@
 // ignore_for_file: unnecessary_getters_setters
 
 
+import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/utils/json_utils/value_converters/mongo_id_converter.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 /// Notice that there are some JSON annotations are
@@ -14,43 +16,23 @@ class User {
   /// be serialized / deserialized unless it has
   /// [JsonInclude] annotation
   @JsonInclude()
+  @MongoIdConverter()
   String? _id;
+  String? get id => _id;
 
-  /// getter / setter is here just for demo purposes
-  /// to be able to set them from a demo user service
-  set id(String? value) {
-    _id = value;
-  }
+  List<Role>? roles;
 
-  String? get id {
-    return _id;
-  }
 
-  @StringValidator(
-    canBeNull: false,
-    regExpPattern: r'[a-zA-Z]+',
-  )
+  @NameValidator(canBeNull: false)
   String? firstName;
 
-  @StringValidator(
-    canBeNull: false,
-    regExpPattern: r'[a-zA-Z]+',
-  )
+  @NameValidator(canBeNull: false)
   String? lastName;
-
-  /// [age] will be automatically validated
-  /// according to the provided validator.
-  /// If it goes beyond the specified values
-  /// an error will be thrown
-  @IntValidator(
-    minValue: 18,
-    maxValue: 120,
-    canBeNull: false,
-  )
-  int? age;
 
   String? email;
   String? passwordHash;
+  @JsonIgnore()
+  String? refreshToken;
 
   @override
   bool operator ==(covariant User other) {

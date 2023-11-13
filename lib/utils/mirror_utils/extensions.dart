@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:mirrors';
 
+import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
+import 'package:logging/logging.dart';
+
 extension SymbolExtension on Symbol {
   static final RegExp _regExp = RegExp(r'(?<=Symbol\(")[a-zA-Z0-9_]+');
 
@@ -132,8 +135,11 @@ extension ObjectExtension on Object {
         }
       }
     } catch (e, s) {
-      print(e);
-      print(s);
+      logGlobal(
+        level: Level.SEVERE,
+        message: e.toString(),
+        stackTrace: s,
+      );
     }
 
     return list;

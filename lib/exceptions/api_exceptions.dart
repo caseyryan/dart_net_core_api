@@ -1,22 +1,40 @@
 import 'dart:io';
 
-/// You can throw these exceptions from anywhere while calling 
-/// an endpoint method, even from an annotation and it will be correctly 
+/// You can throw these exceptions from anywhere while calling
+/// an endpoint method, even from an annotation and it will be correctly
 /// converted to a response
 
 class NotFoundException extends ApiException {
   NotFoundException({
     required super.message,
     super.traceId,
+    super.code,
   }) : super(
           statusCode: HttpStatus.notFound,
         );
+}
+
+class BadRequestException extends ApiException {
+  BadRequestException({
+    required super.message,
+    super.traceId,
+    super.code,
+  }) : super(statusCode: HttpStatus.badRequest);
+}
+
+class ConflictException extends ApiException {
+  ConflictException({
+    required super.message,
+    super.traceId,
+    super.code,
+  }) : super(statusCode: HttpStatus.conflict);
 }
 
 class InternalServerException extends ApiException {
   InternalServerException({
     required super.message,
     super.traceId,
+    super.code,
   }) : super(
           statusCode: HttpStatus.internalServerError,
         );
@@ -29,9 +47,15 @@ class ApiException implements Exception {
   final int statusCode;
   String? traceId;
 
+  /// [code] might be used in some cases where you
+  /// need to distinguish some error from other even if
+  /// a status code is the same as in other cases
+  String? code;
+
   ApiException({
     required this.message,
     this.traceId,
     this.statusCode = HttpStatus.badRequest,
+    this.code,
   });
 }

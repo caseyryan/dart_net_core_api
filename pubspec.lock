@@ -106,7 +106,7 @@ packages:
     source: hosted
     version: "1.7.1"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       sha256: ff625774173754681d66daaf4a448684fb04b78f902da9cb3d308c19cc5e8bab
@@ -365,10 +365,10 @@ packages:
     dependency: "direct main"
     description:
       name: reflect_buddy
-      sha256: c50cba5f2ac146f7f9606827f1f1aa0eb3a9578801b77730b1bf93486bf693cd
+      sha256: "9bb35121fae65a8192eb378a8c20bf24c868993a0201fd6e19147928a7267576"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "1.1.8"
   rikulo_commons:
     dependency: transitive
     description:

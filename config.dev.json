@@ -1,9 +1,10 @@
 {
     "jwtConfig": {
         "hmacKey": "AgkuiefUiljljrge789837452687fewfwdTT",
-        "refreshTokenHmac": "3201iefUiljljrge789837452rg7fewfWWwr",
+        "refreshTokenHmacKey": "3201iefUiljljrge789837452rg7fewfWWwr",
         "issuer": "https://localhost",
         "bearerLifeSeconds": 86400,
+        "useRefreshToken": true,
         "refreshLifeSeconds": 2592000,
         "audiences": [
             "https://localhost"
@@ -12,6 +13,9 @@
     "mongoConfig": {
         "connectionString": "mongodb://localhost:27017/dart_core_api_test_database",
         "isSecure": false
+    },
+    "passwordHashConfig": {
+        "salt": "SOME_SALT_GOES_HERE"
     },
     "staticFilesRoot": "bin/examples/users/users_static",
     "socketConfig": {

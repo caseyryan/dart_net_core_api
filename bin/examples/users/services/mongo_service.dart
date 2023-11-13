@@ -39,12 +39,12 @@ class MongoService<T> extends Service {
     return (value as Object).toJson() as Map<String, dynamic>;
   }
 
-  Future<bool> insertOne(T value) async {
+  Future<ObjectId?> insertOneAndReturnId(T value) async {
     await _tryInit();
-    final result = await _collection!.insertOne(
+    final WriteResult result = await _collection!.insertOne(
       _convertToMap(value),
     );
-    return result.isSuccess;
+    return result.document?['_id'] as ObjectId?;
   }
 
   Future<T?> findAndModify({

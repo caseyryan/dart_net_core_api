@@ -1,5 +1,3 @@
-import 'package:dart_net_core_api/utils/extensions.dart';
-
 import 'incoming_path_parser.dart';
 
 /// Prepares endpoints for matching when called
@@ -109,18 +107,18 @@ class EndpointPathParser {
     return true;
   }
 
-  void printPathWithParams() {
-    final temp = <Map>[];
-    for (var seg in _querySegments) {
-      temp.add(seg.toMap());
-    }
-    final value = {
-      'endpoint': temp,
-      'originalPath': originalPath,
-      'totalSegments': totalSegments,
-    }.toFormattedJson();
-    print(value);
-  }
+  // void printPathWithParams() {
+  //   final temp = <Map>[];
+  //   for (var seg in _querySegments) {
+  //     temp.add(seg.toMap());
+  //   }
+  //   final value = {
+  //     'endpoint': temp,
+  //     'originalPath': originalPath,
+  //     'totalSegments': totalSegments,
+  //   }.toFormattedJson();
+  //   print(value);
+  // }
 }
 
 class QuerySegment {
