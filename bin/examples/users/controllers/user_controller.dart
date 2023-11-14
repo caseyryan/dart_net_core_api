@@ -4,7 +4,7 @@ import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/server.dart';
 
 import '../models/user.dart';
-import '../services/user_service.dart';
+import '../services/user_store_service.dart';
 
 /// Even though baseApiPath '/api/v1' was
 /// specified at [_Server] initialization
@@ -33,7 +33,7 @@ class UserController extends ApiController {
     this.userService,
   );
 
-  final UserService userService;
+  final UserStoreService userService;
 
   /// Default endpoint. Try calling it with Postman
   /// http://localhost:8084/api/v2/user/user-1

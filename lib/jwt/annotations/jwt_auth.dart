@@ -41,7 +41,7 @@ class JwtAuth extends Authorization {
     final jwtService = context.getService<JwtService>();
     final bearerData = jwtService!.decodeBearer(
       token: context.authorizationHeader!,
-      config: context.getConfig<JwtConfig>()!,
+      hmacKey: context.getConfig<JwtConfig>()!.hmacKey,
     );
 
     if (bearerData == null) {

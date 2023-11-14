@@ -3,12 +3,16 @@ import 'package:dart_net_core_api/server.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-class MongoService<T> extends Service {
-  final String? collectionName;
-  MongoService({
+class MongoStoreService<T> extends Service {
+  MongoStoreService({
     this.collectionName,
   });
 
+  /// [collectionName] can be used to set a fully custom collection name
+  ///
+  /// By default the name is taken from the name of [T] type converted to
+  /// a snake case. E.g. `RefreshToken` will turn into `refresh_token`
+  final String? collectionName;
   Db? _db;
   DbCollection? _collection;
 
@@ -16,14 +20,14 @@ class MongoService<T> extends Service {
   /// typed objects or you want to execute
   /// some custom aggregation etc.
   Future<DbCollection> get collection async {
-    await _tryInit();
+    await ensureConnected();
     return _collection!;
   }
 
   Future<T?> findOne([
     dynamic selector,
   ]) async {
-    await _tryInit();
+    await ensureConnected();
     final value = await _collection!.findOne(selector);
     return _convertFromMap(value);
   }
@@ -35,14 +39,21 @@ class MongoService<T> extends Service {
     return fromJson<T>(value) as T;
   }
 
-  Map<String, dynamic> _convertToMap(T value) {
-    return (value as Object).toJson() as Map<String, dynamic>;
+  Map<String, dynamic> _convertToMapBeforeInsertion(T value) {
+    /// TODO: сделать toBson() вмето toJson()
+    final map = (value as Object).toJson() as Map<String, dynamic>;
+    final now = DateTime.now().toUtc();
+    if (map['createdAt'] == null) {
+      map['createdAt'] = now;
+    }
+    map['updatedAt'] = now;
+    return map;
   }
 
   Future<ObjectId?> insertOneAndReturnId(T value) async {
-    await _tryInit();
+    await ensureConnected();
     final WriteResult result = await _collection!.insertOne(
-      _convertToMap(value),
+      _convertToMapBeforeInsertion(value),
     );
     return result.document?['_id'] as ObjectId?;
   }
@@ -56,7 +67,7 @@ class MongoService<T> extends Service {
     dynamic fields,
     bool? upsert,
   }) async {
-    await _tryInit();
+    await ensureConnected();
     final value = await _collection!.findAndModify(
       fields: fields,
       query: query,
@@ -73,11 +84,7 @@ class MongoService<T> extends Service {
   set isSingleton(bool value) {
     if (value) {
       throw '''
-        $MongoService CANNOT be a singleton because it 
-        is initialized and disposed for each request 
-        api controller instance that requires it.
-        Put this service into `lazyServiceInitializer` 
-        in your Server instance settings
+        $MongoStoreService CANNOT be a singleton. Use lazy initializer instead
       ''';
     }
     super.isSingleton = value;
@@ -87,7 +94,7 @@ class MongoService<T> extends Service {
     return getConfig<MongoConfig>()!;
   }
 
-  Future _tryInit() async {
+  Future ensureConnected() async {
     if (_db != null) {
       return;
     }

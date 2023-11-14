@@ -9,23 +9,30 @@ import 'pbkdf2.dart';
 
 class PasswordHashService extends Service {
   String generatePublicKeyForRefresh() {
-    return hash(
-      password: Uuid().v4(),
-    );
+    return hash(Uuid().v4());
   }
 
-  String hash({
-    required String password,
-    String? salt,
-    int hashRounds = 1000,
-    int hashLength = 32,
-    Hash? hashFunction,
+  bool isPasswordOk({
+    required String existingHash,
+    required String rawPassword,
   }) {
+    return existingHash == hash(rawPassword);
+  }
+
+  String hash(
+    String password,
+  ) {
     final generator = PBKDF2(
-      hashAlgorithm: hashFunction ?? sha512,
+      hashAlgorithm: sha512,
     );
-    salt ??= getConfig<PasswordHashConfig>()?.salt;
-    assert(salt != null, 'You must provide salt for a hashing algorithm');
+    String? salt = getConfig<PasswordHashConfig>()?.salt;
+    int hashRounds = 1000;
+    int hashLength = 32;
+
+    assert(
+      salt != null,
+      'You must provide salt for a hashing algorithm in a config file or an environment variable',
+    );
     return generator.generateBase64Key(
       password,
       salt!,

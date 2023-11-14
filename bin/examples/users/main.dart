@@ -8,7 +8,8 @@ import 'package:logging/logging.dart';
 
 import 'controllers/auth_controller.dart';
 import 'controllers/user_controller.dart';
-import 'services/user_service.dart';
+import 'services/refresh_token_store_service.dart';
+import 'services/user_store_service.dart';
 import 'socket_namespaces/notification_socket_controller.dart';
 
 void main(List<String> arguments) {
@@ -42,11 +43,14 @@ void main(List<String> arguments) {
 
       /// Prefer lazyServiceInitializer for the type of
       /// services that are supposed to live for a period of one
-      /// request and be destroyed with along with controllers.
+      /// request and be destroyed along with controllers.
       /// For the services that are not supposed to be disposed of
       /// use `singletonServices`
       lazyServiceInitializer: {
-        UserService: () => UserService(),
+        /// I added all store services to the lazy initializer
+        /// because they open and close database connections
+        UserStoreService: () => UserStoreService(),
+        RefreshTokenStoreService: () => RefreshTokenStoreService(),
       },
       jsonSerializer: DefaultJsonSerializer(
         // CamelToSnake(),

@@ -1,10 +1,10 @@
 import 'package:mongo_dart/mongo_dart.dart';
 
 import '../models/user.dart';
-import 'mongo_service.dart';
+import 'mongo_store_service.dart';
 
-class UserService extends MongoService<User> {
-  UserService()
+class UserStoreService extends MongoStoreService<User> {
+  UserStoreService()
       : super(
         // collectionName: 'users',
         );

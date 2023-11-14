@@ -1,5 +1,4 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
@@ -82,16 +81,14 @@ class JwtService extends Service {
 
   Map<String, dynamic>? decodeBearer({
     required String token,
-    required JwtConfig config,
+    required String hmacKey,
     Type? payloadType,
     Audience? audience,
   }) {
     final Map<String, dynamic>? data = JWT
         .tryVerify(
           token,
-          SecretKey(
-            config.hmacKey,
-          ),
+          SecretKey(hmacKey),
           audience: audience,
         )
         ?.payload;

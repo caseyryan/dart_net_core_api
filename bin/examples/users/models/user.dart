@@ -15,12 +15,16 @@ class User {
   /// Notice this is a private field but it won't
   /// be serialized / deserialized unless it has
   /// [JsonInclude] annotation
+  /// The `dynamic` type is used here because the same model 
+  /// is used as a database model and a response.
+  /// In this case `_id` might be a `String` or and `ObjectId`
   @JsonInclude()
   @MongoIdConverter()
-  String? _id;
-  String? get id => _id;
+  dynamic _id;
+  dynamic get id => _id;
 
   List<Role>? roles;
+
 
 
   @NameValidator(canBeNull: false)
@@ -31,8 +35,9 @@ class User {
 
   String? email;
   String? passwordHash;
-  @JsonIgnore()
-  String? refreshToken;
+
+  DateTime? createdAt;
+  DateTime? updatedAt;
 
   @override
   bool operator ==(covariant User other) {
