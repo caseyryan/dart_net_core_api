@@ -1,5 +1,6 @@
 import 'package:dart_net_core_api/database/configs/mongo_config.dart';
 import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/utils/extensions/extensions.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
@@ -40,8 +41,7 @@ class MongoStoreService<T> extends Service {
   }
 
   Map<String, dynamic> _convertToMapBeforeInsertion(T value) {
-    /// TODO: сделать toBson() вмето toJson()
-    final map = (value as Object).toJson() as Map<String, dynamic>;
+    final map = (value as Object).toBson() as Map<String, dynamic>;
     final now = DateTime.now().toUtc();
     if (map['createdAt'] == null) {
       map['createdAt'] = now;
