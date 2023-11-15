@@ -5,8 +5,12 @@ class TokenResponse {
   String? refreshToken;
   DateTime? bearerExpiresAt;
   DateTime? refreshExpiresAt;
+
   @JsonIgnore()
   String? publicKey;
+
+  @JsonIgnore()
+  dynamic refreshTokenId;
 
   bool get isRefreshTokenExpired {
     if (refreshToken == null) {

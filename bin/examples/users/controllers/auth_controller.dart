@@ -7,10 +7,10 @@ import 'package:dart_net_core_api/jwt/token_response.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
-import '../models/basic_auth_data.dart';
-import '../models/basic_login_data.dart';
-import '../models/refresh_token.dart';
-import '../models/user.dart';
+import '../models/database_models/refresh_token.dart';
+import '../models/database_models/user.dart';
+import '../models/dto/basic_auth_data.dart';
+import '../models/dto/basic_login_data.dart';
 import '../services/refresh_token_store_service.dart';
 import '../services/user_store_service.dart';
 
@@ -84,20 +84,21 @@ class AuthController extends ApiController {
         ..publicKey = refreshPublicKey
         ..userId = userId
         ..refreshToken = refreshToken
-        ..expiresAt = jwtConfig.refreshExpirationDateTime;
-      final newTokenId = await refreshTokenService.insertOneAndReturnId(data);
+        ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
+      final newTokenId = await refreshTokenService.insertOneAndReturnIdAsync(data);
       if (newTokenId == null) {
         throw InternalServerException(
           message: 'Could not create token',
         );
       }
       return TokenResponse()
-        ..refreshExpiresAt = jwtConfig.refreshExpirationDateTime
+        ..refreshExpiresAt = jwtConfig.calculateRefreshExpirationDateTime()
         ..publicKey = refreshPublicKey
         ..refreshToken = refreshToken;
     } else {
       return TokenResponse()
         ..refreshExpiresAt = existingRefreshToken.expiresAt
+        ..refreshTokenId = existingRefreshToken.id
         ..publicKey = existingRefreshToken.publicKey
         ..refreshToken = existingRefreshToken.refreshToken;
     }
@@ -123,8 +124,36 @@ class AuthController extends ApiController {
     TokenResponse? refreshTokenResponse = await _getOrCreateRefreshToken(
       user.id,
     );
-    if (refreshTokenResponse?.isRefreshTokenExpired == true && jwtConfig.useRefreshToken) {
-      /// TODO: тут надо обновить рефреш токен в базе
+    final createNewToken =
+        refreshTokenResponse?.isRefreshTokenExpired == true && jwtConfig.useRefreshToken;
+    if (createNewToken) {
+      /// Update the expired refresh token in a database
+      final refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
+      final refreshToken = jwtService.generateJsonWebToken(
+        hmacKey: jwtConfig.refreshTokenHmacKey!,
+        issuer: jwtConfig.issuer,
+        exp: jwtService.getExpirationSecondsFromNow(
+          jwtConfig.refreshLifeSeconds ?? jwtConfig.bearerLifeSeconds * 10,
+        ),
+        payload: JwtPayload(publicKey: refreshPublicKey),
+      );
+      final newRefreshToken = RefreshToken()
+        ..publicKey = refreshPublicKey
+        ..refreshToken = refreshToken
+        ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
+      final success = await refreshTokenService.updateOneAsync(
+        selector: {'_id': refreshTokenResponse?.refreshTokenId},
+        value: newRefreshToken,
+      );
+      if (!success) {
+        return null;
+      } else {
+        refreshTokenResponse = TokenResponse(
+          refreshToken: refreshToken,
+          publicKey: refreshPublicKey,
+          refreshExpiresAt: jwtConfig.calculateRefreshExpirationDateTime(),
+        );
+      }
     }
 
     final token = TokenResponse(
@@ -139,7 +168,7 @@ class AuthController extends ApiController {
           jwtConfig.bearerLifeSeconds,
         ),
       ),
-      bearerExpiresAt: jwtConfig.bearerExpirationDateTime,
+      bearerExpiresAt: jwtConfig.calculateBearerExpirationDateTime(),
     );
     if (refreshTokenResponse != null) {
       return token.copyWith(
@@ -147,6 +176,7 @@ class AuthController extends ApiController {
         refreshExpiresAt: refreshTokenResponse.refreshExpiresAt,
       );
     }
+    return null;
   }
 
   @HttpPost('/auth/signup/basic')
@@ -177,7 +207,7 @@ class AuthController extends ApiController {
       ]
       ..passwordHash = passwordHash;
 
-    final id = await userService.insertOneAndReturnId(user);
+    final id = await userService.insertOneAndReturnIdAsync(user);
     user.id = id;
     if (id != null) {
       return await _createTokenResponseForUser(user);

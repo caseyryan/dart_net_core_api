@@ -1,6 +1,6 @@
 import 'package:mongo_dart/mongo_dart.dart';
 
-import '../models/user.dart';
+import '../models/database_models/user.dart';
 import 'mongo_store_service.dart';
 
 class UserStoreService extends MongoStoreService<User> {
@@ -10,11 +10,11 @@ class UserStoreService extends MongoStoreService<User> {
         );
 
   Future<User?> findUserByEmail(String email) async {
-    return await findOne({'email': email});
+    return await findOneAsync(selector: {'email': email});
   }
 
   Future<User?> findUserByPhone(String phone) async {
-    return await findOne({'phone': phone});
+    return await findOneAsync(selector: {'phone': phone});
   }
 
   Future<User?> findUserByPhoneOrEmail({
@@ -32,7 +32,7 @@ class UserStoreService extends MongoStoreService<User> {
   }
 
   Future<User?> findUserById(String id) async {
-    return await findOne({'_id': ObjectId.fromHexString(id)});
+    return await findOneAsync(selector: {'_id': ObjectId.fromHexString(id)});
   }
 
   Future deleteUserById(String id) async {}

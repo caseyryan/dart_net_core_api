@@ -64,9 +64,7 @@ extension ObjectExtensions on Object {
           }
         }
         if (!includeNullValues && rawValue == null) {
-          if (isJsonIncluded == false) {
-            continue;
-          }
+          continue;
         }
         final alternativeName = variableMirror.alternativeName;
         final valueConverters = variableMirror.getAnnotationsOfType<JsonValueConverter>();

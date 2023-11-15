@@ -8,11 +8,11 @@ class JwtConfig implements IConfig {
   int? refreshLifeSeconds;
   bool useRefreshToken = false;
 
-  DateTime get bearerExpirationDateTime {
+  DateTime calculateBearerExpirationDateTime() {
     return DateTime.now().toUtc().add(Duration(seconds: bearerLifeSeconds));
   }
 
-  DateTime get refreshExpirationDateTime {
+  DateTime calculateRefreshExpirationDateTime() {
     return DateTime.now().toUtc().add(Duration(seconds: refreshLifeSeconds ?? 0));
   }
 }

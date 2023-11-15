@@ -1,13 +1,16 @@
-import 'package:mongo_dart/mongo_dart.dart';
+import 'package:dart_net_core_api/utils/extensions/extensions.dart';
 
-import '../models/refresh_token.dart';
+import '../models/database_models/refresh_token.dart';
 import 'mongo_store_service.dart';
 
 class RefreshTokenStoreService extends MongoStoreService<RefreshToken> {
 
   Future<RefreshToken?> findByUserId(
-    ObjectId userId,
+    dynamic userId,
   ) async {
-    return await findOne({'userId': userId});
+    if (userId is String) {
+      userId = userId.toObjectId();
+    }
+    return await findOneAsync(selector: {'userId': userId});
   }
 }

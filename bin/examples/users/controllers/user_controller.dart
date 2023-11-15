@@ -1,9 +1,9 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
-import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/server.dart';
 
-import '../models/user.dart';
+import '../annotations/auth_annotation.dart';
+import '../models/database_models/user.dart';
 import '../services/user_store_service.dart';
 
 /// Even though baseApiPath '/api/v1' was
@@ -13,7 +13,8 @@ import '../services/user_store_service.dart';
 /// if you don't specify it here, the baseApiPath from [_Server] will be
 /// used instead
 // @BaseApiPath('/api/v2')
-@JwtAuth()
+// @JwtAuth()
+@JwtAuthWithRefresh()
 class UserController extends ApiController {
   /// Notice [userService] is a dependency injection here
   /// If you specify a service in a constructor it will automatically
@@ -41,7 +42,7 @@ class UserController extends ApiController {
   /// exactly match the name specified in the annotation path
   /// in this case it's `id`
   @HttpGet('/user/{:id}')
-  @JwtAuth(roles: [Role.moderator])
+  @JwtAuthWithRefresh(roles: [Role.moderator])
   Future<User?> getUserById({
     required String id,
   }) async {
@@ -49,7 +50,7 @@ class UserController extends ApiController {
   }
 
   @HttpGet('/user')
-  @JwtAuth(roles: [Role.guest])
+  @JwtAuthWithRefresh(roles: [Role.guest])
   Future<User?> getUser() async {
     final String id = httpContext.jwtPayload!.id;
     final user = await userService.findUserById(id);
@@ -60,7 +61,7 @@ class UserController extends ApiController {
   }
 
   @HttpDelete('/user/{:id}')
-  @JwtAuth(roles: [Role.admin])
+  @JwtAuthWithRefresh(roles: [Role.admin])
   Future<User?> deleteUserById({
     required String id,
   }) async {
@@ -68,7 +69,7 @@ class UserController extends ApiController {
   }
 
   @HttpPost('/user')
-  @JwtAuth(roles: [Role.admin])
+  @JwtAuthWithRefresh(roles: [Role.admin])
   Future<Object?> insertUser(
     @FromBody() User user,
   ) async {

@@ -4,7 +4,9 @@ import 'package:dart_net_core_api/utils/extensions/extensions.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-class MongoStoreService<T> extends Service {
+import '../models/database_models/mongo_model.dart';
+
+class MongoStoreService<T extends MongoModel> extends Service {
   MongoStoreService({
     this.collectionName,
   });
@@ -20,14 +22,14 @@ class MongoStoreService<T> extends Service {
   /// Might be useful if you don't want to extract
   /// typed objects or you want to execute
   /// some custom aggregation etc.
-  Future<DbCollection> get collection async {
+  Future<DbCollection> getCollectionAsync() async {
     await ensureConnected();
     return _collection!;
   }
 
-  Future<T?> findOne([
-    dynamic selector,
-  ]) async {
+  Future<T?> findOneAsync({
+    required Map<String, dynamic> selector,
+  }) async {
     await ensureConnected();
     final value = await _collection!.findOne(selector);
     return _convertFromMap(value);
@@ -41,7 +43,7 @@ class MongoStoreService<T> extends Service {
   }
 
   Map<String, dynamic> _convertToMapBeforeInsertion(T value) {
-    final map = (value as Object).toBson() as Map<String, dynamic>;
+    final map = value.toBson() as Map<String, dynamic>;
     final now = DateTime.now().toUtc();
     if (map['createdAt'] == null) {
       map['createdAt'] = now;
@@ -50,7 +52,7 @@ class MongoStoreService<T> extends Service {
     return map;
   }
 
-  Future<ObjectId?> insertOneAndReturnId(T value) async {
+  Future<ObjectId?> insertOneAndReturnIdAsync(T value) async {
     await ensureConnected();
     final WriteResult result = await _collection!.insertOne(
       _convertToMapBeforeInsertion(value),
@@ -58,7 +60,28 @@ class MongoStoreService<T> extends Service {
     return result.document?['_id'] as ObjectId?;
   }
 
-  Future<T?> findAndModify({
+  /// all fields that are not supposed to be set
+  /// in a database, must be null in the value object
+  Future<bool> updateOneAsync({
+    required Map<String, dynamic> selector,
+    required T value,
+  }) async {
+    await ensureConnected();
+    value.updatedAt = DateTime.now().toUtc();
+    final bson = value.toBson(
+      includeNullValues: false,
+    );
+
+    final result = await _collection!.updateOne(
+      selector,
+      {
+        '\$set': bson,
+      },
+    );
+    return result.isSuccess;
+  }
+
+  Future<T?> findAndModifyAsync({
     dynamic query,
     dynamic sort,
     bool? remove,

@@ -8,10 +8,7 @@ import 'package:reflect_buddy/reflect_buddy.dart';
 import '../../annotations/controller_annotations.dart';
 import '../../server.dart';
 
-/// This attribute can added to the whole controller or
-/// to a separate endpoint method. If it's applied to
-/// an endpoint t will override the one applied to the
-/// controller's class
+
 
 class JwtAuth extends Authorization {
   final List<Role> roles;
@@ -38,10 +35,11 @@ class JwtAuth extends Authorization {
       );
     }
 
-    final jwtService = context.getService<JwtService>();
-    final bearerData = jwtService!.decodeBearer(
+    final jwtService = context.getService<JwtService>()!;
+    final jwtConfig = context.getConfig<JwtConfig>()!;
+    final bearerData = jwtService.decodeBearer(
       token: context.authorizationHeader!,
-      hmacKey: context.getConfig<JwtConfig>()!.hmacKey,
+      hmacKey: jwtConfig.hmacKey,
     );
 
     if (bearerData == null) {
