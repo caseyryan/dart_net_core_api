@@ -1,5 +1,7 @@
 import 'dart:mirrors';
 
+import 'package:dart_net_core_api/utils/extensions/extensions.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 extension ObjectExtensions on Object {
@@ -9,6 +11,14 @@ extension ObjectExtensions on Object {
     JsonKeyNameConverter? keyNameConverter,
   }) {
     if (runtimeType.isPrimitive) {
+      if (this is String) {
+        final String str = this as String;
+        if (str.isMatchingObjectId()) {
+          return ObjectId.fromHexString(str);
+        }
+      }
+      return this;
+    } else if (this is ObjectId) {
       return this;
     } else if (this is Map) {
       final newMap = {};
@@ -24,6 +34,9 @@ extension ObjectExtensions on Object {
       return (this as Enum).enumToString();
     }
     final instanceMirror = reflect(this);
+
+    final declarations = instanceMirror.includeParentDeclarationsIfNecessary();
+
     final Map<String, dynamic> json = {};
     JsonKeyNameConverter? classLevelKeyNameConverter =
         instanceMirror.type.tryGetKeyNameConverter();
@@ -32,7 +45,7 @@ extension ObjectExtensions on Object {
       classLevelKeyNameConverter = null;
     }
     keyNameConverter ??= classLevelKeyNameConverter;
-    for (var kv in instanceMirror.type.declarations.entries) {
+    for (var kv in declarations.entries) {
       if (kv.value is VariableMirror) {
         final variableMirror = kv.value as VariableMirror;
         Object? rawValue = instanceMirror

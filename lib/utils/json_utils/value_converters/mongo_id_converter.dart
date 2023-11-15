@@ -1,11 +1,10 @@
+import 'package:dart_net_core_api/utils/extensions/extensions.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 /// This converter is used on on _id field for mongo types
 /// it can convert ids in both directions
 class MongoIdConverter extends JsonValueConverter {
-  static final RegExp _idRegExp = RegExp(r'[a-z0-9]{24}');
-
   const MongoIdConverter();
 
   @override
@@ -19,7 +18,7 @@ class MongoIdConverter extends JsonValueConverter {
       }
     } else if (direction == ConvertDirection.fromJson) {
       if (value is String) {
-        if (_idRegExp.hasMatch(value)) {
+        if (value.isMatchingObjectId()) {
           return ObjectId.fromHexString(value);
         }
       }

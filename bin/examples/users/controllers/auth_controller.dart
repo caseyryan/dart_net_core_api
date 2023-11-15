@@ -50,27 +50,19 @@ class AuthController extends ApiController {
       existingHash: user.passwordHash!,
     );
     if (!passwordOk) {
+      /// TODO: Сделать счетчик неудачных попыток за определенное время
+
       throw BadRequestException(
         message: 'A login or a password is incorrect',
       );
     }
-    final refreshToken = await _getOrCreateRefreshToken(
-      user.id,
-    );
-    print(refreshToken);
-    // final refreshData = jwtService.decodeBearer(
-    //   token: user.refreshToken!,
-    //   hmacKey: jwtConfig.refreshTokenHmacKey!,
-    // );
-    // print(refreshData);
-
-    return null;
+    return await _createTokenResponseForUser(user);
   }
 
   Future<TokenResponse?> _getOrCreateRefreshToken(
     ObjectId userId,
   ) async {
-    final existing = await refreshTokenService.findByUserId(userId);
+    final existingRefreshToken = await refreshTokenService.findByUserId(userId);
     final shouldUseRefreshToken = jwtConfig.useRefreshToken;
     if (!shouldUseRefreshToken) {
       return null;
@@ -78,7 +70,7 @@ class AuthController extends ApiController {
 
     String? refreshToken;
     String? refreshPublicKey;
-    if (existing == null) {
+    if (existingRefreshToken == null) {
       refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
       refreshToken = jwtService.generateJsonWebToken(
         hmacKey: jwtConfig.refreshTokenHmacKey!,
@@ -105,9 +97,55 @@ class AuthController extends ApiController {
         ..refreshToken = refreshToken;
     } else {
       return TokenResponse()
-        ..refreshExpiresAt = existing.expiresAt
-        ..publicKey = existing.publicKey
-        ..refreshToken = existing.refreshToken;
+        ..refreshExpiresAt = existingRefreshToken.expiresAt
+        ..publicKey = existingRefreshToken.publicKey
+        ..refreshToken = existingRefreshToken.refreshToken;
+    }
+  }
+
+  /// When JwtAuth annotation is used on a controller or an endpoint
+  /// this payload will be accessible via httpContext -> jwtPayload
+  JwtPayload _toUserTokenPayload(
+    User user,
+    String? publicKey,
+  ) {
+    final payload = JwtPayload(
+      id: user.id.toHexString(),
+      roles: user.roles!,
+    );
+    payload.publicKey = publicKey;
+    return payload;
+  }
+
+  Future<TokenResponse?> _createTokenResponseForUser(
+    User user,
+  ) async {
+    TokenResponse? refreshTokenResponse = await _getOrCreateRefreshToken(
+      user.id,
+    );
+    if (refreshTokenResponse?.isRefreshTokenExpired == true && jwtConfig.useRefreshToken) {
+      /// TODO: тут надо обновить рефреш токен в базе
+    }
+
+    final token = TokenResponse(
+      bearerToken: jwtService.generateJsonWebToken(
+        issuer: jwtConfig.issuer,
+        hmacKey: jwtConfig.hmacKey,
+        payload: _toUserTokenPayload(
+          user,
+          refreshTokenResponse?.publicKey,
+        ),
+        exp: jwtService.getExpirationSecondsFromNow(
+          jwtConfig.bearerLifeSeconds,
+        ),
+      ),
+      bearerExpiresAt: jwtConfig.bearerExpirationDateTime,
+    );
+    if (refreshTokenResponse != null) {
+      return token.copyWith(
+        refreshToken: refreshTokenResponse.refreshToken,
+        refreshExpiresAt: refreshTokenResponse.refreshExpiresAt,
+      );
     }
   }
 
@@ -140,38 +178,11 @@ class AuthController extends ApiController {
       ..passwordHash = passwordHash;
 
     final id = await userService.insertOneAndReturnId(user);
+    user.id = id;
     if (id != null) {
-      TokenResponse? refreshTokenResponse = await _getOrCreateRefreshToken(id);
-
-      /// When JwtAuth annotation is used on a controller or an endpoint
-      /// this payload will be accessible via httpContext -> jwtPayload
-      final payload = JwtPayload(
-        id: id.toHexString(),
-        roles: user.roles!,
-      );
-      if (refreshTokenResponse?.publicKey != null) {
-        payload.publicKey = refreshTokenResponse!.publicKey;
-      }
-      var tokenResponse = TokenResponse(
-        bearerToken: jwtService.generateJsonWebToken(
-          issuer: jwtConfig.issuer,
-          hmacKey: jwtConfig.hmacKey,
-          payload: payload,
-          exp: jwtService.getExpirationSecondsFromNow(
-            jwtConfig.bearerLifeSeconds,
-          ),
-        ),
-        bearerExpiresAt: jwtConfig.bearerExpirationDateTime,
-      );
-      if (refreshTokenResponse != null) {
-        return tokenResponse.copyWith(
-          refreshToken: refreshTokenResponse.refreshToken,
-          refreshExpiresAt: refreshTokenResponse.refreshExpiresAt,
-        );
-      }
-      return tokenResponse;
+      return await _createTokenResponseForUser(user);
     }
-    throw ApiException(
+    throw InternalServerException(
       message: 'Could not create an account',
     );
   }

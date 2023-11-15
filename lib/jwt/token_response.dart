@@ -8,6 +8,16 @@ class TokenResponse {
   @JsonIgnore()
   String? publicKey;
 
+  bool get isRefreshTokenExpired {
+    if (refreshToken == null) {
+      return false;
+    }
+    if (refreshExpiresAt == null) {
+      return true;
+    }
+    return DateTime.now().toUtc().isAfter(refreshExpiresAt!);
+  }
+
   TokenResponse({
     this.bearerToken,
     this.refreshToken,

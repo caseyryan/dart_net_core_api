@@ -7,6 +7,18 @@ class HttpContext {
   final HttpRequest httpRequest;
   final ServiceLocator serviceLocator;
 
+  InternetAddress? get remoteAddress {
+    return httpRequest.connectionInfo?.remoteAddress;
+  }
+
+  String? get clientIpAddress {
+    return remoteAddress?.address;
+  }
+
+  int? get localPort {
+    return httpRequest.connectionInfo?.localPort;
+  }
+
   /// Might be used in JwtAuth annotation to
   /// be able to get the data from token
   JwtPayload? jwtPayload;
