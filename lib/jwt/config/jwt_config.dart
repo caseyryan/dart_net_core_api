@@ -1,4 +1,5 @@
 import 'package:dart_net_core_api/config.dart';
+import 'package:dart_net_core_api/utils/time_utils.dart';
 
 class JwtConfig implements IConfig {
   late String hmacKey;
@@ -9,10 +10,10 @@ class JwtConfig implements IConfig {
   bool useRefreshToken = false;
 
   DateTime calculateBearerExpirationDateTime() {
-    return DateTime.now().toUtc().add(Duration(seconds: bearerLifeSeconds));
+    return utcNow.add(Duration(seconds: bearerLifeSeconds));
   }
 
   DateTime calculateRefreshExpirationDateTime() {
-    return DateTime.now().toUtc().add(Duration(seconds: refreshLifeSeconds ?? 0));
+    return utcNow.add(Duration(seconds: refreshLifeSeconds ?? 0));
   }
 }

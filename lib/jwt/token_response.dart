@@ -1,3 +1,4 @@
+import 'package:dart_net_core_api/utils/time_utils.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 class TokenResponse {
@@ -19,7 +20,7 @@ class TokenResponse {
     if (refreshExpiresAt == null) {
       return true;
     }
-    return DateTime.now().toUtc().isAfter(refreshExpiresAt!);
+    return utcNow.isAfter(refreshExpiresAt!);
   }
 
   TokenResponse({

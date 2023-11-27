@@ -1,10 +1,11 @@
+import 'package:dart_net_core_api/utils/time_utils.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-import 'mongo_model.dart';
+import 'base_mongo_model.dart';
 
 @JsonIncludeParentFields()
-class RefreshToken extends MongoModel {
+class RefreshToken extends BaseMongoModel {
   String? refreshToken;
   String? publicKey;
   ObjectId? userId;
@@ -14,6 +15,6 @@ class RefreshToken extends MongoModel {
     if (expiresAt == null) {
       return true;
     }
-    return DateTime.now().toUtc().isAfter(expiresAt!);
+    return utcNow.isAfter(expiresAt!);
   }
 }

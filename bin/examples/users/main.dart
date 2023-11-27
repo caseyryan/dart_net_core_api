@@ -1,15 +1,16 @@
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/config.dart';
+import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
+import 'package:dart_net_core_api/default_setups/services/failed_password_blocking_service.dart';
+import 'package:dart_net_core_api/default_setups/services/refresh_token_store_service.dart';
+import 'package:dart_net_core_api/default_setups/services/user_store_service.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
 import 'package:logging/logging.dart';
 
-import 'controllers/auth_controller.dart';
 import 'controllers/user_controller.dart';
-import 'services/refresh_token_store_service.dart';
-import 'services/user_store_service.dart';
 import 'socket_namespaces/notification_socket_controller.dart';
 
 void main(List<String> arguments) {
@@ -51,6 +52,7 @@ void main(List<String> arguments) {
         /// because they open and close database connections
         UserStoreService: () => UserStoreService(),
         RefreshTokenStoreService: () => RefreshTokenStoreService(),
+        FailedPasswordBlockingService: () => FailedPasswordBlockingService(),
       },
       jsonSerializer: DefaultJsonSerializer(
         // CamelToSnake(),

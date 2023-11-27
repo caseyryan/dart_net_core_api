@@ -5,6 +5,7 @@ import 'package:dart_net_core_api/database/configs/password_hash_config.dart';
 import 'package:dart_net_core_api/database/configs/postgresql_config.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 
+import 'default_setups/configs/failed_password_config.dart';
 
 /// all custom configurations must implement this interface
 /// This is necessary because an instance of config will
@@ -23,6 +24,7 @@ class Config implements IConfig {
   PostgreSQLConfig? postgreSQLConfig;
   SocketConfig? socketConfig;
   PasswordHashConfig? passwordHashConfig;
+  FailedPasswordConfig? failedPasswordConfig;
   bool printDebugInfo = true;
   String? staticFilesRoot;
 }

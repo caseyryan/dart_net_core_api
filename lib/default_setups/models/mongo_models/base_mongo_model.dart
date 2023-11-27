@@ -4,7 +4,7 @@ import 'package:dart_net_core_api/utils/json_utils/value_converters/mongo_id_con
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 /// This type is specially made for mongo compatibility
-class MongoModel {
+class BaseMongoModel {
   
   DateTime? createdAt;
   DateTime? updatedAt;

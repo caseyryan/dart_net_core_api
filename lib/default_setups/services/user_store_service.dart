@@ -1,6 +1,6 @@
 import 'package:mongo_dart/mongo_dart.dart';
 
-import '../models/database_models/user.dart';
+import '../models/mongo_models/user.dart';
 import 'mongo_store_service.dart';
 
 class UserStoreService extends MongoStoreService<User> {

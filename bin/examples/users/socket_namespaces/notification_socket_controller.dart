@@ -1,7 +1,7 @@
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
+import 'package:dart_net_core_api/default_setups/models/mongo_models/user.dart';
 
-import '../models/database_models/user.dart';
 
 @SocketJwtAuthorization()
 @SocketNamespace(path: '/notifications')

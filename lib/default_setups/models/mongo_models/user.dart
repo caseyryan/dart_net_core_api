@@ -3,7 +3,7 @@
 import 'package:dart_net_core_api/server.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-import 'mongo_model.dart';
+import 'base_mongo_model.dart';
 
 /// Notice that there are some JSON annotations are
 /// used here. None of them is required but they help you
@@ -15,7 +15,7 @@ import 'mongo_model.dart';
 /// [JsonIncludeParentFields] is used here to also include
 /// `id`, `createdAt`, and `updatedAt` from base model to the resulting json
 @JsonIncludeParentFields()
-class User extends MongoModel {
+class User extends BaseMongoModel {
   
 
   List<Role>? roles;

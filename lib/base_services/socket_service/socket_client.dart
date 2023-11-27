@@ -119,7 +119,7 @@ class SocketClient {
     if (_disconnectAfter == null) {
       return false;
     }
-    return DateTime.now().toUtc().isAfter(
+    return utcNow.isAfter(
           _disconnectAfter!,
         );
   }

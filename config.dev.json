@@ -22,5 +22,17 @@
         "port": 3001,
         "allowDefaultNamespace": true
     },
+    "failedPasswordConfig": {
+        "numAllowedAttempts": 5,
+        "blockMinutes": [
+            5,
+            15,
+            30,
+            60,
+            120,
+            240,
+            1440
+        ]
+    },
     "printDebugInfo": true
 }

@@ -1,10 +1,16 @@
 import 'dart:mirrors';
 
 import 'package:dart_net_core_api/utils/extensions/extensions.dart';
+import 'package:dart_net_core_api/utils/json_utils/value_converters/mongo_id_converter.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 extension ObjectExtensions on Object {
+
+  ObjectId? toObjectId() {
+    return toBson() as ObjectId?;
+  }
+
   /// A value similar to a regular JSON but MongoDB compatible
   Object? toBson({
     bool includeNullValues = false,
@@ -67,12 +73,24 @@ extension ObjectExtensions on Object {
           continue;
         }
         final alternativeName = variableMirror.alternativeName;
-        final valueConverters = variableMirror.getAnnotationsOfType<JsonValueConverter>();
+
+        final valueConverters =
+            variableMirror.getAnnotationsOfType<JsonValueConverter>();
         for (final converter in valueConverters) {
-          rawValue = converter.convert(
-            rawValue,
-            ConvertDirection.toJson,
-          );
+          if (converter is MongoIdConverter) {
+            /// it's a unique case where we don't need it to be converted into a
+            /// simpler value but instead into a mongo's ObjectId
+            /// so we use `ConvertDirection.fromJson` instead, to reverse the possible conversion
+            rawValue = converter.convert(
+              rawValue,
+              ConvertDirection.fromJson,
+            );
+          } else {
+            rawValue = converter.convert(
+              rawValue,
+              ConvertDirection.toJson,
+            );
+          }
         }
 
         Object? value;

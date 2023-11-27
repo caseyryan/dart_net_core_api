@@ -1,5 +1,6 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
+import 'package:dart_net_core_api/default_setups/services/failed_password_blocking_service.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';
@@ -7,10 +8,10 @@ import 'package:dart_net_core_api/jwt/token_response.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
-import '../models/database_models/refresh_token.dart';
-import '../models/database_models/user.dart';
 import '../models/dto/basic_auth_data.dart';
 import '../models/dto/basic_login_data.dart';
+import '../models/mongo_models/refresh_token.dart';
+import '../models/mongo_models/user.dart';
 import '../services/refresh_token_store_service.dart';
 import '../services/user_store_service.dart';
 
@@ -20,16 +21,21 @@ class AuthController extends ApiController {
     this.userService,
     this.passwordHashService,
     this.refreshTokenService,
+    this.failedPasswordBlockingService,
   );
 
   final JwtService jwtService;
   final UserStoreService userService;
   final PasswordHashService passwordHashService;
   final RefreshTokenStoreService refreshTokenService;
+  final FailedPasswordBlockingService failedPasswordBlockingService;
 
   JwtConfig get jwtConfig {
     return httpContext.getConfig<JwtConfig>()!;
   }
+
+  @HttpPost('/auth/logout/all')
+  Future logoutOnAll() async {}
 
   @HttpPost('/auth/login/basic')
   Future<TokenResponse?> login(
@@ -50,12 +56,25 @@ class AuthController extends ApiController {
       existingHash: user.passwordHash!,
     );
     if (!passwordOk) {
-      /// TODO: Сделать счетчик неудачных попыток за определенное время
+      /// If a user has ran out of allowed password attempts
+      /// we need to block the user for a specified period of time
+      /// and return a corresponding error to him
+      final error = await failedPasswordBlockingService.tryGetBlockingError(
+        user.id,
+      );
+      if (error != null) {
+        throw BadRequestException(
+          message: error,
+          code: '400006'
+        );
+      }
 
       throw BadRequestException(
         message: 'A login or a password is incorrect',
       );
     }
+    /// On a successful login, we remove the password blocker
+    await failedPasswordBlockingService.deleteByUserId(user.id);
     return await _createTokenResponseForUser(user);
   }
 
@@ -85,7 +104,8 @@ class AuthController extends ApiController {
         ..userId = userId
         ..refreshToken = refreshToken
         ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
-      final newTokenId = await refreshTokenService.insertOneAndReturnIdAsync(data);
+      final newTokenId =
+          await refreshTokenService.insertOneAndReturnIdAsync(data);
       if (newTokenId == null) {
         throw InternalServerException(
           message: 'Could not create token',
@@ -125,10 +145,12 @@ class AuthController extends ApiController {
       user.id,
     );
     final createNewToken =
-        refreshTokenResponse?.isRefreshTokenExpired == true && jwtConfig.useRefreshToken;
+        refreshTokenResponse?.isRefreshTokenExpired == true &&
+            jwtConfig.useRefreshToken;
     if (createNewToken) {
       /// Update the expired refresh token in a database
-      final refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
+      final refreshPublicKey =
+          passwordHashService.generatePublicKeyForRefresh();
       final refreshToken = jwtService.generateJsonWebToken(
         hmacKey: jwtConfig.refreshTokenHmacKey!,
         issuer: jwtConfig.issuer,
@@ -142,7 +164,9 @@ class AuthController extends ApiController {
         ..refreshToken = refreshToken
         ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
       final success = await refreshTokenService.updateOneAsync(
-        selector: {'_id': refreshTokenResponse?.refreshTokenId},
+        selector: {
+          '_id': refreshTokenResponse?.refreshTokenId,
+        },
         value: newRefreshToken,
       );
       if (!success) {

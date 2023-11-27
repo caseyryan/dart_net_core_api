@@ -1,6 +1,6 @@
 import 'package:dart_net_core_api/utils/extensions/extensions.dart';
 
-import '../models/database_models/refresh_token.dart';
+import '../models/mongo_models/refresh_token.dart';
 import 'mongo_store_service.dart';
 
 class RefreshTokenStoreService extends MongoStoreService<RefreshToken> {

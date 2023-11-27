@@ -1,12 +1,13 @@
 import 'package:dart_net_core_api/database/configs/mongo_config.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/extensions/extensions.dart';
+import 'package:dart_net_core_api/utils/time_utils.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-import '../models/database_models/mongo_model.dart';
+import '../models/mongo_models/base_mongo_model.dart';
 
-class MongoStoreService<T extends MongoModel> extends Service {
+class MongoStoreService<T extends BaseMongoModel> extends Service {
   MongoStoreService({
     this.collectionName,
   });
@@ -44,7 +45,7 @@ class MongoStoreService<T extends MongoModel> extends Service {
 
   Map<String, dynamic> _convertToMapBeforeInsertion(T value) {
     final map = value.toBson() as Map<String, dynamic>;
-    final now = DateTime.now().toUtc();
+    final now = utcNow;
     if (map['createdAt'] == null) {
       map['createdAt'] = now;
     }
@@ -60,14 +61,33 @@ class MongoStoreService<T extends MongoModel> extends Service {
     return result.document?['_id'] as ObjectId?;
   }
 
+  Future<bool> deleteOneAsync({
+    required Map<String, dynamic> selector,
+    WriteConcern? writeConcern,
+    CollationOptions? collation,
+    String? hint,
+    Map<String, Object>? hintDocument,
+  }) async {
+    await ensureConnected();
+    final result = await _collection!.deleteOne(
+      selector,
+      writeConcern: writeConcern,
+      collation: collation,
+      hint: hint,
+      hintDocument: hintDocument,
+    );
+    return result.isSuccess;
+  }
+
   /// all fields that are not supposed to be set
   /// in a database, must be null in the value object
   Future<bool> updateOneAsync({
     required Map<String, dynamic> selector,
     required T value,
+    bool? upsert,
   }) async {
     await ensureConnected();
-    value.updatedAt = DateTime.now().toUtc();
+    value.updatedAt = utcNow;
     final bson = value.toBson(
       includeNullValues: false,
     );
@@ -77,6 +97,7 @@ class MongoStoreService<T extends MongoModel> extends Service {
       {
         '\$set': bson,
       },
+      upsert: upsert,
     );
     return result.isSuccess;
   }

@@ -1,10 +1,10 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/default_setups/models/mongo_models/user.dart';
+import 'package:dart_net_core_api/default_setups/services/user_store_service.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/server.dart';
 
 import '../annotations/auth_annotation.dart';
-import '../models/database_models/user.dart';
-import '../services/user_store_service.dart';
 
 /// Even though baseApiPath '/api/v1' was
 /// specified at [_Server] initialization

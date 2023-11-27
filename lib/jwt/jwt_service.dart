@@ -1,5 +1,6 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/utils/time_utils.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 class JwtPayload {
@@ -29,12 +30,11 @@ class JwtPayload {
 /// and write your own validation and generation logic if you need
 class JwtService extends Service {
   int get _issuedAt {
-    return DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+    return utcNow.millisecondsSinceEpoch ~/ 1000;
   }
 
   int getExpirationSecondsFromNow(int seconds) {
-    return DateTime.now()
-            .toUtc()
+    return utcNow
             .add(
               Duration(seconds: seconds),
             )

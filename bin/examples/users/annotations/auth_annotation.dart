@@ -1,11 +1,11 @@
 import 'dart:io';
 
+import 'package:dart_net_core_api/default_setups/services/refresh_token_store_service.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/server.dart';
 
-import '../services/refresh_token_store_service.dart';
 
 /// This attribute can added to the whole controller or
 /// to a separate endpoint method. If it's applied to
