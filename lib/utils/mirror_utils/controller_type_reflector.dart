@@ -26,13 +26,11 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           (e) => EndpointMethod(method: e),
         )
         .toList();
-    final controllerAnnotations =
-        super._annotations.whereType<ControllerAnnotation>().toList();
+    final controllerAnnotations = super._annotations.whereType<ControllerAnnotation>().toList();
     if (controllerAnnotations.length > 1) {
       throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
     }
-    final path =
-        controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '';
+    final path = controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '';
     final controllerBasePathFromAnnotation = path.fixEndpointPath();
     if (controllerBasePathFromAnnotation.isNotEmpty) {
       basePath = controllerBasePathFromAnnotation;
@@ -50,8 +48,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           }
         }
       }
-      final endPointAnnotations =
-          endpointMethod._annotations.whereType<EndpointAnnotation>();
+      final endPointAnnotations = endpointMethod._annotations.whereType<EndpointAnnotation>();
       if (endPointAnnotations.length > 1) {
         throw 'An endpoint can have only one EndpointAnnotation. But $controllerType -> ${endpointMethod.name}() has ${endPointAnnotations.length}';
       }
@@ -181,8 +178,7 @@ class EndpointMapper {
     required this.controllerTypeReflection,
   }) {
     endpointPathParser = EndpointPathParser(fullPath);
-    final otherInstanceOrNull =
-        ControllerTypeReflector._allMappers.firstWhereOrNull((e) => e == this);
+    final otherInstanceOrNull = ControllerTypeReflector._allMappers.firstWhereOrNull((e) => e == this);
     if (otherInstanceOrNull != null) {
       throw 'Ambiguous endpoint reference! $fullPath is already defined in ${otherInstanceOrNull.controllerTypeReflection.controllerType}';
     }
@@ -201,8 +197,7 @@ class EndpointMapper {
     required HttpContext httpContext,
     required ConfigParser configParser,
   }) async {
-    final InstanceMirror controllerMirror =
-        controllerTypeReflection.instantiateController(
+    final InstanceMirror controllerMirror = controllerTypeReflection.instantiateController(
       serviceLocator: server.tryFindServiceByType,
       configParser: configParser,
     );
@@ -270,10 +265,12 @@ class EndpointMapper {
           dateParser: server.settings.dateParser,
         );
       }
-      if (param.isPositional) {
-        positionalArgs.add(value);
-      } else {
-        namedArguments[Symbol(param.name)] = value;
+      if (value != null) {
+        if (param.isPositional) {
+          positionalArgs.add(value);
+        } else {
+          namedArguments[Symbol(param.name)] = value;
+        }
       }
     }
 

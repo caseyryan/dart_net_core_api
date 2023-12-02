@@ -10,13 +10,13 @@ class MongoIdConverter extends JsonValueConverter {
   @override
   Object? convert(
     covariant Object? value,
-    ConvertDirection direction,
+    SerializationDirection direction,
   ) {
-    if (direction == ConvertDirection.toJson) {
+    if (direction == SerializationDirection.toJson) {
       if (value is ObjectId) {
         return value.toHexString();
       }
-    } else if (direction == ConvertDirection.fromJson) {
+    } else if (direction == SerializationDirection.fromJson) {
       if (value is String) {
         if (value.isMatchingObjectId()) {
           return ObjectId.fromHexString(value);

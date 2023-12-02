@@ -1,5 +1,7 @@
 // ignore_for_file: empty_catches
 
+import 'package:reflect_buddy/reflect_buddy.dart';
+
 import 'default_date_parser.dart';
 
 Object? tryConvertQueryArgumentType({
@@ -26,7 +28,10 @@ Object? tryConvertQueryArgumentType({
           defaultValue: false,
         );
     }
+    /// This might come useful if it's an enum, for example
+    return expectedType.fromJson(actual);
   } catch (e) {}
+
   return null;
 }
 

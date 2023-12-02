@@ -1,4 +1,4 @@
-import 'package:mongo_dart/mongo_dart.dart';
+import 'package:dart_net_core_api/utils/extensions/extensions.dart';
 
 import '../models/mongo_models/user.dart';
 import 'mongo_store_service.dart';
@@ -31,8 +31,10 @@ class UserStoreService extends MongoStoreService<User> {
     return null;
   }
 
-  Future<User?> findUserById(String id) async {
-    return await findOneAsync(selector: {'_id': ObjectId.fromHexString(id)});
+  Future<User?> findUserById(Object id) async {
+    return await findOneAsync(
+      selector: {'_id': id.toObjectId()},
+    );
   }
 
   Future deleteUserById(String id) async {}

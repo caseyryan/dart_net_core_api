@@ -1,11 +1,8 @@
-
-
 import 'package:dart_net_core_api/utils/json_utils/value_converters/mongo_id_converter.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 /// This type is specially made for mongo compatibility
 class BaseMongoModel {
-  
   DateTime? createdAt;
   DateTime? updatedAt;
 
@@ -16,6 +13,13 @@ class BaseMongoModel {
   /// is used as a database model and a response.
   /// In this case `_id` might be a `String` or and `ObjectId`
   @MongoIdConverter()
-  @JsonKey(name: '_id', isIncluded: true)
+  @JsonKey(
+    name: '_id',
+    includeDirections: [
+      SerializationDirection.fromJson,
+      SerializationDirection.toJson,
+    ],
+    ignoreDirections: [],
+  )
   dynamic id;
 }

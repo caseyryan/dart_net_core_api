@@ -1,6 +1,7 @@
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/config.dart';
+import 'package:dart_net_core_api/default_setups/controllers/admin_controller.dart';
 import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
 import 'package:dart_net_core_api/default_setups/services/failed_password_blocking_service.dart';
 import 'package:dart_net_core_api/default_setups/services/refresh_token_store_service.dart';
@@ -23,6 +24,7 @@ void main(List<String> arguments) {
       apiControllers: [
         UserController,
         AuthController,
+        AdminController,
       ],
       configType: Config,
       singletonServices: [

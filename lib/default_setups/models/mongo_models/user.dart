@@ -27,6 +27,11 @@ class User extends BaseMongoModel {
   String? lastName;
 
   String? email;
+  @JsonIgnore(
+    ignoreDirections: [
+      SerializationDirection.toJson,
+    ]
+  )
   String? passwordHash;
 
   @override

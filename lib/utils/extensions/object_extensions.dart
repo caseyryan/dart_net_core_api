@@ -61,11 +61,11 @@ extension ObjectExtensions on Object {
             .reflectee;
         final isJsonIncluded = variableMirror.isJsonIncluded;
         if (variableMirror.isPrivate) {
-          if (!isJsonIncluded) {
+          if (!isJsonIncluded(SerializationDirection.toJson)) {
             continue;
           }
         } else {
-          if (variableMirror.isJsonIgnored) {
+          if (variableMirror.isJsonIgnored(SerializationDirection.toJson)) {
             continue;
           }
         }
@@ -83,12 +83,12 @@ extension ObjectExtensions on Object {
             /// so we use `ConvertDirection.fromJson` instead, to reverse the possible conversion
             rawValue = converter.convert(
               rawValue,
-              ConvertDirection.fromJson,
+              SerializationDirection.fromJson,
             );
           } else {
             rawValue = converter.convert(
               rawValue,
-              ConvertDirection.toJson,
+              SerializationDirection.toJson,
             );
           }
         }

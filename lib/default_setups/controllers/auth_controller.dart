@@ -1,5 +1,7 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
+import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
+import 'package:dart_net_core_api/default_setups/extensions/controller_extensions.dart';
 import 'package:dart_net_core_api/default_setups/services/failed_password_blocking_service.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
@@ -14,6 +16,14 @@ import '../models/mongo_models/refresh_token.dart';
 import '../models/mongo_models/user.dart';
 import '../services/refresh_token_store_service.dart';
 import '../services/user_store_service.dart';
+
+enum LogoutScope {
+  /// log out all, including the requesting user
+  all,
+
+  /// log out all but return a new set of tokens to the current user
+  other,
+}
 
 class AuthController extends ApiController {
   AuthController(
@@ -34,8 +44,30 @@ class AuthController extends ApiController {
     return httpContext.getConfig<JwtConfig>()!;
   }
 
-  @HttpPost('/auth/logout/all')
-  Future logoutOnAll() async {}
+  @JwtAuthWithRefresh()
+  @HttpPost('/auth/logout')
+  Future<TokenResponse?> logoutOnAll([
+    LogoutScope? scope,
+  ]) async {
+    scope ??= LogoutScope.other;
+
+    final user = await userService.findUserById(userId);
+    TokenResponse? tokenResponse;
+    if (user != null) {
+      tokenResponse = await _createTokenResponseForUser(
+        user,
+        forceNewToken: true,
+      );
+    }
+
+    switch (scope) {
+      case LogoutScope.all:
+        /// null means success with no content, http status code 204
+        return null;
+      case LogoutScope.other:
+        return tokenResponse;
+    }
+  }
 
   @HttpPost('/auth/login/basic')
   Future<TokenResponse?> login(
@@ -63,16 +95,14 @@ class AuthController extends ApiController {
         user.id,
       );
       if (error != null) {
-        throw BadRequestException(
-          message: error,
-          code: '400006'
-        );
+        throw BadRequestException(message: error, code: '400006');
       }
 
       throw BadRequestException(
         message: 'A login or a password is incorrect',
       );
     }
+
     /// On a successful login, we remove the password blocker
     await failedPasswordBlockingService.deleteByUserId(user.id);
     return await _createTokenResponseForUser(user);
@@ -104,8 +134,7 @@ class AuthController extends ApiController {
         ..userId = userId
         ..refreshToken = refreshToken
         ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
-      final newTokenId =
-          await refreshTokenService.insertOneAndReturnIdAsync(data);
+      final newTokenId = await refreshTokenService.insertOneAndReturnIdAsync(data);
       if (newTokenId == null) {
         throw InternalServerException(
           message: 'Could not create token',
@@ -139,18 +168,19 @@ class AuthController extends ApiController {
   }
 
   Future<TokenResponse?> _createTokenResponseForUser(
-    User user,
-  ) async {
+    User user, {
+    bool? forceNewToken,
+  }) async {
     TokenResponse? refreshTokenResponse = await _getOrCreateRefreshToken(
       user.id,
     );
-    final createNewToken =
-        refreshTokenResponse?.isRefreshTokenExpired == true &&
-            jwtConfig.useRefreshToken;
+    bool createNewToken = false;
+    if (jwtConfig.useRefreshToken) {
+      createNewToken = forceNewToken ?? refreshTokenResponse?.isRefreshTokenExpired == true;
+    }
     if (createNewToken) {
       /// Update the expired refresh token in a database
-      final refreshPublicKey =
-          passwordHashService.generatePublicKeyForRefresh();
+      final refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
       final refreshToken = jwtService.generateJsonWebToken(
         hmacKey: jwtConfig.refreshTokenHmacKey!,
         issuer: jwtConfig.issuer,

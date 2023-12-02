@@ -43,6 +43,25 @@ class MongoStoreService<T extends BaseMongoModel> extends Service {
     return fromJson<T>(value) as T;
   }
 
+  Future<List<T>> findManyAsync({
+    Map<String, dynamic> selector = const {},
+    int page = 0,
+    int limit = 20,
+  }) async {
+    await ensureConnected();
+    final result = await _collection!
+        .find(selector)
+        .skip(page * limit)
+        .take(limit)
+        .map(
+          (e) => fromJson<T>(e) as T,
+        )
+        .cast<T>()
+        .toList();
+
+    return result;
+  }
+
   Map<String, dynamic> _convertToMapBeforeInsertion(T value) {
     final map = value.toBson() as Map<String, dynamic>;
     final now = utcNow;
