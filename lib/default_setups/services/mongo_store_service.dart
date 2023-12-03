@@ -7,9 +7,35 @@ import 'package:reflect_buddy/reflect_buddy.dart';
 
 import '../models/mongo_models/base_mongo_model.dart';
 
+class MongoCollectionIndex {
+  final String? key;
+  final Map<String, dynamic>? keys;
+  final bool? unique;
+  final bool? sparse;
+  final bool? background;
+  final bool? dropDups;
+  final Map<String, dynamic>? partialFilterExpression;
+  final String? name;
+  final bool? modernReply;
+  const MongoCollectionIndex({
+    this.key,
+    this.keys,
+    this.unique,
+    this.sparse,
+    this.background,
+    this.dropDups,
+    this.partialFilterExpression,
+    this.name,
+    this.modernReply,
+  });
+}
+
 class MongoStoreService<T extends BaseMongoModel> extends Service {
   MongoStoreService({
     this.collectionName,
+    this.createCollectionOptions,
+    this.rawOptions,
+    this.indices = const [],
   });
 
   /// [collectionName] can be used to set a fully custom collection name
@@ -17,6 +43,10 @@ class MongoStoreService<T extends BaseMongoModel> extends Service {
   /// By default the name is taken from the name of [T] type converted to
   /// a snake case. E.g. `RefreshToken` will turn into `refresh_token`
   final String? collectionName;
+  final CreateCollectionOptions? createCollectionOptions;
+  final Map<String, Object>? rawOptions;
+  final List<MongoCollectionIndex> indices;
+
   Db? _db;
   DbCollection? _collection;
 
@@ -164,7 +194,27 @@ class MongoStoreService<T extends BaseMongoModel> extends Service {
     _db = await Db.create(_config.connectionString!);
     await _db!.open();
     final name = collectionName ?? '${T.toString().camelToSnake()}s';
+    if (_collection == null) {
+      await _db!.createCollection(
+        name,
+        createCollectionOptions: createCollectionOptions,
+        rawOptions: rawOptions,
+      );
+    }
     _collection = _db!.collection(name);
+    for (var index in indices) {
+      await _collection!.createIndex(
+        background: index.background,
+        dropDups: index.dropDups,
+        key: index.key,
+        keys: index.keys,
+        modernReply: index.modernReply,
+        name: index.name,
+        partialFilterExpression: index.partialFilterExpression,
+        sparse: index.sparse,
+        unique: index.unique,
+      );
+    }
   }
 
   @override

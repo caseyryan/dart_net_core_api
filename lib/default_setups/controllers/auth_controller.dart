@@ -48,7 +48,7 @@ class AuthController extends ApiController {
 
   @JwtAuthWithRefresh()
   @HttpPost('/auth/logout')
-  Future<TokenResponse?> logoutOnAll([
+  Future<TokenResponse?> logout([
     LogoutScope? scope,
   ]) async {
     scope ??= LogoutScope.other;

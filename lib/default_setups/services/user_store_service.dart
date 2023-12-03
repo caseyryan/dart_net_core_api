@@ -7,7 +7,19 @@ import 'mongo_store_service.dart';
 class UserStoreService extends MongoStoreService<User> {
   UserStoreService()
       : super(
-        // collectionName: 'users',
+          // collectionName: 'users',
+          indices: const [
+            MongoCollectionIndex(
+              name: 'email',
+              key: 'email',
+              unique: true,
+            ),
+            MongoCollectionIndex(
+              name: 'phone',
+              key: 'phone',
+              unique: true,
+            ),
+          ],
         );
 
   Future<User?> findUserByEmail(String email) async {
