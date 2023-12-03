@@ -38,6 +38,8 @@ class MongoStoreService<T extends BaseMongoModel> extends Service {
     this.indices = const [],
   });
 
+  static final Map<Object, String> _collectionNames = {};
+
   /// [collectionName] can be used to set a fully custom collection name
   ///
   /// By default the name is taken from the name of [T] type converted to
@@ -49,6 +51,13 @@ class MongoStoreService<T extends BaseMongoModel> extends Service {
 
   Db? _db;
   DbCollection? _collection;
+
+  String get _collectionName {
+    if (_collectionNames[runtimeType] == null) {
+      _collectionNames[runtimeType] = collectionName ?? '${T.toString().camelToSnake()}s';
+    }
+    return _collectionNames[runtimeType]!;
+  }
 
   /// Might be useful if you don't want to extract
   /// typed objects or you want to execute
@@ -193,7 +202,7 @@ class MongoStoreService<T extends BaseMongoModel> extends Service {
     }
     _db = await Db.create(_config.connectionString!);
     await _db!.open();
-    final name = collectionName ?? '${T.toString().camelToSnake()}s';
+    final name = _collectionName;
     if (_collection == null) {
       await _db!.createCollection(
         name,

@@ -4,6 +4,17 @@ import '../models/mongo_models/refresh_token.dart';
 import 'mongo_store_service.dart';
 
 class RefreshTokenStoreService extends MongoStoreService<RefreshToken> {
+  
+  RefreshTokenStoreService() :super(
+    indices: const [
+      MongoCollectionIndex(
+        key: 'userId',
+        name: 'userId',
+        unique: true,
+      )
+    ],
+  );  
+  
   /// [httpContextToValidate] if passed, it will automatically check
   /// the validity of the token
   Future<RefreshToken?> findByUserId({
