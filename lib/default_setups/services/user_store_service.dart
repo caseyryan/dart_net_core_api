@@ -1,3 +1,4 @@
+import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/extensions/extensions.dart';
 
 import '../models/mongo_models/user.dart';
@@ -14,7 +15,9 @@ class UserStoreService extends MongoStoreService<User> {
   }
 
   Future<User?> findUserByPhone(String phone) async {
-    return await findOneAsync(selector: {'phone': phone});
+    return await findOneAsync(selector: {
+      'phone': phone,
+    });
   }
 
   Future<User?> findUserByPhoneOrEmail({
@@ -31,10 +34,22 @@ class UserStoreService extends MongoStoreService<User> {
     return null;
   }
 
-  Future<User?> findUserById(Object id) async {
-    return await findOneAsync(
+  Future<User?> findUserById(
+    Object id, {
+    bool throwErrorIfNotFound = false,
+  }) async {
+    final user = await findOneAsync(
       selector: {'_id': id.toObjectId()},
     );
+    if (throwErrorIfNotFound) {
+      if (user == null) {
+        throw NotFoundException(
+          message: 'User not found',
+        );
+      }
+    }
+
+    return user;
   }
 
   Future deleteUserById(String id) async {}

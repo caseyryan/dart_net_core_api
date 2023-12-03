@@ -313,11 +313,12 @@ class _Server extends IServer {
     }
   }
 
-  Future _onRequestError({
+  Future<Object?> _onRequestError({
     required HttpRequest request,
     required String traceId,
     required ApiException exception,
   }) async {
+    Object? result;
     ExceptionHandler? handler;
     if (exception.statusCode == 500) {
       handler = settings.custom500Handler ?? _defaultErrorHandler;
@@ -342,7 +343,7 @@ class _Server extends IServer {
         message = 'Something went wrong';
       }
 
-      handler(
+      result = handler(
         message: message,
         statusCode: request.response.statusCode,
         traceId: traceId,
@@ -360,6 +361,7 @@ class _Server extends IServer {
     } finally {
       request.response.close();
     }
+    return result;
   }
 
   Object? _defaultErrorHandler({
@@ -387,6 +389,27 @@ class _Server extends IServer {
     request.response.headers.contentType = ContentType.json;
     request.response.write(jsonEncode(response));
     return response;
+  }
+
+  /// Can be used to create swagger model or other types
+  /// of instructions
+  Future _tryWriteResponseModel({
+    required EndpointMapper endpointMapper,
+    required Object? response,
+    required int statusCode,
+    ContentType? contentType,
+  }) async {
+    try {
+      final method = endpointMapper.endpointMethod;
+      final endpoint = endpointMapper.endpointPathParser.originalPath;
+
+      /// TODO: Implement a model builder
+    } catch (e) {
+      logGlobal(
+        level: Level.WARNING,
+        message: e.toString(),
+      );
+    }
   }
 
   Future<dynamic> _callEndpoint({
@@ -444,9 +467,10 @@ class _Server extends IServer {
       );
       return;
     } else {
+      Object? result;
       try {
         /// The actual calling of an endpoint
-        final result = await endpointMapper.tryCallEndpoint(
+        result = await endpointMapper.tryCallEndpoint(
           path: path,
           server: this,
           httpContext: context,
@@ -455,23 +479,25 @@ class _Server extends IServer {
         if (result != null) {
           request.response.headers.contentType = request.headers.contentType;
           if (context.shouldSerializeToJson && settings.jsonSerializer != null) {
-            final converted = settings.jsonSerializer!.tryConvertToJsonString(result);
-            request.response.write(converted);
+            result = settings.jsonSerializer!.tryConvertToJsonString(result);
+            request.response.write(result);
           } else {
             request.response.write(result);
+
+            /// TODO: do _tryWriteResponseModel for different content types
           }
         } else {
           request.response.statusCode = HttpStatus.noContent;
         }
       } on ApiException catch (e) {
         e.traceId ??= traceId;
-        _onRequestError(
+        result = await _onRequestError(
           request: request,
           traceId: traceId,
           exception: e,
         );
       } on String catch (e) {
-        _onRequestError(
+        result = await _onRequestError(
           request: request,
           traceId: traceId,
           exception: ApiException(
@@ -480,7 +506,7 @@ class _Server extends IServer {
           ),
         );
       } catch (e) {
-        _onRequestError(
+        result = await _onRequestError(
           request: request,
           traceId: traceId,
           exception: InternalServerException(
@@ -499,8 +525,14 @@ class _Server extends IServer {
             stackTrace: s,
           );
         }
-        request.response.close();
       }
+      _tryWriteResponseModel(
+        endpointMapper: endpointMapper,
+        response: result,
+        statusCode: request.response.statusCode,
+        contentType: request.response.headers.contentType,
+      );
+      request.response.close();
     }
     return null;
   }

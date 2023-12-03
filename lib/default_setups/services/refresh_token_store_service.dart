@@ -4,13 +4,13 @@ import '../models/mongo_models/refresh_token.dart';
 import 'mongo_store_service.dart';
 
 class RefreshTokenStoreService extends MongoStoreService<RefreshToken> {
-
-  Future<RefreshToken?> findByUserId(
-    dynamic userId,
-  ) async {
-    if (userId is String) {
-      userId = userId.toObjectId();
-    }
-    return await findOneAsync(selector: {'userId': userId});
+  /// [httpContextToValidate] if passed, it will automatically check
+  /// the validity of the token
+  Future<RefreshToken?> findByUserId({
+    required Object userId,
+  }) async {
+    return await findOneAsync(selector: {
+      'userId': userId.toObjectId(),
+    });
   }
 }

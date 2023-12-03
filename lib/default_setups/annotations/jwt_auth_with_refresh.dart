@@ -6,7 +6,6 @@ import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/server.dart';
 
-
 /// This attribute can added to the whole controller or
 /// to a separate endpoint method. If it's applied to
 /// an endpoint t will override the one applied to the
@@ -36,7 +35,7 @@ class JwtAuthWithRefresh extends JwtAuth {
     if (jwtConfig.useRefreshToken) {
       final jwtService = context.getService<RefreshTokenStoreService>()!;
       final existingRefreshToken = await jwtService.findByUserId(
-        context.jwtPayload!.id,
+        userId: context.jwtPayload!.id,
       );
       if (existingRefreshToken == null ||
           existingRefreshToken.isExpired ||
@@ -45,7 +44,7 @@ class JwtAuthWithRefresh extends JwtAuth {
           message: 'Unauthorized',
           traceId: context.traceId,
           statusCode: HttpStatus.unauthorized,
-          code: '401002'
+          code: '401002',
         );
       }
     }

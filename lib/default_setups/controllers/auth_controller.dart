@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
 import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
@@ -28,14 +30,14 @@ enum LogoutScope {
 class AuthController extends ApiController {
   AuthController(
     this.jwtService,
-    this.userService,
+    this.userStoreService,
     this.passwordHashService,
     this.refreshTokenService,
     this.failedPasswordBlockingService,
   );
 
   final JwtService jwtService;
-  final UserStoreService userService;
+  final UserStoreService userStoreService;
   final PasswordHashService passwordHashService;
   final RefreshTokenStoreService refreshTokenService;
   final FailedPasswordBlockingService failedPasswordBlockingService;
@@ -51,17 +53,18 @@ class AuthController extends ApiController {
   ]) async {
     scope ??= LogoutScope.other;
 
-    final user = await userService.findUserById(userId);
+    final user = await userStoreService.findUserById(userId);
     TokenResponse? tokenResponse;
     if (user != null) {
       tokenResponse = await _createTokenResponseForUser(
         user,
-        forceNewToken: true,
+        forceNewRefreshToken: true,
       );
     }
 
     switch (scope) {
       case LogoutScope.all:
+
         /// null means success with no content, http status code 204
         return null;
       case LogoutScope.other:
@@ -69,12 +72,70 @@ class AuthController extends ApiController {
     }
   }
 
+  @HttpPost('/auth/refresh-token')
+  Future<TokenResponse?> refreshToken() async {
+    if (!jwtConfig.useRefreshToken) {
+      return null;
+    }
+
+    /// we need to decode a token right here because
+    /// even the expired bearer can be used to refresh it
+    /// Only the refresh token must be valid
+    final currentBearer = httpContext.authorizationHeader;
+    if (currentBearer == null) {
+      throw BadRequestException(
+        message: 'Bearer token is required',
+        code: '400009',
+      );
+    }
+    final bearerData = jwtService.decodeAndVerify(
+      token: httpContext.authorizationHeader!,
+      hmacKey: jwtConfig.hmacKey,
+      payloadType: JwtPayload,
+      checkExpiresIn: false,
+      checkNotBefore: false,
+    );
+    if (bearerData?['payload'] is! JwtPayload) {
+      throw BadRequestException(
+        message: 'Invalid token',
+        code: '400010',
+      );
+    }
+    final jwtPayload = bearerData!['payload'] as JwtPayload;
+    final userId = jwtPayload.id;
+
+    final existingRefreshToken = await refreshTokenService.findByUserId(
+      userId: userId,
+    );
+
+    if (existingRefreshToken == null ||
+        existingRefreshToken.isExpired ||
+        jwtPayload.publicKey != existingRefreshToken.publicKey) {
+      throw ApiException(
+        message: 'Unauthorized',
+        traceId: httpContext.traceId,
+        statusCode: HttpStatus.unauthorized,
+        code: '401012',
+      );
+    }
+
+    final user = await userStoreService.findUserById(
+      userId,
+      throwErrorIfNotFound: true,
+    );
+
+    return _createTokenResponseForUser(
+      user!,
+      forceNewRefreshToken: false,
+    );
+  }
+
   @HttpPost('/auth/login/basic')
   Future<TokenResponse?> login(
     @FromBody() BasicLoginData basicLoginData,
   ) async {
     basicLoginData.validate();
-    final user = await userService.findUserByPhoneOrEmail(
+    final user = await userStoreService.findUserByPhoneOrEmail(
       email: basicLoginData.email,
       phone: basicLoginData.phone,
     );
@@ -111,7 +172,9 @@ class AuthController extends ApiController {
   Future<TokenResponse?> _getOrCreateRefreshToken(
     ObjectId userId,
   ) async {
-    final existingRefreshToken = await refreshTokenService.findByUserId(userId);
+    final existingRefreshToken = await refreshTokenService.findByUserId(
+      userId: userId,
+    );
     final shouldUseRefreshToken = jwtConfig.useRefreshToken;
     if (!shouldUseRefreshToken) {
       return null;
@@ -169,16 +232,16 @@ class AuthController extends ApiController {
 
   Future<TokenResponse?> _createTokenResponseForUser(
     User user, {
-    bool? forceNewToken,
+    bool? forceNewRefreshToken,
   }) async {
     TokenResponse? refreshTokenResponse = await _getOrCreateRefreshToken(
       user.id,
     );
-    bool createNewToken = false;
+    bool createNewRefreshToken = false;
     if (jwtConfig.useRefreshToken) {
-      createNewToken = forceNewToken ?? refreshTokenResponse?.isRefreshTokenExpired == true;
+      createNewRefreshToken = forceNewRefreshToken ?? refreshTokenResponse?.isRefreshTokenExpired == true;
     }
-    if (createNewToken) {
+    if (createNewRefreshToken) {
       /// Update the expired refresh token in a database
       final refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
       final refreshToken = jwtService.generateJsonWebToken(
@@ -224,13 +287,13 @@ class AuthController extends ApiController {
       ),
       bearerExpiresAt: jwtConfig.calculateBearerExpirationDateTime(),
     );
-    if (refreshTokenResponse != null) {
+    if (refreshTokenResponse != null && jwtConfig.useRefreshToken) {
       return token.copyWith(
         refreshToken: refreshTokenResponse.refreshToken,
         refreshExpiresAt: refreshTokenResponse.refreshExpiresAt,
       );
     }
-    return null;
+    return token;
   }
 
   @HttpPost('/auth/signup/basic')
@@ -238,7 +301,7 @@ class AuthController extends ApiController {
     @FromBody() BasicSignupData basicSignupData,
   ) async {
     basicSignupData.validate();
-    final existingUser = await userService.findUserByPhoneOrEmail(
+    final existingUser = await userStoreService.findUserByPhoneOrEmail(
       email: basicSignupData.email,
       phone: basicSignupData.phone,
     );
@@ -261,7 +324,7 @@ class AuthController extends ApiController {
       ]
       ..passwordHash = passwordHash;
 
-    final id = await userService.insertOneAndReturnIdAsync(user);
+    final id = await userStoreService.insertOneAndReturnIdAsync(user);
     user.id = id;
     if (id != null) {
       return await _createTokenResponseForUser(user);

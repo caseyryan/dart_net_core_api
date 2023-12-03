@@ -79,9 +79,35 @@ class JwtService extends Service {
     );
   }
 
-  Map<String, dynamic>? decodeBearer({
+  /// Only decodes token data.
+  /// WARNING! This is not a safe method because it does not 
+  /// check token's signature
+  Map<String, dynamic>? decode({
+    required String token,
+    Type? payloadType,
+  }) {
+    final data = JWT
+        .decode(
+          token,
+        )
+        .payload;
+    if (data == null) {
+      return const {};
+    }
+    if (payloadType != null) {
+      if (data.containsKey('payload')) {
+        data['payload'] = payloadType.fromJson(data['payload']);
+      }
+    }
+    return data;
+  }
+
+  Map<String, dynamic>? decodeAndVerify({
     required String token,
     required String hmacKey,
+    bool checkExpiresIn = true,
+    bool checkNotBefore = true,
+    bool checkHeaderType = true,
     Type? payloadType,
     Audience? audience,
   }) {
@@ -90,6 +116,9 @@ class JwtService extends Service {
           token,
           SecretKey(hmacKey),
           audience: audience,
+          checkExpiresIn: checkExpiresIn,
+          checkNotBefore: checkNotBefore,
+          checkHeaderType: checkHeaderType,
         )
         ?.payload;
     if (data == null) {

@@ -13,7 +13,11 @@ class AdminController extends ApiController {
 
   final UserStoreService userStoreService;
 
-  @JwtAuthWithRefresh()
+
+  
+  @JwtAuthWithRefresh(roles: [
+    Role.admin,
+  ])
   @HttpGet('/user/all')
   Future<PaginatedResponse> getUsers({
     int page = 0,
