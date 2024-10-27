@@ -22,6 +22,6 @@ class RefreshTokenStoreService extends MongoStoreService<RefreshToken> {
   }) async {
     return await findOneAsync(selector: {
       'userId': userId.toObjectId(),
-    });
+    }); 
   }
 }
