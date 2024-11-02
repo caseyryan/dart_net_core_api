@@ -5,7 +5,7 @@ import 'package:reflect_buddy/reflect_buddy.dart';
 import 'base_mongo_model.dart';
 
 @JsonIncludeParentFields()
-class RefreshToken extends BaseMongoModel {
+class RefreshToken extends BaseModel {
   String? refreshToken;
   String? publicKey;
   ObjectId? userId;

@@ -1,3 +1,5 @@
+// ignore_for_file: empty_catches
+
 part of 'simple_type_reflector.dart';
 
 class ControllerTypeReflector extends SimpleTypeReflector {
@@ -27,9 +29,6 @@ class ControllerTypeReflector extends SimpleTypeReflector {
         )
         .toList();
     final controllerAnnotations = super._annotations.whereType<ControllerAnnotation>().toList();
-    if (controllerAnnotations.length > 1) {
-      throw 'A controller can\'t have more that one ControllerAnnotation but $controllerType has ${controllerAnnotations.length}';
-    }
     final path = controllerAnnotations.whereType<BaseApiPath>().firstOrNull?.basePath ?? '';
     final controllerBasePathFromAnnotation = path.fixEndpointPath();
     if (controllerBasePathFromAnnotation.isNotEmpty) {
@@ -37,6 +36,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     } else {
       basePath = baseApiPath;
     }
+    final producesAnnotation = controllerAnnotations.whereType<Produces>().firstOrNull;
     _endpointMappers ??= [];
     for (var endpointMethod in _endpointMethods!) {
       int numBodyParams = 0;
@@ -44,7 +44,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
         if (p._annotations.whereType<FromBody>().isNotEmpty) {
           numBodyParams++;
           if (numBodyParams > 1) {
-            throw 'A method cannot contain more than one $FromBody annotation';
+            final error = 'A method cannot contain more than one $FromBody annotation';
+            print(error);
+            throw error;
           }
         }
       }
@@ -59,9 +61,22 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           restMethodName: endPointAnnotation.method,
           fullPath: '$basePath${endPointAnnotation.path}',
           controllerTypeReflection: this,
+          contentType: _getContentType(
+            endPointAnnotation.contentType ?? producesAnnotation?.defaultContentType,
+          ),
+          responseTypes: endPointAnnotation.responseTypes,
         ),
       );
     }
+  }
+
+  static ContentType? _getContentType(String? value) {
+    if (value != null) {
+      try {
+        return ContentType.parse(value);
+      } catch (e) {}
+    }
+    return null;
   }
 
   ApiController? _instance;
@@ -151,6 +166,24 @@ class ControllerTypeReflector extends SimpleTypeReflector {
         .toList();
   }
 
+  /// Used for debugging. Prints all endpoints registered for this controller
+  String? _allRegisteredEndpoints;
+  String get allRegisteredEndpoints {
+    if (_allRegisteredEndpoints != null) {
+      return _allRegisteredEndpoints!;
+    }
+    if (_endpointMappers == null) {
+      return '';
+    }
+    StringBuffer buffer = StringBuffer();
+    for (EndpointMapper mapper in _endpointMappers!) {
+      buffer.write(mapper.toFullPath());
+      buffer.write(', ');
+    }
+    _allRegisteredEndpoints = buffer.toString();
+    return _allRegisteredEndpoints!;
+  }
+
   @override
   bool operator ==(covariant ControllerTypeReflector other) {
     return other.controllerType == controllerType;
@@ -176,6 +209,8 @@ class EndpointMapper {
     required this.restMethodName,
     required this.fullPath,
     required this.controllerTypeReflection,
+    required this.contentType,
+    required this.responseTypes,
   }) {
     endpointPathParser = EndpointPathParser(fullPath);
     final otherInstanceOrNull = ControllerTypeReflector._allMappers.firstWhereOrNull((e) => e == this);
@@ -189,7 +224,39 @@ class EndpointMapper {
   final String restMethodName;
   final String fullPath;
   final ControllerTypeReflector controllerTypeReflection;
+  ContentType? contentType;
+  final List<Object>? responseTypes;
   late final EndpointPathParser endpointPathParser;
+
+  /// This can only be set if [contentType] is null
+  /// if it's not null, the content type from a request is ignored
+  ContentType? _clientAcceptedContentType;
+
+  void trySetContentTypeFromRequest(ContentType? value) {
+    if (value == null || contentType != null) {
+      return;
+    }
+    if (value.isJson || value.isAnyContent) {
+      /// This is done this way to add a utf-8 charset
+      _clientAcceptedContentType = ContentType.json;
+    } else {
+      _clientAcceptedContentType = value;
+    }
+  }
+
+  ContentType? get responseContentType {
+    return contentType ?? _clientAcceptedContentType;
+  }
+
+  bool get producesJson {
+    final cType = contentType ?? _clientAcceptedContentType;
+    final primaryType = cType?.primaryType;
+    final subType = cType?.subType;
+    if (primaryType == null) {
+      return false;
+    }
+    return primaryType == ContentType.json.primaryType && subType == ContentType.json.subType;
+  }
 
   FutureOr<Object?> tryCallEndpoint({
     required String path,
@@ -227,9 +294,11 @@ class EndpointMapper {
     final incomingPathParser = IncomingPathParser(path);
     final List<dynamic> positionalArgs = [];
     final Map<Symbol, dynamic> namedArguments = {};
+    final maxFileSizeBytes = configParser.getConfig<Config>()?.maxUploadFileSizeBytes ?? (100 * 1024 * 1024);
     final body = await tryReadRequestBody(
       httpContext.httpRequest,
       httpContext.traceId,
+      maxFileSizeBytes,
     );
 
     /// by calling these we fill all path variables in
@@ -254,7 +323,7 @@ class EndpointMapper {
         if (argument == null) {
           if (param.isRequired) {
             throw ApiException(
-              message: 'Argument ${param.name} is required',
+              message: 'Argument ${param.name} is required in $path',
               traceId: httpContext.traceId,
             );
           }
@@ -281,6 +350,10 @@ class EndpointMapper {
           namedArguments,
         )
         .reflectee;
+  }
+
+  String toFullPath() {
+    return '$restMethodName: $fullPath';
   }
 
   @override

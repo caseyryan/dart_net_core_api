@@ -22,6 +22,22 @@ class BadRequestException extends ApiException {
   }) : super(statusCode: HttpStatus.badRequest);
 }
 
+class ForbiddenException extends ApiException {
+  ForbiddenException({
+    required super.message,
+    super.traceId,
+    super.code,
+  }) : super(statusCode: HttpStatus.forbidden);
+}
+
+class UnsupportedMediaException extends ApiException {
+  UnsupportedMediaException({
+    required super.message,
+    super.traceId,
+    super.code,
+  }) : super(statusCode: HttpStatus.unsupportedMediaType);
+}
+
 class ConflictException extends ApiException {
   ConflictException({
     required super.message,

@@ -1,7 +1,5 @@
-import 'dart:io';
-
-import 'package:dart_net_core_api/default_setups/services/refresh_token_store_service.dart';
-import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
+// import 'package:dart_net_core_api/default_setups/services/exports.dart';
+// import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/server.dart';
@@ -33,20 +31,20 @@ class JwtAuthWithRefresh extends JwtAuth {
     await super.authorize(context);
     final jwtConfig = context.getConfig<JwtConfig>()!;
     if (jwtConfig.useRefreshToken) {
-      final jwtService = context.getService<RefreshTokenStoreService>()!;
-      final existingRefreshToken = await jwtService.findByUserId(
-        userId: context.jwtPayload!.id,
-      );
-      if (existingRefreshToken == null ||
-          existingRefreshToken.isExpired ||
-          context.jwtPayload!.publicKey != existingRefreshToken.publicKey) {
-        throw ApiException(
-          message: 'Unauthorized',
-          traceId: context.traceId,
-          statusCode: HttpStatus.unauthorized,
-          code: '401002',
-        );
-      }
+      // final jwtService = context.getService<MongoRefreshTokenStoreService>()!;
+      // final existingRefreshToken = await jwtService.findByUserId(
+      //   userId: context.jwtPayload!.id,
+      // );
+      // if (existingRefreshToken == null ||
+      //     existingRefreshToken.isExpired ||
+      //     context.jwtPayload!.publicKey != existingRefreshToken.publicKey) {
+      //   throw ApiException(
+      //     message: 'Unauthorized',
+      //     traceId: context.traceId,
+      //     statusCode: HttpStatus.unauthorized,
+      //     code: '401002',
+      //   );
+      // }
     }
   }
 }

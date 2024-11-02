@@ -111,6 +111,7 @@ class JwtService extends Service {
     Type? payloadType,
     Audience? audience,
   }) {
+    token = token.replaceAll('Bearer', '').trim();
     final Map<String, dynamic>? data = JWT
         .tryVerify(
           token,

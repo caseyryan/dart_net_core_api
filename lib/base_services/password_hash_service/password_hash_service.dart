@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:crypto/crypto.dart';
-import 'package:dart_net_core_api/database/configs/password_hash_config.dart';
+import 'package:dart_net_core_api/configs/password_hash_config.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:uuid/uuid.dart';
 

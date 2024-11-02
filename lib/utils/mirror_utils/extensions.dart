@@ -38,6 +38,11 @@ extension ObjectExtension on Object {
     return runtimeType.toString();
   }
 
+  bool toBool() {
+    final stringVal = toString().toLowerCase();
+    return stringVal == 'true' || stringVal == '1' || stringVal == 'yes' || stringVal == 'y' || stringVal == '+';
+  }
+
   /// This can be used to call even private methods
   /// It doesn't care for a method visibility
   FutureOr callMethodByName({

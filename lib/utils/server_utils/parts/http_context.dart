@@ -7,6 +7,11 @@ class HttpContext {
   final HttpRequest httpRequest;
   final ServiceLocator serviceLocator;
 
+
+  /// here might be roles that this endpoint or a controller require
+  /// See example in JwtAuth
+  List<Role>? requiredRoles;
+
   InternetAddress? get remoteAddress {
     return httpRequest.connectionInfo?.remoteAddress;
   }
@@ -58,15 +63,5 @@ class HttpContext {
     return httpRequest.headers;
   }
 
-  bool get shouldSerializeToJson {
-    final primaryType = headers.contentType?.primaryType;
-    final subType = headers.contentType?.subType;
-    if (primaryType == null) {
-      /// If no primary type is provided it will try to serialize 
-      /// response to JSON
-      return true;
-    }
-    return primaryType == ContentType.json.primaryType &&
-        subType == ContentType.json.subType;
-  }
+  
 }

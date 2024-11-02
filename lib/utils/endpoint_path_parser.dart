@@ -6,11 +6,11 @@ class EndpointPathParser {
   List<QuerySegment> get querySegments => _querySegments;
   late final String originalPath;
 
-  static final RegExp _optionalVarRegexp = RegExp(r'(?<={):[a-zA-Z0-9_-]+(?=})');
-  static final RegExp _positionalVarRegexp = RegExp(r'(?<={)[a-zA-Z0-9_-]+(?=})');
+  static final RegExp _optionalVarRegexp = RegExp(r'(?<={):[\.,a-zA-Z0-9_-]+(?=})');
+  static final RegExp _positionalVarRegexp = RegExp(r'(?<={)[\.,a-zA-Z0-9_-]+(?=})');
 
   /// matches all possible segments including the variable
-  final RegExp _pathSegmentsRegExp = RegExp(r'(?<=\/)[:{}a-zA-Z0-9_-]+(?=\/)*');
+  final RegExp _pathSegmentsRegExp = RegExp(r'(?<=\/)[\.:{}a-zA-Z0-9_-]+(?=\/)*');
 
   int _numRequiredSegments = 0;
   int get numRequiredSegments => _numRequiredSegments;

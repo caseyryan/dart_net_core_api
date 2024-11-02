@@ -12,10 +12,12 @@ import 'form_entry.dart';
 Future<Object?> tryReadRequestBody(
   HttpRequest request,
   String traceId,
+  int maxUploadFileSize,
 ) async {
   try {
-    final bodyData = _BodyData(
+    final bodyData = BodyData(
       request: request,
+      maxSize: maxUploadFileSize,
     );
     return await bodyData.decode();
   } on ApiException {
@@ -28,16 +30,17 @@ Future<Object?> tryReadRequestBody(
   }
 }
 
-class _BodyData {
-  _BodyData({
+class BodyData {
+  BodyData({
     required this.request,
+    required this.maxSize,
   }) {
     _originalByteStream = request;
   }
 
   late final Stream<List<int>> _originalByteStream;
 
-  static int maxSize = 1024 * 1024 * 10;
+  final int maxSize;
 
   final HttpRequest request;
 
@@ -134,6 +137,7 @@ class _BodyData {
             FileFormEntry(
               name: file.name,
               value: file.bytes.first,
+              realFileName: file.realFileName,
             ),
           );
         } else {

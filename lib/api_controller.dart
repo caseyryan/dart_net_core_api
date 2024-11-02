@@ -7,6 +7,10 @@ abstract class ApiController {
   HttpContext? _httpContext;
   HttpContext get httpContext => _httpContext!;
 
+  String get traceId {
+    return httpContext.traceId;
+  }
+
   /// Override this method if you need to do anything
   /// before the actual endpoint call and you don't want to do it in an
   /// Annotation. By the moment this method is called, it is guaranteed that
@@ -15,6 +19,11 @@ abstract class ApiController {
 
   HttpHeaders get headers {
     return httpContext.headers;
+  }
+  
+  Directory? get staticFileDirectory {
+    final config = httpContext.getConfig<Config>();
+    return config?.staticFileDirectory;
   }
 
   /// These properties are used simply as shorthands

@@ -10,6 +10,8 @@ import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
+import 'package:dart_net_core_api/utils/extensions/exports.dart';
+import 'package:dart_net_core_api/utils/extensions/https_request_extensions.dart';
 import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
@@ -132,7 +134,7 @@ class _Server extends IServer {
     }
 
     /// supports dev / prod / stage. By default it will be prod
-    _environment = _readEnvironment(_argResults!['env']);
+    _environment = _readEnvironment(_argResults?['env'] ?? 'prod');
     _configParser = ConfigParser(
       configPath: _argResults!['configPath'],
       configType: settings.configType,
@@ -140,7 +142,7 @@ class _Server extends IServer {
 
     /// We need to pass configs to singleton services right here
     /// to make them ready
-    for (var service in _singletonServices.values) {
+    for (Service service in _singletonServices.values) {
       _trySetServiceDependencies(service);
     }
 
@@ -191,6 +193,12 @@ class _Server extends IServer {
       methodName: '_setConfigParser',
       positionalArguments: [
         _configParser,
+      ],
+    );
+    service?.callMethodByName(
+      methodName: '_setServiceLocator',
+      positionalArguments: [
+        tryFindServiceByType,
       ],
     );
     service?.onReady();
@@ -293,6 +301,8 @@ class _Server extends IServer {
       final uri = request.requestedUri;
       final origin = uri.origin;
       final path = '${uri.path}?${uri.query}';
+
+      request.ensureCharsetPresent();
       await _callEndpoint(
         origin: origin,
         method: method,
@@ -390,26 +400,19 @@ class _Server extends IServer {
     request.response.write(jsonEncode(response));
     return response;
   }
+  
 
-  /// Can be used to create swagger model or other types
-  /// of instructions
-  Future _tryWriteResponseModel({
-    required EndpointMapper endpointMapper,
-    required Object? response,
-    required int statusCode,
-    ContentType? contentType,
+  Future _writeFileToResponse({
+    required File file,
+    required HttpResponse response,
   }) async {
-    try {
-      final method = endpointMapper.endpointMethod;
-      final endpoint = endpointMapper.endpointPathParser.originalPath;
-
-      /// TODO: Implement a model builder
-    } catch (e) {
-      logGlobal(
-        level: Level.WARNING,
-        message: e.toString(),
-      );
+    final fileContentType = file.mimeType?.toContentType();
+    if (fileContentType != null) {
+      response.headers.contentType = fileContentType;
     }
+    await response.addStream(
+      file.readAsBytes().asStream(),
+    );
   }
 
   Future<dynamic> _callEndpoint({
@@ -431,11 +434,22 @@ class _Server extends IServer {
     )
       .._environment = environment
       .._configParser = _configParser;
+    StringBuffer? endpoints;
+    if (context.isDev) {
+      endpoints = StringBuffer();
+    }
     for (final controllerTypeReflection in _registeredControllers) {
       final endpointMappers = controllerTypeReflection.tryFindEndpointMappers(
         path: path,
         method: method,
       );
+      if (endpoints != null) {
+        /// This only happens for DEV environment
+        /// to print all available endpoints if some is not found
+        endpoints.writeln(
+          controllerTypeReflection.allRegisteredEndpoints,
+        );
+      }
       if (endpointMappers.isNotEmpty) {
         notFound = false;
         endpointMapper = endpointMappers.firstWhereOrNull(
@@ -445,11 +459,18 @@ class _Server extends IServer {
       }
     }
     if (notFound) {
+      // if (context.isDev) {
+      //   print('is dev $endpointMappers');
+      // }
+      String message = 'Could not find the endpoint to process the request ${request.requestedUri.toString()}';
+      if (endpoints != null) {
+        message += '  All available:\n${endpoints.toString()}  ';
+      }
       _onRequestError(
         request: request,
         traceId: traceId,
         exception: NotFoundException(
-          message: 'Could not find the endpoint to process the request',
+          message: message,
           traceId: traceId,
         ),
       );
@@ -476,15 +497,41 @@ class _Server extends IServer {
           httpContext: context,
           configParser: _configParser,
         );
+        if (endpointMapper.contentType == null) {
+          /// If endpointMapper's contentType is null and the client's content type is null
+          /// it will set the value to ContentType.json by default
+          endpointMapper.trySetContentTypeFromRequest(
+            request.acceptContentType,
+          );
+        }
+
+        /// endpointMapper.responseContentType uses client's Accept header value if
+        /// there is no Content-Type header forced by the endpoint itself
+        request.response.headers.contentType = endpointMapper.responseContentType;
         if (result != null) {
-          request.response.headers.contentType = request.headers.contentType;
-          if (context.shouldSerializeToJson && settings.jsonSerializer != null) {
+          if (endpointMapper.producesJson && settings.jsonSerializer != null) {
+            if (result is File) {
+              if (request.acceptContentType.canAcceptFile) {
+                await _writeFileToResponse(
+                  file: result,
+                  response: request.response,
+                );
+              }
+              throw UnsupportedMediaException(
+                message: 'Unsupported media type. Try providing a correct `Accept` header',
+              );
+            }
             result = settings.jsonSerializer!.tryConvertToJsonString(result);
             request.response.write(result);
           } else {
-            request.response.write(result);
-
-            /// TODO: do _tryWriteResponseModel for different content types
+            if (result is File) {
+              await _writeFileToResponse(
+                file: result,
+                response: request.response,
+              );
+            } else {
+              request.response.write(result);
+            }
           }
         } else {
           request.response.statusCode = HttpStatus.noContent;
@@ -505,7 +552,18 @@ class _Server extends IServer {
             traceId: traceId,
           ),
         );
-      } catch (e) {
+      }
+      // on NoSuchMethodError catch (_) {
+      //   result = await _onRequestError(
+      //     request: request,
+      //     traceId: traceId,
+      //     exception: InternalServerException(
+      //       message: 'Method with specified params not found for `$path`',
+      //       traceId: traceId,
+      //     ),
+      //   );
+      // }
+      catch (e) {
         result = await _onRequestError(
           request: request,
           traceId: traceId,
@@ -526,12 +584,7 @@ class _Server extends IServer {
           );
         }
       }
-      _tryWriteResponseModel(
-        endpointMapper: endpointMapper,
-        response: result,
-        statusCode: request.response.statusCode,
-        contentType: request.response.headers.contentType,
-      );
+
       request.response.close();
     }
     return null;

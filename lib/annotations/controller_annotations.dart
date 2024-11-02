@@ -6,6 +6,16 @@ abstract class ControllerAnnotation {
   const ControllerAnnotation();
 }
 
+/// Can be applied to a controller and set its defaults
+/// The [defaultContentType] can be overridden in each
+/// [EndpointAnnotation] for a particular endpoint
+class Produces extends ControllerAnnotation {
+  const Produces({
+    required this.defaultContentType,
+  });
+  final String defaultContentType;
+}
+
 class BaseApiPath extends ControllerAnnotation {
   /// You can use either enter an empty string or a format like this
   /// /api/v1 with leading slash and no trailing slashes
@@ -39,10 +49,14 @@ abstract class EndpointAnnotation {
   const EndpointAnnotation(
     this.path,
     this.method,
+    this.contentType,
+    this.responseTypes,
   );
 
   final String path;
   final String method;
+  final String? contentType;
+  final List<Object>? responseTypes;
 }
 
 abstract class ParameterAnnotation {
@@ -54,7 +68,7 @@ abstract class ParameterAnnotation {
 /// the parameter with this annotation and it will be skipped
 /// while parsing query and path parameters but will be used
 /// for body parsing
-/// 
+///
 /// @HttpPut('/user/{:id}')
 /// Future<String> updateUser({
 ///   @FromBody() Map? user,
@@ -67,21 +81,66 @@ class FromBody extends ParameterAnnotation {
 }
 
 class HttpGet extends EndpointAnnotation {
-  const HttpGet(String path) : super(path, 'GET');
+  const HttpGet(
+    String path, {
+    String? contentType,
+    List<Object>? responseTypes,
+  }) : super(
+          path,
+          'GET',
+          contentType,
+          responseTypes,
+        );
 }
 
 class HttpPost extends EndpointAnnotation {
-  const HttpPost(String path) : super(path, 'POST');
+  const HttpPost(
+    String path, {
+    String? contentType,
+    List<Object>? responseTypes,
+  }) : super(
+          path,
+          'POST',
+          contentType,
+          responseTypes,
+        );
 }
 
 class HttpPatch extends EndpointAnnotation {
-  const HttpPatch(String path) : super(path, 'PATCH');
+  const HttpPatch(
+    String path, {
+    String? contentType,
+    List<Object>? responseTypes,
+  }) : super(
+          path,
+          'PATCH',
+          contentType,
+          responseTypes,
+        );
 }
 
 class HttpPut extends EndpointAnnotation {
-  const HttpPut(String path) : super(path, 'PUT');
+  const HttpPut(
+    String path, {
+    String? contentType,
+    List<Object>? responseTypes,
+  }) : super(
+          path,
+          'PUT',
+          contentType,
+          responseTypes,
+        );
 }
 
 class HttpDelete extends EndpointAnnotation {
-  const HttpDelete(String path) : super(path, 'DELETE');
+  const HttpDelete(
+    String path, {
+    String? contentType,
+    List<Object>? responseTypes,
+  }) : super(
+          path,
+          'DELETE',
+          contentType,
+          responseTypes,
+        );
 }

@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 
-import 'package:dart_net_core_api/utils/extensions/extensions.dart';
+import 'package:dart_net_core_api/utils/extensions/exports.dart';
 import 'package:dart_net_core_api/utils/json_utils/value_converters/mongo_id_converter.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';

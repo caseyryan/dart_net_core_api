@@ -12,6 +12,7 @@ typedef ServiceLocator = T? Function<T extends Service>([
 
 abstract class Service {
   ConfigParser? _configParser;
+  ServiceLocator? _serviceLocator;
 
   /// If service is not singleton, it will be disposed 
   /// after the controller that uses is is disposed 
@@ -21,8 +22,9 @@ abstract class Service {
     _isSingleton = value;
   }
 
-  /// WARNING! DO NOT rename this method. This is called
+  /// WARNING! DO NOT rename this methods. This is called
   /// dynamically using an exact name
+  
   // ignore: unused_element
   void _setConfigParser(ConfigParser value) {
     if (_configParser != null) {
@@ -31,6 +33,15 @@ abstract class Service {
       return;
     }
     _configParser = value;
+  }
+
+  // ignore: unused_element
+  void _setServiceLocator(ServiceLocator value) {
+    _serviceLocator = value;
+  }
+
+  T? getService<T extends Service>() {
+    return _serviceLocator!<T>();
   }
 
   /// Use this method as a starting point for your service.

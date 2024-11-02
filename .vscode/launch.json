@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Users Demo",
+            "name": "Example Server",
             "request": "launch",
             "type": "dart",
-            "program": "bin/examples/users/main.dart",
+            "program": "example/main.dart",
             "args": [
                 "--configPath",
-                "config.dev.json",
+                "example/config.dev.json",
                 "--env",
                 "dev"
             ]

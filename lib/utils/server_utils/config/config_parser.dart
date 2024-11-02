@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
+import 'package:logging/logging.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 import '../../../config.dart';
@@ -27,6 +28,10 @@ class ConfigParser {
       throw 'All configurations must implement $IConfig interface';
     }
 
+    /// the lowest priority is the config from map
+    /// after it's parsed (or even if the map is missing)
+    /// the server will then try to fill the values from the
+    /// environment variables.
     if (configPath != null) {
       String fullPath;
       final currentPath = Directory.current.path;
@@ -35,20 +40,58 @@ class ConfigParser {
       } else {
         fullPath = configPath;
       }
-      final configJson = jsonDecode(
-        File(fullPath).readAsStringSync(
-          encoding: utf8,
-        ),
-      );
+      final configFile = File(fullPath);
+      if (configFile.existsSync()) {
+        final Map configJson = jsonDecode(
+          configFile.readAsStringSync(
+            encoding: utf8,
+          ),
+        );
+        _trySetValuesFromEnvironmentVariables(configJson);
 
-      _configInstance = configType.fromJson(configJson) as IConfig;
+        _configInstance = configType.fromJson(configJson) as IConfig;
+      } else {
+        Logger.root.log(
+          Level.WARNING,
+          'The config file was not found at $configPath. Even though the path was specified',
+        );
+        throw 'The config file was not found at $configPath. Even though the path was specified';
+      }
+    }
 
-      /// Searches all inner fields and tries to collect all that belong to
-      /// IConfig. This is required to simplify a later search for configs from
-      /// inside Service objects
-      _allConfigs.addAll(
-        _configInstance!.findAllInstancesOfType<IConfig>(),
-      );
+    /// Searches all inner fields and tries to collect all that belong to
+    /// IConfig. This is required to simplify a later search for configs from
+    /// inside Service objects
+    /// e.g. You have a config of type JwtConfig inside the _configInstance
+    /// you don't have to get it using  config.jwtConfig but instead you can
+    /// directly get it using httpContext.getConfig<JwtConfig>() in any of your controllers
+    _allConfigs.addAll(
+      _configInstance!.findAllInstancesOfType<IConfig>(),
+    );
+  }
+
+  /// tries to to set values from environment
+  void _trySetValuesFromEnvironmentVariables(Map data) {
+    final Map<String, String> envVariables = Platform.environment;
+    for (var kv in data.entries) {
+      if (kv.value is Map) {
+        _trySetValuesFromEnvironmentVariables(kv.value as Map);
+      }
+      if (kv.value is String) {
+        if (kv.value.startsWith(r'$')) {
+          /// this means an environment variable value is expected
+          String envVariableName = kv.value.substring(1);
+          if (envVariableName == 'ENV') {
+            envVariableName = kv.key.toUpperCase();
+          } else if (envVariableName == 'env') {
+            envVariableName = kv.key.toLowerCase();
+          }
+          final valueFromEnvironment = envVariables[envVariableName];
+          if (valueFromEnvironment != null) {
+            data[kv.key] = valueFromEnvironment;
+          }
+        }
+      }
     }
   }
 

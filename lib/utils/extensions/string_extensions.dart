@@ -1,7 +1,14 @@
+// ignore_for_file: empty_catches
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 
 final RegExp _idRegExp = RegExp(r'^[a-z0-9]{24}$');
+final RegExp _numberRegexp = RegExp(r'[0-9,.]+');
 
 final _oddEndSlashRegexp = RegExp(r'[\/]+$');
 final _oddStartSlashRegexp = RegExp(r'^[\/]+');
@@ -11,6 +18,29 @@ extension StringExtensions on String {
     if (isEmpty) return this;
     final first = this[0].toUpperCase();
     return '$first${substring(1)}';
+  }
+
+  bool get isNumber {
+    if (isNotEmpty != true) {
+      return false;
+    }
+    return _numberRegexp.hasMatch(this) == true;
+  }
+
+
+  String toMd5() {
+    return md5.convert(utf8.encode(this)).toString();
+  }
+
+  ContentType? toContentType() {
+    if (!contains('/')) {
+      return null;
+    }
+    try {
+      return ContentType.parse(this);
+    }
+    catch (e){}
+    return null;
   }
 
   bool isMatchingObjectId() {

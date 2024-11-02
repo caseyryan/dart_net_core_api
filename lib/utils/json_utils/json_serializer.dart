@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-
 abstract class JsonSerializer {
   /// Allows to convert json keys to whatever you want
   /// for example a snake case or a camel case before serialization
@@ -29,8 +28,10 @@ abstract class JsonSerializer {
     final result = toJson(object);
     if (result is Map) {
       return jsonEncode(result);
+    } else if (result is List) {
+      return result.map(tryConvertToJsonString).toList();
     }
-    return object;
+    return result;
   }
 }
 

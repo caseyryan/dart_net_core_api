@@ -17,10 +17,23 @@ Logger _getLogger(String loggerName) {
 }
 
 extension LogExtension on Object {
+  void logStackTrace(
+    Object? e,
+    StackTrace? s, {
+    String? traceId,
+  }) {
+    logGlobal(
+      level: Level.SEVERE,
+      message: e.toString(),
+      stackTrace: s,
+      traceId: traceId,
+    );
+  }
+
   void logGlobal({
     required Level level,
     required Object message,
-    String? traceId, 
+    String? traceId,
     StackTrace? stackTrace,
     Zone? zone,
   }) {

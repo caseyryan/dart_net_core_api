@@ -1,5 +1,6 @@
 // ignore_for_file: empty_catches
 
+import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
 import 'default_date_parser.dart';
@@ -23,10 +24,7 @@ Object? tryConvertQueryArgumentType({
       case DateTime:
         return parseDateTime(actual, dateParser);
       case bool:
-        return bool.fromEnvironment(
-          actual,
-          defaultValue: false,
-        );
+        return actual.toBool();
     }
     /// This might come useful if it's an enum, for example
     return expectedType.fromJson(actual);

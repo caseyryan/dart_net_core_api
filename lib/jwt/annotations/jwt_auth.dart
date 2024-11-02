@@ -8,8 +8,6 @@ import 'package:reflect_buddy/reflect_buddy.dart';
 import '../../annotations/controller_annotations.dart';
 import '../../server.dart';
 
-
-
 class JwtAuth extends Authorization {
   final List<Role> roles;
 
@@ -27,6 +25,9 @@ class JwtAuth extends Authorization {
 
   @override
   Future authorize(HttpContext context) async {
+    if (roles.contains(Role.guest)) {
+      return;
+    }
     if (context.authorizationHeader?.isNotEmpty != true) {
       throw ApiException(
         message: 'Unauthorized',
@@ -49,6 +50,7 @@ class JwtAuth extends Authorization {
         statusCode: HttpStatus.unauthorized,
       );
     }
+    context.requiredRoles = roles;
     if (bearerData['payload'] is Map) {
       final JwtPayload payload = fromJson<JwtPayload>(
         bearerData['payload'],

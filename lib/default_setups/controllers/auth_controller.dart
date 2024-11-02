@@ -1,23 +1,29 @@
-import 'dart:io';
+// ignore_for_file: depend_on_referenced_packages
 
-import 'package:dart_net_core_api/annotations/controller_annotations.dart';
-import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
-import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
-import 'package:dart_net_core_api/default_setups/extensions/controller_extensions.dart';
-import 'package:dart_net_core_api/default_setups/services/failed_password_blocking_service.dart';
-import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
-import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
-import 'package:dart_net_core_api/jwt/jwt_service.dart';
-import 'package:dart_net_core_api/jwt/token_response.dart';
+// import 'dart:convert';
+// import 'dart:io';
+
+// import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+// import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
+// import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
+// import 'package:dart_net_core_api/default_setups/extensions/controller_extensions.dart';
+// import 'package:dart_net_core_api/default_setups/models/dto/vk_login_data.dart';
+// import 'package:dart_net_core_api/default_setups/services/exports.dart';
+// import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
+// import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
+// import 'package:dart_net_core_api/jwt/jwt_service.dart';
+// import 'package:dart_net_core_api/jwt/token_response.dart';
+// import 'package:dart_net_core_api/server.dart';
+// import 'package:dart_net_core_api/utils/extensions/json_search.dart';
+// import 'package:http/http.dart' as http;
+// import 'package:mongo_dart/mongo_dart.dart';
+
+// import '../models/dto/basic_auth_data.dart';
+// import '../models/dto/basic_login_data.dart';
+// import '../models/mongo_models/refresh_token.dart';
+// import '../models/mongo_models/user.dart';
+
 import 'package:dart_net_core_api/server.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-
-import '../models/dto/basic_auth_data.dart';
-import '../models/dto/basic_login_data.dart';
-import '../models/mongo_models/refresh_token.dart';
-import '../models/mongo_models/user.dart';
-import '../services/refresh_token_store_service.dart';
-import '../services/user_store_service.dart';
 
 enum LogoutScope {
   /// log out all, including the requesting user
@@ -28,19 +34,14 @@ enum LogoutScope {
 }
 
 class AuthController extends ApiController {
+  /*
   AuthController(
     this.jwtService,
-    this.userStoreService,
     this.passwordHashService,
-    this.refreshTokenService,
-    this.failedPasswordBlockingService,
   );
 
   final JwtService jwtService;
-  final UserStoreService userStoreService;
   final PasswordHashService passwordHashService;
-  final RefreshTokenStoreService refreshTokenService;
-  final FailedPasswordBlockingService failedPasswordBlockingService;
 
   JwtConfig get jwtConfig {
     return httpContext.getConfig<JwtConfig>()!;
@@ -51,9 +52,14 @@ class AuthController extends ApiController {
   Future<TokenResponse?> logout([
     LogoutScope? scope,
   ]) async {
+    if (userId == null) {
+      throw NotFoundException(
+        message: 'User not found',
+      );
+    }
     scope ??= LogoutScope.other;
 
-    final user = await userStoreService.findUserById(userId);
+    final user = await userStoreService.findUserById(userId!);
     TokenResponse? tokenResponse;
     if (user != null) {
       tokenResponse = await _createTokenResponseForUser(
@@ -70,6 +76,77 @@ class AuthController extends ApiController {
       case LogoutScope.other:
         return tokenResponse;
     }
+  }
+
+  @HttpPost('/auth/vk')
+  Future<TokenResponse?> loginWithVK(
+    @FromBody() VKLoginData data,
+  ) async {
+    if (data.accessToken != null && data.userId != null) {
+      final uri = Uri.tryParse(
+        'https://api.vk.com/method/account.getProfileInfo?user_id=${data.userId}&v=5.131',
+      );
+      if (uri != null) {
+        final response = await http.get(uri, headers: {
+          'Authorization': 'Bearer ${data.accessToken}',
+        });
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body) as Map;
+          final profile = responseData['response'];
+          if (profile != null) {
+            final firstName = profile['first_name'];
+            if (firstName != null) {
+              final lastName = profile['last_name'];
+              // final photo200 = profile['photo_200'];
+
+              /// we need email because it will be used to search for a user
+              final email = 'vk_mail${data.userId}@generated.com';
+              final isOwner = data.userId == '5495786';
+              List<Role> roles = [
+                Role.user,
+              ];
+              if (isOwner) {
+                roles = [
+                  Role.owner,
+                ];
+              }
+              final User? user = await userStoreService.findUserByEmail(email);
+              if (user != null) {
+                return await _createTokenResponseForUser(user);
+              } else {
+                /// This is just because we MUST not leave the password empty
+                /// The VK user will not be able to log in using password anyway
+                final passwordHash = passwordHashService.hash(
+                  data.accessToken!,
+                );
+                User? user = User()
+                  ..firstName = firstName
+                  ..lastName = lastName
+                  ..email = email
+                  ..roles = roles
+                  ..passwordHash = passwordHash;
+
+                user = await userStoreService.insertOneAndReturnResult(user);
+                if (user != null) {
+                  return await _createTokenResponseForUser(user);
+                } else {
+                  throw BadRequestException(
+                    message: 'Could not create a user',
+                  );
+                }
+              }
+            }
+          }
+          final error = responseData.find<String>('..error_msg');
+          if (error != null) {
+            throw BadRequestException(
+              message: error,
+            );
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @HttpPost('/auth/refresh-token')
@@ -197,7 +274,7 @@ class AuthController extends ApiController {
         ..userId = userId
         ..refreshToken = refreshToken
         ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
-      final newTokenId = await refreshTokenService.insertOneAndReturnIdAsync(data);
+      final newTokenId = await refreshTokenService.insertOneAndReturnResult(data);
       if (newTokenId == null) {
         throw InternalServerException(
           message: 'Could not create token',
@@ -214,6 +291,14 @@ class AuthController extends ApiController {
         ..publicKey = existingRefreshToken.publicKey
         ..refreshToken = existingRefreshToken.refreshToken;
     }
+  }
+
+  @JwtAuthWithRefresh()
+  @HttpGet('/auth/profile')
+  Future<User?> getProfile() async {
+    final user = await userStoreService.findOneByIdAsync(id: userId!);
+    user?.passwordHash = null;
+    return user;
   }
 
   /// When JwtAuth annotation is used on a controller or an endpoint
@@ -315,7 +400,7 @@ class AuthController extends ApiController {
     final passwordHash = passwordHashService.hash(
       basicSignupData.password,
     );
-    final user = User()
+    User? user = User()
       ..firstName = basicSignupData.firstName
       ..lastName = basicSignupData.lastName
       ..email = basicSignupData.email
@@ -324,13 +409,14 @@ class AuthController extends ApiController {
       ]
       ..passwordHash = passwordHash;
 
-    final id = await userStoreService.insertOneAndReturnIdAsync(user);
-    user.id = id;
-    if (id != null) {
+    user = await userStoreService.insertOneAndReturnResult(user);
+
+    if (user != null) {
       return await _createTokenResponseForUser(user);
     }
     throw InternalServerException(
       message: 'Could not create an account',
     );
   }
+  */
 }

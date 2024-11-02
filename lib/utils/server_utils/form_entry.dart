@@ -1,4 +1,11 @@
 import 'dart:convert';
+import 'dart:math';
+
+import 'package:dart_net_core_api/utils/extensions/exports.dart';
+import 'package:mime/mime.dart' as mime;
+import 'package:path/path.dart';
+
+final _random = Random();
 
 class StringFormEntry extends FormEntry {
   const StringFormEntry({
@@ -63,15 +70,74 @@ class DoubleFormEntry extends FormEntry {
     return true;
   }
 }
+
 class FileFormEntry extends FormEntry {
-  const FileFormEntry({
+  FileFormEntry({
     required super.name,
+    required super.realFileName,
     required this.value,
   }) : super(
-          realFileName: '',
           bytes: const [],
         );
   final List<int> value;
+
+  String? _randomFileName;
+
+  @override
+  bool get isVideo {
+    if (mimeType?.isNotEmpty != true) {
+      return super.isVideo;
+    }
+    return mimeType!.startsWith('video/') == true;
+  }
+
+  @override
+  bool get isImage {
+    if (mimeType?.isNotEmpty != true) {
+      return super.isImage;
+    }
+    return mimeType!.startsWith('image/') == true;
+  }
+
+  @override
+  bool get isAudio {
+    if (mimeType?.isNotEmpty != true) {
+      return super.isAudio;
+    }
+    return mimeType!.startsWith('audio/') == true;
+  }
+
+  /// The random name is used to write file to a disk
+  /// trying to minimize a potential name conflict with the existing files
+  String toRandomFileName({
+    String subDirectory = '',
+  }) {
+    if (_randomFileName != null) {
+      return _randomFileName!;
+    }
+    final mimeType = this.mimeType;
+    if (realFileName.isNotEmpty == true && mimeType != null) {
+      var ext = extension(realFileName);
+      if (ext.isEmpty) {
+        ext = mime.extensionFromMime(mimeType);
+      }
+      ext = ext.replaceAll('.', '');
+      _randomFileName = '${'$realFileName${_random.nextDouble()}'.toMd5()}.$ext';
+    } else {
+      _randomFileName = name.toMd5();
+    }
+    if (subDirectory.isNotEmpty) {
+      _randomFileName = '$subDirectory/$_randomFileName';
+    }
+    return _randomFileName!;
+  }
+
+  String? get mimeType {
+    return mime.lookupMimeType(
+      realFileName,
+      headerBytes: value,
+    );
+  }
 
   @override
   bool get isValid {
@@ -139,7 +205,11 @@ class FormEntry {
   }
 
   bool get isImage {
-    return contentType.contains('image');
+    return contentType.startsWith('image/');
+  }
+
+  bool get isAudio {
+    return contentType.startsWith('audio/');
   }
 
   String readAsString() {
@@ -236,7 +306,6 @@ Object? _tryConvertPrimitive(Object? value) {
     if (_doubleRegExp.stringMatch(value)?.length == value.length) {
       return double.tryParse(value);
     }
-
   }
   return value;
 }

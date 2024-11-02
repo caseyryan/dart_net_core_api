@@ -15,7 +15,7 @@ import 'base_mongo_model.dart';
 /// [JsonIncludeParentFields] is used here to also include
 /// `id`, `createdAt`, and `updatedAt` from base model to the resulting json
 @JsonIncludeParentFields()
-class User extends BaseMongoModel {
+class User extends BaseModel {
   List<Role>? roles;
 
   @NameValidator(canBeNull: false)
@@ -23,6 +23,10 @@ class User extends BaseMongoModel {
 
   @NameValidator(canBeNull: false)
   String? lastName;
+
+  String getFullName() {
+    return '$firstName $lastName';
+  }
 
   @EmailValidator(
     canBeNull: true,
@@ -33,9 +37,9 @@ class User extends BaseMongoModel {
     canBeNull: true,
   )
   String? phone;
-  @JsonIgnore(ignoreDirections: [
-    SerializationDirection.toJson,
-  ])
+  // @JsonIgnore(ignoreDirections: [
+  //   SerializationDirection.toJson,
+  // ])
   String? passwordHash;
 
   @override
