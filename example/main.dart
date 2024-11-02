@@ -29,12 +29,6 @@ void main(List<String> arguments) {
         /// This service helps generate password hashes in a 
         /// built-it AuthController
         PasswordHashService(),
-
-        // SocketService<SocketClient>(
-        //   socketControllers: [
-
-        //   ],
-        // ),
       ],
 
       /// Prefer lazyServiceInitializer for the type of
@@ -42,12 +36,8 @@ void main(List<String> arguments) {
       /// request and be destroyed along with controllers.
       /// For the services that are not supposed to be disposed of
       /// use `singletonServices`
-      lazyServiceInitializer: {
-        
-      },
+      lazyServiceInitializer: {},
       jsonSerializer: DefaultJsonSerializer(
-        // CamelToSnake(),
-        // FirstToUpper(),
         null,
       ),
       baseApiPath: '/api/v1',
