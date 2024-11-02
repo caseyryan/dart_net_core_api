@@ -44,14 +44,6 @@ e.g. jwtConfig is defined in `JwtConfig` class, `mongoConfig` is defined in `Mon
 
 ```json
 {
-    "passwordHashConfig": {
-        "salt": "$ENV"
-    }
-}
----
-
-```json
-{
     "jwtConfig": {
         "hmacKey": "REPLACE_WITH_YOUR_HMAC_KEY",
         "refreshTokenHmacKey": "REPLACE_WITH_YOUR_REFRESH_TOKEN_HMAC_KEY",
@@ -98,6 +90,15 @@ ENVIRONMENT VARIABLES: The configs support environment variables. If you want to
 you can use the following syntax `$ENV` or `$env` (lowercase) in the config file. For example, if you set the 
 environment variable `salt` to `$ENV` it will search for an environment variable called `SALT` (uppercase) because 
 the `$ENV` is uppercase, and if you use the lowercase syntax (`$env`) it will search for an environment variable called `salt`.
+
+```json
+{
+    "passwordHashConfig": {
+        "salt": "$ENV"
+    }
+}
+```
+
 It is also possible to use a different name for the environment variable, for example if called your 
 environment variable as `MY_STRONG_PASSWORD_SALT` but the config field is still called `salt` you can use the 
 following approach: 
