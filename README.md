@@ -38,6 +38,7 @@ You also don't need `socketConfig` if you are not planning to use the built-in s
 The database configs like: `mongoConfig`, `postgresqlConfig`, `mysqlConfig` are optional and you can fill them in
 if you need to use any of these databases with a built-in ORM. If you want to implement a custom solution 
 feel free to skip all of these. 
+
 **If you want to use any of the configs here, please refer to the config model class structures 
 e.g. jwtConfig is defined in `JwtConfig` class, `mongoConfig` is defined in `MongoConfig` class etc.**
 
