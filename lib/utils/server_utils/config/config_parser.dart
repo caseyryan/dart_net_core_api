@@ -52,7 +52,7 @@ class ConfigParser {
         _configInstance = configType.fromJson(configJson) as IConfig;
       } else {
         Logger.root.log(
-          Level.WARNING,
+          Level.SEVERE,
           'The config file was not found at $configPath. Even though the path was specified',
         );
         throw 'The config file was not found at $configPath. Even though the path was specified';
