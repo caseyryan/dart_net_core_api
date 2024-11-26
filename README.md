@@ -86,6 +86,58 @@ e.g. jwtConfig is defined in `JwtConfig` class, `mongoConfig` is defined in `Mon
     "printDebugInfo": true
 }
 ```
+
+### YAML Configs
+
+Alternatively you can use YAML configs. The approach is the same as JSON configs, but the file extension is `.yaml` instead of `.json`. and the contents might be as follows:
+
+```yaml
+jwtConfig:
+  hmacKey: REPLACE_WITH_YOUR_HMAC_KEY
+  refreshTokenHmacKey: REPLACE_WITH_YOUR_REFRESH_TOKEN_HMAC_KEY
+  issuer: https://localhost
+  bearerLifeSeconds: 86400
+  useRefreshToken: true
+  refreshLifeSeconds: 2592000
+  audiences:
+    - https://localhost
+
+maxUploadFileSizeBytes: 104857600
+
+mongoConfig: {}
+
+postgresqlConfig:
+  user: YOUR_DATABASE_USER
+  password: YOUR_DATABASE_PASSWORD
+  database: YOUR_DATABASE_NAME
+
+mysqlConfig: {}
+
+passwordHashConfig:
+  salt: REPLACE_WITH_PASSWORD_HASH_SALT
+
+staticFileConfig:
+  isAbsolute: false
+  staticFilesRoot: bin/static_files
+
+socketConfig:
+  port: 3001
+  allowDefaultNamespace: true
+
+failedPasswordConfig:
+  numAllowedAttempts: 5
+  blockMinutes:
+    - 5
+    - 15
+    - 30
+    - 60
+    - 120
+    - 240
+    - 1440
+
+printDebugInfo: true
+```
+
 ---
 ENVIRONMENT VARIABLES: The configs support environment variables. If you want to use the value from an environment variable
 you can use the following syntax `$ENV` or `$env` (lowercase) in the config file. For example, if you set the 

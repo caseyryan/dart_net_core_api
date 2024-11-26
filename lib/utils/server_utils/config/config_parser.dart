@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:logging/logging.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
+import 'package:yaml/yaml.dart';
 
 import '../../../config.dart';
 
@@ -42,13 +43,19 @@ class ConfigParser {
       }
       final configFile = File(fullPath);
       if (configFile.existsSync()) {
-        final Map configJson = jsonDecode(
-          configFile.readAsStringSync(
-            encoding: utf8,
-          ),
-        );
+        Map? configJson;
+        final fileContents = configFile.readAsStringSync();
+        if (configFile.path.toLowerCase().endsWith('.json')) {
+          configJson = jsonDecode(
+            fileContents,
+          );
+        } else if (configFile.path.toLowerCase().endsWith('.yaml')) {
+          configJson = loadYaml(fileContents) as Map;
+        }
+        if (configJson == null) {
+          throw 'The config file was not found at $configPath. Even though the path was specified';
+        }
         _trySetValuesFromEnvironmentVariables(configJson);
-
         _configInstance = configType.fromJson(configJson) as IConfig;
       } else {
         Logger.root.log(
