@@ -9,6 +9,8 @@ jwtConfig:
     - https://localhost
 
 maxUploadFileSizeBytes: 104857600
+httpPort: 8099
+httpsPort: 8100
 
 mongoConfig: {}
 

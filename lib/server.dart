@@ -150,8 +150,8 @@ class _Server extends IServer {
       useHttp: settings.useHttp,
       useHttps: settings.useHttps,
       ipV4Address: settings.ipV4Address,
-      httpPort: settings.httpPort,
-      httpsPort: settings.httpsPort,
+      httpPort: settings.httpPort ?? _configParser.getConfig<Config>()?.httpPort ?? 8084,
+      httpsPort: settings.httpsPort ?? _configParser.getConfig<Config>()?.httpsPort ?? 8085,
       securityContext: settings.securityContext ?? SecurityContext(),
       instanceNumber: instanceNumber,
     );

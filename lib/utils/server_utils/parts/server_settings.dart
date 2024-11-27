@@ -4,8 +4,8 @@ class ServerSettings {
   const ServerSettings({
     this.arguments,
     this.baseApiPath = '/api/v1',
-    this.httpPort = 8084,
-    this.httpsPort = 8085,
+    this.httpPort,
+    this.httpsPort,
     this.ipV4Address = '0.0.0.0',
     this.useHttp = true,
     this.useHttps = false,
@@ -57,8 +57,20 @@ class ServerSettings {
   final List<String>? arguments;
   final bool useHttp;
   final bool useHttps;
-  final int httpPort;
-  final int httpsPort;
+  /// [httpPort] and [httpsPort] are used to bind the server
+  /// to a specific port. If you don't specify them, the server
+  /// will try to user the values from a config. If the config does not contain 
+  /// ports as well, the default values will be used (8084 and 8085)
+  /// Prefer to always use the ports from the config. This way it will be easier 
+  /// to automate everything
+  final int? httpPort;
+  /// [httpPort] and [httpsPort] are used to bind the server
+  /// to a specific port. If you don't specify them, the server
+  /// will try to user the values from a config. If the config does not contain 
+  /// ports as well, the default values will be used (8084 and 8085)
+  /// Prefer to always use the ports from the config. This way it will be easier 
+  /// to automate everything
+  final int? httpsPort;
 
   /// [baseApiPath] this path will be prepended to
   /// all controllers by default. But if you need a custom

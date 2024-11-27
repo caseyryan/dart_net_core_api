@@ -50,6 +50,8 @@ class Config implements IConfig {
   bool printDebugInfo = true;
   StaticFileConfig? staticFileConfig;
   int? maxUploadFileSizeBytes;
+  int? httpPort;
+  int? httpsPort;
 
   Directory? get staticFileDirectory {
     Directory dir;

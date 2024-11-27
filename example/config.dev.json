@@ -11,6 +11,8 @@
         ]
     },
     "maxUploadFileSizeBytes": 104857600,
+    "httpPort": 8084,
+    "httpsPort": 8085,
     "mongoConfig": {},
     "passwordHashConfig": {
         "salt": "REPLACE_WITH_PASSWORD_HASH_SALT"
