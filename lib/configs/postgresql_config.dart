@@ -6,6 +6,7 @@ class PostgreSQLConfig implements IConfig {
   String? host;
   int? port;
   String? database;
+  String? localDataPath;
 
   
   String get connectionString {
