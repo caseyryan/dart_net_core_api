@@ -23,10 +23,13 @@ httpsPort: 8085
 # which you want to use. In this case the server will use 
 # postgresqlConfig even if other database configs are also filled
 usedDbConfig: postgresqlConfig
-postgresqlConfig:
+postgreSQLConfig:
   user: default_db_user
   password: default_pwd
   database: default_db
+  printQueries: true
+  isSecureConnection: false
+  host: localhost
   port: 5455
   localDataPath: /home/konstantin/default_db_path_dev
 

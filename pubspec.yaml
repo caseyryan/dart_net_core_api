@@ -11,6 +11,10 @@ dependencies:
   yaml: ^3.1.2
   mongo_dart: ^0.7.4+1
   reflect_buddy: ^1.5.5
+  dart_core_orm:
+    git:
+      url: https://github.com/caseyryan/dart_core_orm.git
+      ref: e70d24cd3f82d66163246eee86d725c070faa784
   dio: ^4.0.0
   dio_cache_interceptor: ^3.0.3
   dio_cache_interceptor_file_store: ^1.0.0

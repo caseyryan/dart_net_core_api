@@ -1,8 +1,10 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'package:dart_core_orm/dart_core_orm.dart';
 
 import 'package:collection/collection.dart';
+import 'package:dart_net_core_api/configs/postgresql_config.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:logging/logging.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
@@ -75,6 +77,30 @@ class ConfigParser {
     _allConfigs.addAll(
       _configInstance!.findAllInstancesOfType<IConfig>(),
     );
+    _initDatabases();
+  }
+
+  /// Not sure if it's a best place to init databases. But I kept it for now
+  /// TODO: complete when other connectors will also be available
+  void _initDatabases() {
+    final config = getConfig<Config>();
+    if (config?.usedDbConfig == 'postgresqlConfig') {
+      final postgresqlConfig = getConfig<PostgreSQLConfig>();
+      if (postgresqlConfig?.isValid == true) {
+        /// what this actually does is only creating a settings object. 
+        /// It doesn't create a database or a table. 
+        Orm.initialize(
+          database: postgresqlConfig!.database!,
+          username: postgresqlConfig.user!,
+          password: postgresqlConfig.password!,
+          host: postgresqlConfig.host!,
+          family: DatabaseFamily.postgres,
+          isSecureConnection: postgresqlConfig.isSecureConnection == true,
+          printQueries: postgresqlConfig.printQueries == true,
+          port: postgresqlConfig.port!,
+        );
+      }
+    }
   }
 
   /// tries to to set values from environment
