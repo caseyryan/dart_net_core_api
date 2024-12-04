@@ -44,6 +44,7 @@ class Config implements IConfig {
   MongoConfig? mongoConfig;
   MysqlConfig? mysqlConfig;
   PostgreSQLConfig? postgreSQLConfig;
+  String? usedDbConfig;
   SocketConfig? socketConfig;
   PasswordHashConfig? passwordHashConfig;
   FailedPasswordConfig? failedPasswordConfig;

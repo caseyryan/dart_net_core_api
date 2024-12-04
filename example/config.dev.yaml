@@ -1,25 +1,38 @@
+project_name: service_template_dev
+# этот порт нужен для обратного прокси. 
+# Именно он будет использоваться для доступа ко всему сервису
+# то есть после запуска, например, можно будет проверить доступность сервиса 
+# обратившись к http://localhost:8999/api/v1/health
+nginxExternalPort: 8999
+
 jwtConfig:
   hmacKey: REPLACE_WITH_YOUR_HMAC_KEY
   refreshTokenHmacKey: REPLACE_WITH_YOUR_REFRESH_TOKEN_HMAC_KEY
-  issuer: https://localhost
+  issuer: http://localhost
   bearerLifeSeconds: 86400
   useRefreshToken: true
   refreshLifeSeconds: 2592000
   audiences:
-    - https://localhost
+    - http://localhost
 
 maxUploadFileSizeBytes: 104857600
-httpPort: 8099
-httpsPort: 8100
+httpPort: 8084
+httpsPort: 8085
 
-mongoConfig: {}
-
+# usedDbConfig must contain the name of the database config
+# which you want to use. In this case the server will use 
+# postgresqlConfig even if other database configs are also filled
+usedDbConfig: postgresqlConfig
 postgresqlConfig:
-  user: YOUR_DATABASE_USER
-  password: YOUR_DATABASE_PASSWORD
-  database: YOUR_DATABASE_NAME
+  user: default_db_user
+  password: default_pwd
+  database: default_db
+  port: 5455
+  localDataPath: /home/konstantin/default_db_path_dev
 
-mysqlConfig: {}
+# not supported yet
+mongoConfig: {}
+mysqlConfig: {} 
 
 passwordHashConfig:
   salt: REPLACE_WITH_PASSWORD_HASH_SALT

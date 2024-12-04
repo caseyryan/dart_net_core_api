@@ -13,6 +13,14 @@
     "maxUploadFileSizeBytes": 104857600,
     "httpPort": 8084,
     "httpsPort": 8085,
+    "usedDbConfig": "postgresqlConfig",
+    "postgresqlConfig": {
+        "user": "default_db_user",
+        "password": "default_pwd",
+        "host": "localhost",
+        "port": 5455,
+        "localDataPath": "/default_db_path_dev"
+    },
     "mongoConfig": {},
     "passwordHashConfig": {
         "salt": "REPLACE_WITH_PASSWORD_HASH_SALT"

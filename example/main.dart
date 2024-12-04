@@ -17,16 +17,18 @@ void main(List<String> arguments) {
       apiControllers: [
         AuthController,
         AdminController,
+
         /// this is a controller that is documented
         UserController,
       ],
       configType: Config,
       singletonServices: [
-        /// the built-in Json Web Token Service. 
+        /// the built-in Json Web Token Service.
         /// If you don't need it
         /// you may implement your own authorization service
         JwtService(),
-        /// This service helps generate password hashes in a 
+
+        /// This service helps generate password hashes in a
         /// built-it AuthController
         PasswordHashService(),
       ],

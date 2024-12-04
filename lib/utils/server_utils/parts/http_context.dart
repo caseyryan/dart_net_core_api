@@ -29,11 +29,34 @@ class HttpContext {
   JwtPayload? jwtPayload;
 
   late String _environment;
+  String get environment => _environment;
   late ConfigParser _configParser;
 
   bool get isDev => _environment == 'dev';
   bool get isProd => _environment == 'prod';
   bool get isStage => _environment == 'stage';
+
+
+  /// if the database config is ever set in the config file 
+  /// it will try to return the filled instance
+  IConfig? tryGetDbConfig() {
+    final usedDbConfigName = getConfig<Config>()?.usedDbConfig;
+    if (usedDbConfigName?.isNotEmpty != true) {
+      return null;
+    }
+    IConfig? config;
+    if (usedDbConfigName == 'postgresqlConfig') {
+      config = getConfig<PostgreSQLConfig>();
+    } 
+    else if (usedDbConfigName == 'mongoConfig') {
+      config = getConfig<MongoConfig>();
+    }
+    else if (usedDbConfigName == 'mysqlConfig') {
+      config = getConfig<MysqlConfig>();
+    }
+
+    return config;
+  }
 
   T? getConfig<T extends IConfig>() {
     return _configParser.getConfig<T>();
