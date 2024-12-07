@@ -1,5 +1,6 @@
 // ignore_for_file: unnecessary_getters_setters
 
+import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/annotations/documentation_annotations/documentation_annotations.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
@@ -11,11 +12,7 @@ import 'base_mongo_model.dart';
 /// control the values before they are assigned
 /// during a deserialization process. You can implement your
 /// own validators extending [JsonValueValidator] class
-// @CamelToSnake()
 
-/// [JsonIncludeParentFields] is used here to also include
-/// `id`, `createdAt`, and `updatedAt` from base model to the resulting json
-@JsonIncludeParentFields()
 class User extends BaseModel {
   @FieldDocumentation(
     description:
@@ -30,10 +27,10 @@ class User extends BaseModel {
     description: 'First name of the user',
     defaultValueExample: 'John',
   )
-  @NameValidator(canBeNull: false)
+  @NameValidator(canBeNull: true)
   String? firstName;
 
-  @NameValidator(canBeNull: false)
+  @NameValidator(canBeNull: true)
   String? lastName;
 
   String getFullName() {
@@ -43,12 +40,15 @@ class User extends BaseModel {
   @EmailValidator(
     canBeNull: true,
   )
+  @UniqueColumn()
   String? email;
 
   @PhoneValidator(
     canBeNull: true,
   )
+  @UniqueColumn()
   String? phone;
+
   // @JsonIgnore(ignoreDirections: [
   //   SerializationDirection.toJson,
   // ])

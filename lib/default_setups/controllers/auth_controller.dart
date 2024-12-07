@@ -1,27 +1,27 @@
-// ignore_for_file: depend_on_referenced_packages
+import 'dart:convert';
+import 'dart:io';
 
-// import 'dart:convert';
-// import 'dart:io';
+import 'package:dart_core_orm/dart_core_orm.dart';
+import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
+import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
+import 'package:dart_net_core_api/default_setups/extensions/controller_extensions.dart';
+import 'package:dart_net_core_api/default_setups/models/dto/vk_login_data.dart';
+import 'package:dart_net_core_api/default_setups/services/exports.dart';
+import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
+import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
+import 'package:dart_net_core_api/jwt/jwt_service.dart';
+import 'package:dart_net_core_api/jwt/token_response.dart';
+import 'package:dart_net_core_api/server.dart';
+import 'package:dart_net_core_api/utils/extensions/json_search.dart';
+import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
+import 'package:http/http.dart' as http;
+import 'package:mongo_dart/mongo_dart.dart';
 
-// import 'package:dart_net_core_api/annotations/controller_annotations.dart';
-// import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
-// import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
-// import 'package:dart_net_core_api/default_setups/extensions/controller_extensions.dart';
-// import 'package:dart_net_core_api/default_setups/models/dto/vk_login_data.dart';
-// import 'package:dart_net_core_api/default_setups/services/exports.dart';
-// import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
-// import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
-// import 'package:dart_net_core_api/jwt/jwt_service.dart';
-// import 'package:dart_net_core_api/jwt/token_response.dart';
-// import 'package:dart_net_core_api/server.dart';
-// import 'package:dart_net_core_api/utils/extensions/json_search.dart';
-// import 'package:http/http.dart' as http;
-// import 'package:mongo_dart/mongo_dart.dart';
-
-// import '../models/dto/basic_auth_data.dart';
-// import '../models/dto/basic_login_data.dart';
-// import '../models/mongo_models/refresh_token.dart';
-// import '../models/mongo_models/user.dart';
+import '../models/dto/basic_auth_data.dart';
+import '../models/dto/basic_login_data.dart';
+import '../models/mongo_models/refresh_token.dart';
+import '../models/mongo_models/user.dart';
 
 import 'package:dart_net_core_api/server.dart';
 
@@ -34,7 +34,6 @@ enum LogoutScope {
 }
 
 class AuthController extends ApiController {
-  /*
   AuthController(
     this.jwtService,
     this.passwordHashService,
@@ -46,6 +45,7 @@ class AuthController extends ApiController {
   JwtConfig get jwtConfig {
     return httpContext.getConfig<JwtConfig>()!;
   }
+  /*
 
   @JwtAuthWithRefresh()
   @HttpPost('/auth/logout')
@@ -380,27 +380,60 @@ class AuthController extends ApiController {
     }
     return token;
   }
+  */
 
   @HttpPost('/auth/signup/basic')
   Future<TokenResponse?> signup(
     @FromBody() BasicSignupData basicSignupData,
   ) async {
+    /// will throw exception is is not ok
     basicSignupData.validate();
-    final existingUser = await userStoreService.findUserByPhoneOrEmail(
-      email: basicSignupData.email,
-      phone: basicSignupData.phone,
-    );
-    if (existingUser != null) {
-      throw ConflictException(
-        message: 'User already exists',
-        code: '409001',
-      );
+
+    User? user = User()
+      ..email = basicSignupData.email
+      ..phone = basicSignupData.phone;
+
+    var result = await user.tryFind<User>();
+    if (result.isError) {
+      if (result.error!.isRecordAlreadyExists) {
+        throw ConflictException(
+          message: 'User already exists',
+          code: '409001',
+        );
+      } else if (result.error!.isTableNotExists) {
+        final result = await (User).createTable();
+        if (result == false) {
+          throw InternalServerException(
+            message: 'Could not create table',
+          );
+        }
+      }
     }
+
+    // if (result.value == null) {
+    final insertResult = await user.insert().execute(
+          dryRun: false,
+        );
+    print(result);
+    // }
+
+    // await (User).createTable();
+
+    // final existingUser = await userStoreService.findUserByPhoneOrEmail(
+    //   email: basicSignupData.email,
+    //   phone: basicSignupData.phone,
+    // );
+    // if (existingUser != null) {
+    //   throw ConflictException(
+    //     message: 'User already exists',
+    //     code: '409001',
+    //   );
+    // }
 
     final passwordHash = passwordHashService.hash(
       basicSignupData.password,
     );
-    User? user = User()
+    user = User()
       ..firstName = basicSignupData.firstName
       ..lastName = basicSignupData.lastName
       ..email = basicSignupData.email
@@ -409,14 +442,13 @@ class AuthController extends ApiController {
       ]
       ..passwordHash = passwordHash;
 
-    user = await userStoreService.insertOneAndReturnResult(user);
+    // user = await userStoreService.insertOneAndReturnResult(user);
 
-    if (user != null) {
-      return await _createTokenResponseForUser(user);
-    }
+    // if (user != null) {
+    //   return await _createTokenResponseForUser(user);
+    // }
     throw InternalServerException(
       message: 'Could not create an account',
     );
   }
-  */
 }

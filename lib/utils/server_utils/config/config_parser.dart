@@ -5,6 +5,7 @@ import 'package:dart_core_orm/dart_core_orm.dart';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/configs/postgresql_config.dart';
+import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:logging/logging.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
@@ -26,7 +27,8 @@ class ConfigParser {
     required Type configType,
     String? configPath,
     bool isAbsolutePath = false,
-  }) {
+    required IServer server,
+  }) : _server = server {
     if (!configType.implementsInterface<IConfig>()) {
       throw 'All configurations must implement $IConfig interface';
     }
@@ -87,8 +89,11 @@ class ConfigParser {
     if (config?.usedDbConfig == 'postgresqlConfig') {
       final postgresqlConfig = getConfig<PostgreSQLConfig>();
       if (postgresqlConfig?.isValid == true) {
-        /// what this actually does is only creating a settings object. 
-        /// It doesn't create a database or a table. 
+        /// reflect_buddy setting
+        alwaysIncludeParentFields = true;
+        final bool useCamelCase = _server.settings.jsonSerializer?.keyNameConverter is SnakeToCamel;
+        /// what this actually does is only creating a settings object.
+        /// It doesn't create a database or a table.
         Orm.initialize(
           database: postgresqlConfig!.database!,
           username: postgresqlConfig.user!,
@@ -98,6 +103,8 @@ class ConfigParser {
           isSecureConnection: postgresqlConfig.isSecureConnection == true,
           printQueries: postgresqlConfig.printQueries == true,
           port: postgresqlConfig.port!,
+          /// if true postgres will use double quotes for column and table names
+          useCaseSensitiveNames: useCamelCase,
         );
       }
     }
@@ -130,6 +137,7 @@ class ConfigParser {
 
   final HashSet<IConfig> _allConfigs = HashSet();
   final Map<Type, IConfig> _cachedConfigs = {};
+  final IServer _server;
 
   Object? _configInstance;
 

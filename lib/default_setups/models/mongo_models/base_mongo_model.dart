@@ -1,24 +1,21 @@
-import 'package:dart_net_core_api/utils/json_utils/value_converters/mongo_id_converter.dart';
-import 'package:reflect_buddy/reflect_buddy.dart';
+import 'package:dart_core_orm/dart_core_orm.dart';
 
 class BaseModel {
-  DateTime? createdAt;
-  DateTime? updatedAt;
-  bool? deleted;
+  @DefaultId()
+  int? id;
 
-  /// Notice this is a private field but it won't
-  /// be serialized / deserialized unless it has
-  /// [JsonInclude] annotation
-  /// The `dynamic` type is used here because the same model
-  /// is used as a database model and a response.
-  @MongoIdConverter()
-  @JsonKey(
-    name: 'id',
-    includeDirections: [
-      SerializationDirection.fromJson,
-      SerializationDirection.toJson,
-    ],
-    ignoreDirections: [],
+  @DateColumn(
+    defaultValue: DateTimeDefaultValue.currentTimestamp,
+    dateType: DateType.timestamp,
   )
-  dynamic id;
+  DateTime? createdAt;
+
+  @DateColumn(
+    defaultValue: DateTimeDefaultValue.currentTimestamp,
+    dateType: DateType.timestamp,
+  )
+  DateTime? updatedAt;
+
+  @NotNullColumn(defaultValue: false)
+  bool? isDeleted;
 }

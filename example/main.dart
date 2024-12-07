@@ -1,6 +1,7 @@
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
 import 'package:dart_net_core_api/default_setups/controllers/admin_controller.dart';
 import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
+import 'package:dart_net_core_api/default_setups/controllers/health_controller.dart';
 import 'package:dart_net_core_api/exports.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';
 
@@ -17,6 +18,7 @@ void main(List<String> arguments) {
       apiControllers: [
         AuthController,
         AdminController,
+        HealthController,
 
         /// this is a controller that is documented
         UserController,
@@ -40,7 +42,8 @@ void main(List<String> arguments) {
       /// use `singletonServices`
       lazyServiceInitializer: {},
       jsonSerializer: DefaultJsonSerializer(
-        null,
+        /// it is preferred to work with PostgreSQL, though not required
+        CamelToSnake(),
       ),
       baseApiPath: '/api/v1',
     ),

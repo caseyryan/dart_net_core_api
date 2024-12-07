@@ -146,11 +146,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e70d24cd3f82d66163246eee86d725c070faa784
-      resolved-ref: e70d24cd3f82d66163246eee86d725c070faa784
+      ref: "3fa8f88ff10a79b72fc861271054c42197db1809"
+      resolved-ref: "3fa8f88ff10a79b72fc861271054c42197db1809"
       url: "https://github.com/caseyryan/dart_core_orm.git"
     source: git
-    version: "1.0.0"
+    version: "0.0.2"
   dart_jsonwebtoken:
     dependency: "direct main"
     description:
@@ -435,10 +435,10 @@ packages:
     dependency: "direct main"
     description:
       name: reflect_buddy
-      sha256: "495326e39ea267fd52b7652ed4f292015e8863dd1698e8a58b7c7432aa60d93b"
+      sha256: "8a4ea86e8976934dfe0cb32437093087e5d2554aa4390bae7a28129065a6fba4"
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.5"
+    version: "1.5.8"
   rikulo_commons:
     dependency: transitive
     description:

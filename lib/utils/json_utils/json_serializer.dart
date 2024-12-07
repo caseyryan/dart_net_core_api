@@ -43,6 +43,14 @@ class DefaultJsonSerializer extends JsonSerializer {
     JsonKeyNameConverter? keyNameConverter,
   ) : super(keyNameConverter: keyNameConverter);
 
+  bool get isCamelToSnake {
+    return keyNameConverter is CamelToSnake;
+  }
+
+  bool get isSnakeToCamel {
+    return keyNameConverter is SnakeToCamel;
+  }
+
   @override
   Object? fromJson(
     Map json,

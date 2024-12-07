@@ -22,6 +22,7 @@ import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
+import 'package:reflect_buddy/reflect_buddy.dart' as rb;
 
 import 'config.dart';
 import 'jwt/jwt_service.dart';
@@ -141,12 +142,17 @@ class _Server extends IServer {
     _configParser = ConfigParser(
       configPath: _argResults!['configPath'],
       configType: settings.configType,
+      server: this,
     );
 
     /// We need to pass configs to singleton services right here
     /// to make them ready
     for (Service service in _singletonServices.values) {
       _trySetServiceDependencies(service);
+    }
+    if (settings.jsonSerializer?.keyNameConverter != null) {
+      /// set converter to use in reflect buddy
+      rb.customGlobalKeyNameConverter = settings.jsonSerializer!.keyNameConverter;
     }
 
     _bindServer(
