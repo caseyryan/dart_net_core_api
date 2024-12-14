@@ -1,6 +1,6 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/annotations/documentation_annotations/documentation_annotations.dart';
-import 'package:dart_net_core_api/default_setups/models/mongo_models/user.dart';
+import 'package:dart_net_core_api/default_setups/models/db_models/user.dart';
 import 'package:dart_net_core_api/server.dart';
 
 @ControllerDocumentation(

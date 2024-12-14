@@ -1,29 +1,16 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
-import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
-import 'package:dart_net_core_api/default_setups/extensions/controller_extensions.dart';
-import 'package:dart_net_core_api/default_setups/models/dto/vk_login_data.dart';
-import 'package:dart_net_core_api/default_setups/services/exports.dart';
+import 'package:dart_net_core_api/default_setups/models/db_models/password.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';
 import 'package:dart_net_core_api/jwt/token_response.dart';
 import 'package:dart_net_core_api/server.dart';
-import 'package:dart_net_core_api/utils/extensions/json_search.dart';
-import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
-import 'package:http/http.dart' as http;
-import 'package:mongo_dart/mongo_dart.dart';
+// import 'package:http/http.dart' as http;
 
 import '../models/dto/basic_auth_data.dart';
-import '../models/dto/basic_login_data.dart';
-import '../models/mongo_models/refresh_token.dart';
-import '../models/mongo_models/user.dart';
-
-import 'package:dart_net_core_api/server.dart';
+import '../models/db_models/user.dart';
 
 enum LogoutScope {
   /// log out all, including the requesting user
@@ -393,28 +380,67 @@ class AuthController extends ApiController {
       ..email = basicSignupData.email
       ..phone = basicSignupData.phone;
 
+    /// check if a user like this is already present
     var result = await user.tryFind<User>();
-    if (result.isError) {
-      if (result.error!.isRecordAlreadyExists) {
-        throw ConflictException(
-          message: 'User already exists',
-          code: '409001',
-        );
-      } else if (result.error!.isTableNotExists) {
+    if (result.value != null) {
+      throw ConflictException(
+        message: 'User already exists',
+        code: '409001',
+      );
+    } else if (result.isError) {
+      if (result.error!.isTableNotExists) {
         final result = await (User).createTable();
         if (result == false) {
           throw InternalServerException(
             message: 'Could not create table',
           );
-        }
+        } else {}
+      } else {
+        throw InternalServerException(
+          message: result.error!.message!,
+        );
       }
     }
 
-    // if (result.value == null) {
-    final insertResult = await user.insert().execute(
-          dryRun: false,
-        );
-    print(result);
+    /// at this step a user is not presend and the database table is ready
+    /// lets insert a new user
+    final passwordHash = passwordHashService.hash(
+      basicSignupData.password,
+    );
+    user = User()
+      ..firstName = basicSignupData.firstName
+      ..lastName = basicSignupData.lastName
+      ..email = basicSignupData.email
+      ..phone = basicSignupData.phone
+      ..birthDate = basicSignupData.birthDate
+      ..nickName = basicSignupData.nickName
+      ..middleName = basicSignupData.middleName
+      ..roles = [
+        Role.user,
+      ];
+
+    final userInsertResult = await user.tryInsertOne<User>(
+      conflictResolution: ConflictResolution.error,
+    );
+    if (userInsertResult.isError) {
+      throw InternalServerException(
+        message: userInsertResult.error!.message!,
+      );
+    }
+    if (userInsertResult.value != null) {
+      final password = Password()
+        ..userId = userInsertResult.value!.id
+        ..passwordHash = passwordHash;
+
+      final passwordInsertResult = await password.tryInsertOne<User>(
+        conflictResolution: ConflictResolution.error,
+        createTableIfNotExists: true,
+      );
+      print(passwordInsertResult.value);
+    }
+
+    // print(userInsertResult.value);
+    // return insertResult.value!;
     // }
 
     // await (User).createTable();
@@ -430,17 +456,17 @@ class AuthController extends ApiController {
     //   );
     // }
 
-    final passwordHash = passwordHashService.hash(
-      basicSignupData.password,
-    );
-    user = User()
-      ..firstName = basicSignupData.firstName
-      ..lastName = basicSignupData.lastName
-      ..email = basicSignupData.email
-      ..roles = [
-        Role.user,
-      ]
-      ..passwordHash = passwordHash;
+    // final passwordHash = passwordHashService.hash(
+    //   basicSignupData.password,
+    // );
+    // user = User()
+    //   ..firstName = basicSignupData.firstName
+    //   ..lastName = basicSignupData.lastName
+    //   ..email = basicSignupData.email
+    //   ..roles = [
+    //     Role.user,
+    //   ]
+    //   ..passwordHash = passwordHash;
 
     // user = await userStoreService.insertOneAndReturnResult(user);
 

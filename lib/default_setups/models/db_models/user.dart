@@ -1,7 +1,6 @@
 // ignore_for_file: unnecessary_getters_setters
 
 import 'package:dart_core_orm/dart_core_orm.dart';
-import 'package:dart_net_core_api/annotations/documentation_annotations/documentation_annotations.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
@@ -13,24 +12,18 @@ import 'base_mongo_model.dart';
 /// during a deserialization process. You can implement your
 /// own validators extending [JsonValueValidator] class
 
+
 class User extends BaseModel {
-  @FieldDocumentation(
-    description:
-        'List of roles a user might have. The roles can be used to restrict access to some actions or even whole controllers',
-    defaultValueExample: [
-      Role.user,
-    ],
-  )
+  
+  @ORMEnumConverter()
   List<Role>? roles;
 
-  @FieldDocumentation(
-    description: 'First name of the user',
-    defaultValueExample: 'John',
-  )
   @NameValidator(canBeNull: true)
+  @ORMLimitColumn(limit: 60)
   String? firstName;
 
   @NameValidator(canBeNull: true)
+  @ORMLimitColumn(limit: 60)
   String? lastName;
 
   String getFullName() {
@@ -40,19 +33,35 @@ class User extends BaseModel {
   @EmailValidator(
     canBeNull: true,
   )
-  @UniqueColumn()
+  @ORMUniqueColumn()
+  @ORMLimitColumn(limit: 60)
   String? email;
 
   @PhoneValidator(
     canBeNull: true,
   )
-  @UniqueColumn()
+  @ORMUniqueColumn()
+  @ORMLimitColumn(limit: 20)
   String? phone;
 
-  // @JsonIgnore(ignoreDirections: [
-  //   SerializationDirection.toJson,
-  // ])
-  String? passwordHash;
+
+  @JsonTrimString()
+  @NameValidator(canBeNull: true)
+  @ORMLimitColumn(limit: 60)
+  String? middleName;
+
+  @JsonTrimString()
+  @NameValidator(canBeNull: true)
+  String? nickName;
+
+  @JsonDateConverter(
+    dateFormat: 'yyyy-MM-dd',
+  )
+  @ORMDateColumn(
+    dateType: ORMDateType.date,
+    defaultValue: ORMDateTimeDefaultValue.empty,
+  )
+  DateTime? birthDate;
 
   @override
   bool operator ==(covariant User other) {

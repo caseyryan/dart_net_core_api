@@ -31,6 +31,7 @@ abstract class _DateFormatField {
 
   String fullPattern() => pattern;
 
+  @override
   String toString() => pattern;
 
   /// Format date according to our specification and return the result.
@@ -95,11 +96,19 @@ class _DateFormatLiteralField extends _DateFormatField {
   _DateFormatLiteralField(String pattern, DateFormat parent)
       : super(pattern, parent);
 
-  void parse(IntlStream input, DateBuilder dateFields) {
+  @override
+  void parse(
+    IntlStream input,
+    DateBuilder dateFields,
+  ) {
     parseLiteral(input);
   }
 
-  void parseLoose(IntlStream input, DateBuilder dateFields) =>
+  @override
+  void parseLoose(
+    IntlStream input,
+    DateBuilder dateFields,
+  ) =>
       parseLiteralLoose(input);
 }
 
@@ -108,17 +117,26 @@ class _DateFormatLiteralField extends _DateFormatField {
 class _DateFormatQuotedField extends _DateFormatField {
   final String _fullPattern;
 
+  @override
   String fullPattern() => _fullPattern;
 
   _DateFormatQuotedField(String pattern, DateFormat parent)
       : _fullPattern = pattern,
         super(_patchQuotes(pattern), parent);
 
-  void parse(IntlStream input, DateBuilder dateFields) {
+  @override
+  void parse(
+    IntlStream input,
+    DateBuilder dateFields,
+  ) {
     parseLiteral(input);
   }
 
-  void parseLoose(IntlStream input, DateBuilder dateFields) =>
+  @override
+  void parseLoose(
+    IntlStream input,
+    DateBuilder dateFields,
+  ) =>
       parseLiteralLoose(input);
 
   static final _twoEscapedQuotes = RegExp(r"''");
@@ -143,7 +161,11 @@ class _LoosePatternField extends _DateFormatPatternField {
 
   /// Parse from a list of possibilities, but case-insensitively.
   /// Assumes that input is lower case.
-  int parseEnumeratedString(IntlStream input, List<String> possibilities) {
+  @override
+  int parseEnumeratedString(
+    IntlStream input,
+    List<String> possibilities,
+  ) {
     var lowercasePossibilities =
         possibilities.map((x) => x.toLowerCase()).toList();
     try {
@@ -155,7 +177,11 @@ class _LoosePatternField extends _DateFormatPatternField {
 
   /// Parse a month name, case-insensitively, and set it in [dateFields].
   /// Assumes that [input] is lower case.
-  void parseMonth(input, dateFields) {
+  @override
+  void parseMonth(
+    input,
+    dateFields,
+  ) {
     if (width <= 2) {
       handleNumericField(input, dateFields.setMonth);
       return;
@@ -173,6 +199,7 @@ class _LoosePatternField extends _DateFormatPatternField {
 
   /// Parse a standalone day name, case-insensitively.
   /// Assumes that input is lower case. Doesn't do anything
+  @override
   void parseStandaloneDay(input) {
     // This is ignored, but we still have to skip over it the correct amount.
     if (width <= 2) {
@@ -193,9 +220,16 @@ class _LoosePatternField extends _DateFormatPatternField {
 
   /// Parse a standalone month name, case-insensitively, and set it in
   /// [dateFields]. Assumes that input is lower case.
-  void parseStandaloneMonth(input, dateFields) {
+  @override
+  void parseStandaloneMonth(
+    input,
+    dateFields,
+  ) {
     if (width <= 2) {
-      handleNumericField(input, dateFields.setMonth);
+      handleNumericField(
+        input,
+        dateFields.setMonth,
+      );
       return;
     }
     var possibilities = [
@@ -240,21 +274,35 @@ class _DateFormatPatternField extends _DateFormatField {
   _DateFormatPatternField(pattern, parent) : super(pattern, parent);
 
   /// Format date according to our specification and return the result.
-  String format(DateTime date) {
+  @override
+  String format(
+    DateTime date,
+  ) {
     return formatField(date);
   }
 
   /// Parse the date according to our specification and put the result
   /// into the correct place in dateFields.
-  void parse(IntlStream input, DateBuilder dateFields) {
+  @override
+  void parse(
+    IntlStream input,
+    DateBuilder dateFields,
+  ) {
     parseField(input, dateFields);
   }
 
   /// Parse the date according to our specification and put the result
   /// into the correct place in dateFields. Allow looser parsing, accepting
   /// case-insensitive input and skipped delimiters.
-  void parseLoose(IntlStream input, DateBuilder dateFields) {
-    _LoosePatternField(pattern, parent).parse(input, dateFields);
+  @override
+  void parseLoose(
+    IntlStream input,
+    DateBuilder dateFields,
+  ) {
+    _LoosePatternField(pattern, parent).parse(
+      input,
+      dateFields,
+    );
   }
 
   bool? _forDate;
@@ -266,6 +314,7 @@ class _DateFormatPatternField extends _DateFormatField {
   /// e.g. 'yyyy' for a four-digit year. This hard-codes all the pattern
   /// characters that pertain to dates. The remaining characters, 'ahHkKms' are
   /// all time-related. See e.g. [formatField]
+  @override
   bool get forDate => _forDate ??= 'cdDEGLMQvyZz'.contains(pattern[0]);
 
   /// Parse a field representing part of a date pattern. Note that we do not
@@ -638,7 +687,7 @@ class _DateFormatPatternField extends _DateFormatField {
   }
 
   String formatTimeZoneId(DateTime date) {
-    // TODO(alanknight): implement time zone support
+    //  implement time zone support
     throw UnimplementedError();
   }
 

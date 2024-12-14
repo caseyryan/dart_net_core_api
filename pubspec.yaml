@@ -10,11 +10,12 @@ dependencies:
   path: ^1.8.0
   yaml: ^3.1.2
   mongo_dart: ^0.7.4+1
-  reflect_buddy: ^1.5.8
+  reflect_buddy: ^1.5.9
   dart_core_orm:
-    git:
-      url: https://github.com/caseyryan/dart_core_orm.git
-      ref: 3fa8f88ff10a79b72fc861271054c42197db1809
+    path: ./dart_core_orm
+    # git:
+    #   url: https://github.com/caseyryan/dart_core_orm.git
+    #   ref: e8054e6e1f8b85d1b4b97f400a7e7709f1c5f4bf
   dio: ^4.0.0
   dio_cache_interceptor: ^3.0.3
   dio_cache_interceptor_file_store: ^1.0.0

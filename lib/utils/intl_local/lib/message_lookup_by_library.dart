@@ -22,7 +22,7 @@ import 'src/intl_helpers.dart';
 /// of individual [MessageLookupByLibrary] instances.
 class CompositeMessageLookup implements MessageLookup {
   /// A map from locale names to the corresponding lookups.
-  Map<String, MessageLookupByLibrary> availableMessages = Map();
+  Map<String, MessageLookupByLibrary> availableMessages = {};
 
   /// Return true if we have a message lookup for [localeName].
   bool localeExists(localeName) => availableMessages.containsKey(localeName);
@@ -39,9 +39,15 @@ class CompositeMessageLookup implements MessageLookup {
   /// Look up the message with the given [name] and [locale] and return the
   /// translated version with the values in [args] interpolated.  If nothing is
   /// found, return the result of [ifAbsent] or [messageText].
-  String? lookupMessage(String? messageText, String? locale, String? name,
-      List<Object>? args, String? meaning,
-      {MessageIfAbsent? ifAbsent}) {
+  @override
+  String? lookupMessage(
+    String? messageText,
+    String? locale,
+    String? name,
+    List<Object>? args,
+    String? meaning, {
+    MessageIfAbsent? ifAbsent,
+  }) {
     // If passed null, use the default.
     var knownLocale = locale ?? Intl.getCurrentLocale();
     var messages = (knownLocale == _lastLocale)
@@ -68,7 +74,11 @@ class CompositeMessageLookup implements MessageLookup {
   /// If we do not already have a locale for [localeName] then
   /// [findLocale] will be called and the result stored as the lookup
   /// mechanism for that locale.
-  void addLocale(String localeName, Function findLocale) {
+  @override
+  void addLocale(
+    String localeName,
+    Function findLocale,
+  ) {
     if (localeExists(localeName)) return;
     var canonical = Intl.canonicalizedLocale(localeName);
     var newLocale = findLocale(canonical);

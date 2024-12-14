@@ -101,7 +101,7 @@ class Intl {
   /// Dart is running on the client, we can infer from the browser/client
   /// preferences).
   Intl([String? aLocale])
-      : _locale = aLocale != null ? aLocale : getCurrentLocale();
+      : _locale = aLocale ?? getCurrentLocale();
 
   /// Use this for a message that will be translated for different locales. The
   /// expected usage is that this is inside an enclosing function that only
@@ -422,9 +422,9 @@ class Intl {
     ArgumentError.checkNotNull(other, 'other');
     switch (targetGender) {
       case 'female':
-        return female == null ? other : female;
+        return female ?? other;
       case 'male':
-        return male == null ? other : male;
+        return male ?? other;
       default:
         return other;
     }
@@ -465,7 +465,7 @@ class Intl {
     // eagerly evaluate calls that may not be necessary.
     var stringChoice = choice is String ? choice : '$choice'.split('.').last;
     var modifiedArgs =
-        args == null ? null : (<Object>[stringChoice]..addAll(args.skip(1)));
+        args == null ? null : (<Object>[stringChoice, ...args.skip(1)]);
     var translated = _lookupMessage(null, locale, name, modifiedArgs, meaning);
 
     /// If there's a translation, return it, otherwise evaluate with our
@@ -518,7 +518,6 @@ class Intl {
   ///       Intl.withLocale('zh', Timer(Duration(milliseconds:10),
   ///           () => print(hello('World')));
   static dynamic withLocale<T>(String? locale, T Function() function) {
-    // TODO(alanknight): Make this return T. This requires work because T might
     // be Future and the caller could get an unawaited Future.  Which is
     // probably an error in their code, but the change is semi-breaking.
     var canonical = Intl.canonicalizedLocale(locale);
@@ -532,6 +531,7 @@ class Intl {
     return defaultLocale ??= systemLocale;
   }
 
+  @override
   String toString() => 'Intl($locale)';
 }
 
@@ -552,9 +552,9 @@ String? toBeginningOfSentenceCase(String? input, [String? locale]) {
 /// and the dotted i in Turkish/Azeri.
 ///
 /// Private to the implementation of [toBeginningOfSentenceCase].
-// TODO(alanknight): Consider hard-coding other important cases.
+//  Consider hard-coding other important cases.
 // See http://www.unicode.org/Public/UNIDATA/SpecialCasing.txt
-// TODO(alanknight): Alternatively, consider toLocaleUpperCase in browsers.
+//  Alternatively, consider toLocaleUpperCase in browsers.
 // See also https://github.com/dart-lang/sdk/issues/6706
 String _upperCaseLetter(String input, String? locale) {
   // Hard-code the important edge case of i->İ

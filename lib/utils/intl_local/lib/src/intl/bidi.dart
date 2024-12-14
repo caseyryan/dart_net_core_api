@@ -18,7 +18,7 @@ import 'text_direction.dart';
 /// This provides utility methods for working with bidirectional text. All
 /// of the methods are static, and are organized into a class primarily to
 /// group them together for documentation and discoverability.
-// TODO(alanknight): Consider a better way of organizing these.
+//  Consider a better way of organizing these.
 class Bidi {
   /// Unicode "Left-To-Right Embedding" (LRE) character.
   static const LRE = '\u202A';
@@ -202,7 +202,7 @@ class Bidi {
   /// If [isRtlContext] is true, then we explicitly want to wrap in a span of
   /// RTL directionality, regardless of the estimated directionality.
   static String guardBracketInHtml(String str, [bool? isRtlContext]) {
-    var useRtl = isRtlContext == null ? hasAnyRtl(str) : isRtlContext;
+    var useRtl = isRtlContext ?? hasAnyRtl(str);
     var matchingBrackets =
         RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(&lt;.*?(&gt;)+)');
     return _guardBracketHelper(str, matchingBrackets,
@@ -216,7 +216,7 @@ class Bidi {
   /// explicitly want to wrap in a span of RTL directionality, regardless of the
   /// estimated directionality.
   static String guardBracketInText(String str, [bool? isRtlContext]) {
-    var useRtl = isRtlContext == null ? hasAnyRtl(str) : isRtlContext;
+    var useRtl = isRtlContext ?? hasAnyRtl(str);
     var mark = useRtl ? RLM : LRM;
     return _guardBracketHelper(
         str, RegExp(r'(\(.*?\)+)|(\[.*?\]+)|(\{.*?\}+)|(<.*?>+)'), mark, mark);
@@ -226,10 +226,14 @@ class Bidi {
   /// Given a [str] and the [regexp] to match with, optionally supply a string
   /// to be inserted [before] the match and/or [after]. For example,
   /// `_guardBracketHelper('firetruck', new RegExp('truck'), 'hydrant', '!')`
-  /// would return 'firehydrant!'.  // TODO(efortuna): Get rid of this once this
+  /// would return 'firehydrant!'.
   /// is implemented in Dart.  // See Issue 2979.
-  static String _guardBracketHelper(String str, RegExp regexp,
-      [String? before, String? after]) {
+  static String _guardBracketHelper(
+    String str,
+    RegExp regexp, [
+    String? before,
+    String? after,
+  ]) {
     var buffer = StringBuffer();
     var startIndex = 0;
     for (var match in regexp.allMatches(str)) {

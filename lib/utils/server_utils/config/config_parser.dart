@@ -83,7 +83,6 @@ class ConfigParser {
   }
 
   /// Not sure if it's a best place to init databases. But I kept it for now
-  /// TODO: complete when other connectors will also be available
   void _initDatabases() {
     final config = getConfig<Config>();
     if (config?.usedDbConfig == 'postgresqlConfig') {
