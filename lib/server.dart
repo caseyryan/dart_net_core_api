@@ -152,15 +152,20 @@ class _Server extends IServer {
     }
     if (settings.jsonSerializer?.keyNameConverter != null) {
       /// set converter to use in reflect buddy
-      rb.customGlobalKeyNameConverter = settings.jsonSerializer!.keyNameConverter;
+      rb.customGlobalKeyNameConverter =
+          settings.jsonSerializer!.keyNameConverter;
     }
 
     _bindServer(
       useHttp: settings.useHttp,
       useHttps: settings.useHttps,
       ipV4Address: settings.ipV4Address,
-      httpPort: settings.httpPort ?? _configParser.getConfig<Config>()?.httpPort ?? 8084,
-      httpsPort: settings.httpsPort ?? _configParser.getConfig<Config>()?.httpsPort ?? 8085,
+      httpPort: settings.httpPort ??
+          _configParser.getConfig<Config>()?.httpPort ??
+          8084,
+      httpsPort: settings.httpsPort ??
+          _configParser.getConfig<Config>()?.httpsPort ??
+          8085,
       securityContext: settings.securityContext ?? SecurityContext(),
       instanceNumber: instanceNumber,
     );
@@ -395,21 +400,30 @@ class _Server extends IServer {
     String? code,
     Object? exception,
   }) {
-    final response = {
-      'error': {
-        'message': message,
-        'traceId': traceId,
-      }
-    };
+    // if (rb.globalDefaultKeyNameConverter is rb.CamelToSnake) {}
+    final errorWrapper = ErrorWrapper();
+    errorWrapper.error = InnerError();
+    errorWrapper.error!.message = message;
+    errorWrapper.error!.traceId = traceId;
     if (code?.isNotEmpty == true) {
-      response['error']!['code'] = code!;
+      errorWrapper.error!.code = code!;
     }
 
+    // final response = {
+    //   'error': {
+    //     'message': message,
+    //     'traceId': traceId,
+    //   }
+    // };
+    // if (code?.isNotEmpty == true) {
+    //   response['error']!['code'] = code!;
+    // }
+    final jsonError = errorWrapper.toJson();
+
     request.response.headers.contentType = ContentType.json;
-    request.response.write(jsonEncode(response));
-    return response;
+    request.response.write(jsonEncode(jsonError));
+    return jsonError;
   }
-  
 
   Future _writeFileToResponse({
     required File file,
@@ -471,7 +485,8 @@ class _Server extends IServer {
       // if (context.isDev) {
       //   print('is dev $endpointMappers');
       // }
-      String message = 'Could not find the endpoint to process the request ${request.requestedUri.toString()}';
+      String message =
+          'Could not find the endpoint to process the request ${request.requestedUri.toString()}';
       if (endpoints != null) {
         message += '  All available:\n${endpoints.toString()}  ';
       }
@@ -516,7 +531,8 @@ class _Server extends IServer {
 
         /// endpointMapper.responseContentType uses client's Accept header value if
         /// there is no Content-Type header forced by the endpoint itself
-        request.response.headers.contentType = endpointMapper.responseContentType;
+        request.response.headers.contentType =
+            endpointMapper.responseContentType;
         if (result != null) {
           if (endpointMapper.producesJson && settings.jsonSerializer != null) {
             if (result is File) {
@@ -527,7 +543,8 @@ class _Server extends IServer {
                 );
               }
               throw UnsupportedMediaException(
-                message: 'Unsupported media type. Try providing a correct `Accept` header',
+                message:
+                    'Unsupported media type. Try providing a correct `Accept` header',
               );
             }
             result = settings.jsonSerializer!.tryConvertToJsonString(result);
@@ -610,4 +627,14 @@ class _Server extends IServer {
     );
     _registeredControllers.add(reflector);
   }
+}
+
+class ErrorWrapper {
+  InnerError? error;
+}
+
+class InnerError {
+  String? code;
+  String? message;
+  String? traceId;
 }
