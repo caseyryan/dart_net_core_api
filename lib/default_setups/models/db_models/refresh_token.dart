@@ -1,14 +1,25 @@
+import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/utils/time_utils.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:reflect_buddy/reflect_buddy.dart';
 
 import 'base_mongo_model.dart';
 
-@JsonIncludeParentFields()
 class RefreshToken extends BaseModel {
+  @ORMStringColumn(limit: 1024)
   String? refreshToken;
+
+  /// in this case it's enough for storing uuid
+  @ORMStringColumn(limit: 50)
   String? publicKey;
-  ObjectId? userId;
+
+  @ORMIntColumn(
+    intType: ORMIntType.integer,
+  )
+  @ORMNotNullColumn()
+  int? userId;
+
+  @ORMDateColumn(
+    dateType: ORMDateType.timestamp,
+  )
   DateTime? expiresAt;
 
   bool get isExpired {

@@ -107,7 +107,7 @@ class ControllerTypeReflector extends SimpleTypeReflector {
         final service = serviceLocator(param.reflectedType);
         if (service == null) {
           if (!param.isOptional) {
-            throw 'Controller $controllerType requires ${param.type} service but it was not instantiated!';
+            throw 'Controller `$controllerType`` requires `${param.reflectedType}` service but it was not instantiated. Have you added it to the services list while creating a Server instance?';
           }
         }
         if (service?.isSingleton == false) {

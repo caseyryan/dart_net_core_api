@@ -1,3 +1,4 @@
+import 'package:dart_net_core_api/base_services/failed_password_blocking_service/failer_password_blocking_service.dart';
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
 import 'package:dart_net_core_api/default_setups/controllers/admin_controller.dart';
 import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
@@ -29,7 +30,7 @@ void main(List<String> arguments) {
         /// If you don't need it
         /// you may implement your own authorization service
         JwtService(),
-
+        FailedPasswordBlockingService(),
         /// This service helps generate password hashes in a
         /// built-it AuthController
         PasswordHashService(),

@@ -1,5 +1,6 @@
 import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/base_services/failed_password_blocking_service/failer_password_blocking_service.dart';
 import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
 import 'package:dart_net_core_api/default_setups/models/db_models/password.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
@@ -9,8 +10,10 @@ import 'package:dart_net_core_api/jwt/token_response.dart';
 import 'package:dart_net_core_api/server.dart';
 // import 'package:http/http.dart' as http;
 
+import '../models/db_models/refresh_token.dart';
 import '../models/dto/basic_auth_data.dart';
 import '../models/db_models/user.dart';
+import '../models/dto/basic_login_data.dart';
 
 enum LogoutScope {
   /// log out all, including the requesting user
@@ -24,14 +27,17 @@ class AuthController extends ApiController {
   AuthController(
     this.jwtService,
     this.passwordHashService,
+    this.failedPasswordBlockingService,
   );
 
   final JwtService jwtService;
   final PasswordHashService passwordHashService;
+  final FailedPasswordBlockingService failedPasswordBlockingService;
 
   JwtConfig get jwtConfig {
     return httpContext.getConfig<JwtConfig>()!;
   }
+
   /*
 
   @JwtAuthWithRefresh()
@@ -193,24 +199,41 @@ class AuthController extends ApiController {
       forceNewRefreshToken: false,
     );
   }
-
+ */
   @HttpPost('/auth/login/basic')
   Future<TokenResponse?> login(
     @FromBody() BasicLoginData basicLoginData,
   ) async {
     basicLoginData.validate();
-    final user = await userStoreService.findUserByPhoneOrEmail(
-      email: basicLoginData.email,
-      phone: basicLoginData.phone,
-    );
-    if (user == null) {
+    var user = User()
+      ..email = basicLoginData.email
+      ..phone = basicLoginData.phone;
+    final result = await user.tryFind<User>();
+
+    if (result.isError == false && result.value == null) {
       throw NotFoundException(
         message: 'User not found',
       );
     }
+    user = result.value!;
+    final userPassHashResponse = Password()..userId = user.id;
+    final userPassHash = await userPassHashResponse.tryFind();
+    if (userPassHash.isError) {
+      throw InternalServerException(
+        message: userPassHash.error!.message!,
+      );
+    } else if (userPassHash.value == null) {
+      /// this situation should never happen
+      /// but this condition here is just in case
+      throw InternalServerException(
+        message:
+            'Seems like there is some problem with your password. Try to restore it',
+      );
+    }
+
     final passwordOk = passwordHashService.isPasswordOk(
       rawPassword: basicLoginData.password,
-      existingHash: user.passwordHash!,
+      existingHash: userPassHash.value.passwordHash!,
     );
     if (!passwordOk) {
       /// If a user has ran out of allowed password attempts
@@ -220,7 +243,10 @@ class AuthController extends ApiController {
         user.id,
       );
       if (error != null) {
-        throw BadRequestException(message: error, code: '400006');
+        throw BadRequestException(
+          message: error,
+          code: '400006',
+        );
       }
 
       throw BadRequestException(
@@ -234,11 +260,22 @@ class AuthController extends ApiController {
   }
 
   Future<TokenResponse?> _getOrCreateRefreshToken(
-    ObjectId userId,
+    int userId,
   ) async {
-    final existingRefreshToken = await refreshTokenService.findByUserId(
-      userId: userId,
-    );
+    final result = await (RefreshToken()..userId = userId).tryFind();
+    final existingRefreshToken = result.value;
+    if (result.isError) {
+      /// only the non existing table error must be ignored
+      /// since the table will be created later if it's not present yet
+      if (!result.error!.isTableNotExists) {
+        throw InternalServerException(
+          message: result.error!.message!,
+        );
+      }
+    }
+    // final existingRefreshToken = await refreshTokenService.findByUserId(
+    //   userId: userId,
+    // );
     final shouldUseRefreshToken = jwtConfig.useRefreshToken;
     if (!shouldUseRefreshToken) {
       return null;
@@ -261,32 +298,41 @@ class AuthController extends ApiController {
         ..userId = userId
         ..refreshToken = refreshToken
         ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
-      final newTokenId = await refreshTokenService.insertOneAndReturnResult(data);
-      if (newTokenId == null) {
+      final queryResult = await data.tryUpsertOne<RefreshToken>(
+        createTableIfNotExists: true,
+      );
+
+      if (queryResult.isError) {
+        throw InternalServerException(
+          message: queryResult.error!.message!,
+        );
+      } else if (queryResult.value == null) {
         throw InternalServerException(
           message: 'Could not create token',
+          code: '500555',
         );
       }
+      final newTokenData = queryResult.value!;
       return TokenResponse()
-        ..refreshExpiresAt = jwtConfig.calculateRefreshExpirationDateTime()
-        ..publicKey = refreshPublicKey
-        ..refreshToken = refreshToken;
+        ..refreshExpiresAt = newTokenData.expiresAt
+        ..publicKey = newTokenData.publicKey
+        ..refreshToken = newTokenData.refreshToken;
     } else {
       return TokenResponse()
         ..refreshExpiresAt = existingRefreshToken.expiresAt
-        ..refreshTokenId = existingRefreshToken.id
+        // ..refreshTokenId = existingRefreshToken.id
         ..publicKey = existingRefreshToken.publicKey
         ..refreshToken = existingRefreshToken.refreshToken;
     }
   }
 
-  @JwtAuthWithRefresh()
-  @HttpGet('/auth/profile')
-  Future<User?> getProfile() async {
-    final user = await userStoreService.findOneByIdAsync(id: userId!);
-    user?.passwordHash = null;
-    return user;
-  }
+  // @JwtAuthWithRefresh()
+  // @HttpGet('/auth/profile')
+  // Future<User?> getProfile() async {
+  //   final user = await userStoreService.findOneByIdAsync(id: userId!);
+  //   user?.passwordHash = null;
+  //   return user;
+  // }
 
   /// When JwtAuth annotation is used on a controller or an endpoint
   /// this payload will be accessible via httpContext -> jwtPayload
@@ -295,7 +341,7 @@ class AuthController extends ApiController {
     String? publicKey,
   ) {
     final payload = JwtPayload(
-      id: user.id.toHexString(),
+      id: user.id,
       roles: user.roles!,
     );
     payload.publicKey = publicKey;
@@ -307,15 +353,17 @@ class AuthController extends ApiController {
     bool? forceNewRefreshToken,
   }) async {
     TokenResponse? refreshTokenResponse = await _getOrCreateRefreshToken(
-      user.id,
+      user.id!,
     );
     bool createNewRefreshToken = false;
     if (jwtConfig.useRefreshToken) {
-      createNewRefreshToken = forceNewRefreshToken ?? refreshTokenResponse?.isRefreshTokenExpired == true;
+      createNewRefreshToken = forceNewRefreshToken ??
+          refreshTokenResponse?.isRefreshTokenExpired == true;
     }
     if (createNewRefreshToken) {
       /// Update the expired refresh token in a database
-      final refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
+      final refreshPublicKey =
+          passwordHashService.generatePublicKeyForRefresh();
       final refreshToken = jwtService.generateJsonWebToken(
         hmacKey: jwtConfig.refreshTokenHmacKey!,
         issuer: jwtConfig.issuer,
@@ -324,25 +372,28 @@ class AuthController extends ApiController {
         ),
         payload: JwtPayload(publicKey: refreshPublicKey),
       );
-      final newRefreshToken = RefreshToken()
+      var newRefreshToken = RefreshToken()
+        ..id = refreshTokenResponse?.refreshTokenId
         ..publicKey = refreshPublicKey
         ..refreshToken = refreshToken
         ..expiresAt = jwtConfig.calculateRefreshExpirationDateTime();
-      final success = await refreshTokenService.updateOneAsync(
-        selector: {
-          '_id': refreshTokenResponse?.refreshTokenId,
-        },
-        value: newRefreshToken,
-      );
-      if (!success) {
-        return null;
-      } else {
-        refreshTokenResponse = TokenResponse(
-          refreshToken: refreshToken,
-          publicKey: refreshPublicKey,
-          refreshExpiresAt: jwtConfig.calculateRefreshExpirationDateTime(),
+      final queryResult = await newRefreshToken.tryUpsertOne();
+      if (queryResult.isError) {
+        throw InternalServerException(
+          message: queryResult.error!.message!,
+          code: '500556',
+        );
+      } else if (queryResult.value == null) {
+        throw InternalServerException(
+          message: 'Could not create token',
+          code: '500557',
         );
       }
+      refreshTokenResponse = TokenResponse(
+        refreshToken: newRefreshToken.refreshToken,
+        publicKey: newRefreshToken.publicKey,
+        refreshExpiresAt: newRefreshToken.expiresAt,
+      );
     }
 
     final token = TokenResponse(
@@ -367,7 +418,6 @@ class AuthController extends ApiController {
     }
     return token;
   }
-  */
 
   @HttpPost('/auth/signup/basic')
   Future<TokenResponse?> signup(
@@ -427,52 +477,33 @@ class AuthController extends ApiController {
         message: userInsertResult.error!.message!,
       );
     }
-    if (userInsertResult.value != null) {
+    user = userInsertResult.value;
+    if (user != null) {
       final password = Password()
-        ..userId = userInsertResult.value!.id
+        ..userId = user.id
         ..passwordHash = passwordHash;
 
-      final passwordInsertResult = await password.tryInsertOne<User>(
+      final passwordInsertResult = await password.tryInsertOne<Password>(
         conflictResolution: ConflictResolution.error,
         createTableIfNotExists: true,
       );
-      print(passwordInsertResult.value);
+      if (passwordInsertResult.isError) {
+        /// if a password for a new user was not created
+        /// remove the newly created user as well
+        await ((User).delete().where([
+          ORMWhereEqual(
+            key: 'id',
+            value: user.id,
+          ),
+        ])).execute();
+        throw InternalServerException(
+          message: passwordInsertResult.error!.message!,
+        );
+      }
     }
-
-    // print(userInsertResult.value);
-    // return insertResult.value!;
-    // }
-
-    // await (User).createTable();
-
-    // final existingUser = await userStoreService.findUserByPhoneOrEmail(
-    //   email: basicSignupData.email,
-    //   phone: basicSignupData.phone,
-    // );
-    // if (existingUser != null) {
-    //   throw ConflictException(
-    //     message: 'User already exists',
-    //     code: '409001',
-    //   );
-    // }
-
-    // final passwordHash = passwordHashService.hash(
-    //   basicSignupData.password,
-    // );
-    // user = User()
-    //   ..firstName = basicSignupData.firstName
-    //   ..lastName = basicSignupData.lastName
-    //   ..email = basicSignupData.email
-    //   ..roles = [
-    //     Role.user,
-    //   ]
-    //   ..passwordHash = passwordHash;
-
-    // user = await userStoreService.insertOneAndReturnResult(user);
-
-    // if (user != null) {
-    //   return await _createTokenResponseForUser(user);
-    // }
+    if (user != null) {
+      return await _createTokenResponseForUser(user);
+    }
     throw InternalServerException(
       message: 'Could not create an account',
     );

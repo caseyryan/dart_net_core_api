@@ -1,15 +1,23 @@
+import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/utils/time_utils.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 import 'base_mongo_model.dart';
 
 /// This is used for counting failed attempts of login using a password
 class FailedPasswordInfo extends BaseModel {
-  int currentAttemptCount = 0;
+  @ORMIntColumn(
+    intType: ORMIntType.smallInt,
+    defaultValue: 0,
+  )
+  int? currentAttemptCount;
 
   /// the number of times a user got banned from
   /// password entering
-  int numFailedRounds = 0;
+  @ORMIntColumn(
+    intType: ORMIntType.smallInt,
+    defaultValue: 0,
+  )
+  int? numFailedRounds;
 
   String? get tryAgainErrorText {
     int minutes = canTryAgainInMinutes + 1;
@@ -31,6 +39,9 @@ class FailedPasswordInfo extends BaseModel {
     return minutes;
   }
 
-  ObjectId? userId;
+  @ORMUniqueColumn()
+  int? userId;
+
+  @ORMDateColumn(dateType: ORMDateType.timestamp)
   DateTime? unBlockAt;
 }

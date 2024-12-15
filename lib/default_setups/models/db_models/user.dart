@@ -19,11 +19,11 @@ class User extends BaseModel {
   List<Role>? roles;
 
   @NameValidator(canBeNull: true)
-  @ORMLimitColumn(limit: 60)
+  @ORMStringColumn(limit: 60)
   String? firstName;
 
   @NameValidator(canBeNull: true)
-  @ORMLimitColumn(limit: 60)
+  @ORMStringColumn(limit: 60)
   String? lastName;
 
   String getFullName() {
@@ -34,24 +34,25 @@ class User extends BaseModel {
     canBeNull: true,
   )
   @ORMUniqueColumn()
-  @ORMLimitColumn(limit: 60)
+  @ORMStringColumn(limit: 60)
   String? email;
 
   @PhoneValidator(
     canBeNull: true,
   )
   @ORMUniqueColumn()
-  @ORMLimitColumn(limit: 20)
+  @ORMStringColumn(limit: 20)
   String? phone;
 
 
   @JsonTrimString()
   @NameValidator(canBeNull: true)
-  @ORMLimitColumn(limit: 60)
+  @ORMStringColumn(limit: 60)
   String? middleName;
 
   @JsonTrimString()
   @NameValidator(canBeNull: true)
+  @ORMStringColumn(limit: 60)
   String? nickName;
 
   @JsonDateConverter(

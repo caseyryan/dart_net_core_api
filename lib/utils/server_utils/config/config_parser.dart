@@ -98,7 +98,7 @@ class ConfigParser {
           username: postgresqlConfig.user!,
           password: postgresqlConfig.password!,
           host: postgresqlConfig.host!,
-          family: DatabaseFamily.postgres,
+          family: ORMDatabaseFamily.postgres,
           isSecureConnection: postgresqlConfig.isSecureConnection == true,
           printQueries: postgresqlConfig.printQueries == true,
           port: postgresqlConfig.port!,
