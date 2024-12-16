@@ -32,7 +32,7 @@ void main(List<String> arguments) {
         /// for all controllers that have documentation annotations on every launch
         ApiDocumentationService(),
         /// This service is used by the AuthController to block
-        /// password login attempts if a passowrd was incorrect for a few times
+        /// password login attempts if a password was incorrect for a few times
         FailedPasswordBlockingService(),
         /// This service helps generate password hashes in a
         /// built-it AuthController
