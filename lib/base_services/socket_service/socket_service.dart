@@ -5,7 +5,6 @@ import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
-import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
 import 'package:dart_net_core_api/config.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/socket_io/lib/socket_io.dart' as socket_io;

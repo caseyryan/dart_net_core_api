@@ -101,6 +101,8 @@ class SimpleTypeReflector {
   List<ControllerAnnotation>? _controllerAnnotations;
   List<APIDocumentationAnnotation>? _apiDocumentationAnnotations;
   APIControllerDocumentationContainer? _documentationContainer;
+  APIControllerDocumentationContainer? get documentationContainer =>
+      _documentationContainer;
   // late final bool isApiController;
   // late final bool isSocketController;
   late final bool isPrimitive;
@@ -148,7 +150,7 @@ class SimpleTypeReflector {
         _annotations.whereType<APIDocumentationAnnotation>().toList();
     final List<EndpointDocumentationContainer> methodDocumentations = methods
         .map(
-          (e) => e.documentationContainer,
+          (e) => e.endpointDocumentationContainer,
         )
         .nonNulls
         .toList();
@@ -160,10 +162,18 @@ class SimpleTypeReflector {
     );
     _documentationContainer = APIControllerDocumentationContainer(
       endpoints: methodDocumentations,
-      controllerAnnotation: controllerDocumentationAnnotation,
+      controllerDocumentationAnnotation: controllerDocumentationAnnotation,
+      controllerAnnotations: _controllerAnnotations ?? [],
+      controllerTypeName: fromType.toString(),
     );
-    if (_documentationContainer!.hasEndpoints) {
-      print(_documentationContainer);
+    if (!_documentationContainer!.hasEndpoints) {
+      logGlobal(
+        level: Level.WARNING,
+        message:
+            '${_documentationContainer!.controllerTypeName} has no documented endpoints. If you want it to be present in the documentation listing, add `APIEndpointDocumentation` annotations to its endpoint processing methods',
+      );
+      _documentationContainer = null;
+      // print(_documentationContainer);
     }
 
     // _apiDocumentationAnnotations!.addAll(methodDocumentations);
@@ -246,7 +256,7 @@ class Method {
   APIDocumentationAnnotation? _apiDocumentationAnnotation;
   EndpointAnnotation? _endpointAnnotation;
   EndpointDocumentationContainer? _documentationContainer;
-  EndpointDocumentationContainer? get documentationContainer {
+  EndpointDocumentationContainer? get endpointDocumentationContainer {
     return _documentationContainer;
   }
 
@@ -316,6 +326,7 @@ class Method {
 
     name = methodMirror.simpleName.toName();
     final controllerAnnotation = _annotations.whereType<ControllerAnnotation>();
+
     if (controllerAnnotation.isNotEmpty) {
       throw 'These annotation(s): $controllerAnnotation can only be used on a class. But is/are used on "$name" instance method';
     }

@@ -81,6 +81,9 @@ Future _runServerInIsolate(
       _Server(
         settings,
         instanceNumber,
+
+        /// let only the first isolate generate the documentation
+        generateDocumentation: instanceNumber == 0,
       );
     },
     settings,
@@ -105,11 +108,13 @@ class Server {
 class _Server extends IServer {
   HttpServer? _httpServer;
   HttpServer? _httpsServer;
+  final bool generateDocumentation;
 
   _Server(
     super.settings,
-    int instanceNumber,
-  ) {
+    int instanceNumber, {
+    this.generateDocumentation = false,
+  }) {
     assert(
       settings.useHttp == true || settings.useHttps == true,
       'You must use at least one protocol',
@@ -199,9 +204,12 @@ class _Server extends IServer {
     Service? service,
     List<Type>? controllerTypes,
   ) {
-    if (controllerTypes?.isNotEmpty == true) {
+    if (controllerTypes?.isNotEmpty == true && generateDocumentation) {
       if (service is ApiDocumentationService) {
-        service.setControllerTypes(controllerTypes!);
+        service.setControllerTypes(
+          controllerTypes!,
+          settings.baseApiPath,
+        );
       }
     }
 

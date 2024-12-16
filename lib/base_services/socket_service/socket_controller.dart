@@ -1,7 +1,6 @@
 // ignore_for_file: unused_element, unused_field
 
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
-import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/server.dart';
 
 import '../../utils/mirror_utils/simple_type_reflector.dart';

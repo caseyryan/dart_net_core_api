@@ -1,19 +1,38 @@
 part of 'documentation_annotations.dart';
 
 class APIControllerDocumentationContainer {
-
   APIControllerDocumentationContainer({
     required this.endpoints,
-    required this.controllerAnnotation,
+    required this.controllerDocumentationAnnotation,
+    required this.controllerAnnotations,
+    required this.controllerTypeName,
   });
-  final APIControllerDocumentation controllerAnnotation;
+  final APIControllerDocumentation controllerDocumentationAnnotation;
   final List<EndpointDocumentationContainer> endpoints;
+  final List<ControllerAnnotation> controllerAnnotations;
+  final String controllerTypeName;
 
-  String toPresentation() {
+  Map toPresentation(
+    String serverBaseApiPath,
+  ) {
+    final baseApiAnnotation =
+        controllerAnnotations.whereType<BaseApiPath>().firstOrNull;
+    final basePath = baseApiAnnotation?.basePath ?? serverBaseApiPath;
 
-    return '';
+    List<_EndpointDocumentationPresentation> endpointsPresentations = [];
+    for (var endpoint in endpoints) {
+      endpointsPresentations.add(
+        endpoint._toPresentation(basePath),
+      );
+    }
+    final controllerPresentation = _ControllerDocumentationPresentation()
+      ..endpoints = endpointsPresentations
+      ..controllerName = controllerTypeName;
+
+    return controllerPresentation.toJson(
+      tryUseNativeSerializerMethodsIfAny: false,
+    ) as Map;
   }
-
 
   bool get hasEndpoints {
     return endpoints.isNotEmpty;
@@ -24,7 +43,6 @@ class APIControllerDocumentationContainer {
 /// An instance of this calss is used to describe
 /// an endpoint in the documentation
 class EndpointDocumentationContainer {
-
   EndpointDocumentationContainer({
     required this.endpointAnnotation,
     required this.apiDocumentationAnnotation,
@@ -37,8 +55,13 @@ class EndpointDocumentationContainer {
   final List<MethodParameter> positionalParams;
   final List<MethodParameter> namedParams;
 
-  String toPresentation() {
-    return '';
-  }
+  _EndpointDocumentationPresentation _toPresentation(
+    String basePath,
+  ) {
+    final presentation = _EndpointDocumentationPresentation()
+    ..method = endpointAnnotation.method
+    ..path = '$basePath${endpointAnnotation.path}';
 
+    return presentation;
+  }
 }
