@@ -1,7 +1,8 @@
+import 'dart:io';
+
 import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
-import 'package:dart_net_core_api/base_services/failed_password_blocking_service/failer_password_blocking_service.dart';
-import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
+import 'package:dart_net_core_api/annotations/documentation_annotations/documentation_annotations.dart';
 import 'package:dart_net_core_api/default_setups/models/db_models/password.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
@@ -23,6 +24,9 @@ enum LogoutScope {
   other,
 }
 
+@APIControllerDocumentation(
+  description: 'Generates JWT tokens and refresh tokens, creates new user accounts',
+)
 class AuthController extends ApiController {
   AuthController(
     this.jwtService,
@@ -141,7 +145,29 @@ class AuthController extends ApiController {
     }
     return null;
   }
+  */
 
+  @APIEndpointDocumentation(responseModels: [
+    APIResponseExample(
+      statusCode: HttpStatus.ok,
+      response: TokenResponse,
+    ),
+    APIResponseExample(
+      statusCode: HttpStatus.badRequest,
+      response: BadRequestException,
+    ),
+    APIResponseExample(
+      statusCode: HttpStatus.unauthorized,
+      response: GenericErrorResponse,
+    ),
+  ], description: '''
+    Used to retrieve a new bearer JWT token
+    if the refresh token is used and has not expired yet.
+    Basically, it's almost the same as a fresh login but instead of a login
+    and a password it uses a valid JWT bearer token
+    
+    Has no effect if [jwtConfig.useRefreshToken] is false in the config
+    ''')
   @HttpPost('/auth/refresh-token')
   Future<TokenResponse?> refreshToken() async {
     if (!jwtConfig.useRefreshToken) {
@@ -152,14 +178,16 @@ class AuthController extends ApiController {
     /// even the expired bearer can be used to refresh it
     /// Only the refresh token must be valid
     final currentBearer = httpContext.authorizationHeader;
-    if (currentBearer == null) {
+    if (currentBearer == null ||
+        currentBearer.isEmpty ||
+        currentBearer == 'null') {
       throw BadRequestException(
-        message: 'Bearer token is required',
+        message: 'Bearer token is not provided',
         code: '400009',
       );
     }
     final bearerData = jwtService.decodeAndVerify(
-      token: httpContext.authorizationHeader!,
+      token: currentBearer,
       hmacKey: jwtConfig.hmacKey,
       payloadType: JwtPayload,
       checkExpiresIn: false,
@@ -174,9 +202,8 @@ class AuthController extends ApiController {
     final jwtPayload = bearerData!['payload'] as JwtPayload;
     final userId = jwtPayload.id;
 
-    final existingRefreshToken = await refreshTokenService.findByUserId(
-      userId: userId,
-    );
+    final result = await (RefreshToken()..userId = userId).tryFind();
+    final existingRefreshToken = result.value;
 
     if (existingRefreshToken == null ||
         existingRefreshToken.isExpired ||
@@ -189,17 +216,14 @@ class AuthController extends ApiController {
       );
     }
 
-    final user = await userStoreService.findUserById(
-      userId,
-      throwErrorIfNotFound: true,
-    );
+    final user = await (User()..id = userId).findOne<User>();
 
     return _createTokenResponseForUser(
-      user!,
+      user,
       forceNewRefreshToken: false,
     );
   }
- */
+
   @HttpPost('/auth/login/basic')
   Future<TokenResponse?> login(
     @FromBody() BasicLoginData basicLoginData,
@@ -213,6 +237,10 @@ class AuthController extends ApiController {
     if (result.isError == false && result.value == null) {
       throw NotFoundException(
         message: 'User not found',
+      );
+    } else if (result.isError) {
+      throw InternalServerException(
+        message: result.error!.message!,
       );
     }
     user = result.value!;

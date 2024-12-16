@@ -1,10 +1,18 @@
+import 'dart:io';
+
+import 'package:dart_net_core_api/exports.dart';
+import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
+
+part '_documentation_data_container.dart';
+
+
 /// IMPORTANT!: This is a custom simple documentation format.
 /// It's here to simplify working with the API.
 /// The package doesn't support OpenAPI format yet, and it's NOT planned
 /// to be supported it in the near future.
 
-abstract class DocumentationAnnotation {
-  const DocumentationAnnotation({
+abstract class APIDocumentationAnnotation {
+  const APIDocumentationAnnotation({
     this.description,
   });
 
@@ -13,49 +21,47 @@ abstract class DocumentationAnnotation {
   final String? description;
 }
 
-class ControllerDocumentation extends DocumentationAnnotation {
-  const ControllerDocumentation({
+class APIControllerDocumentation extends APIDocumentationAnnotation {
+  const APIControllerDocumentation({
     super.description,
   });
 }
 
-class EndpointDocumentation extends DocumentationAnnotation {
-  const EndpointDocumentation({
-    required this.examples,
+class APIEndpointDocumentation extends APIDocumentationAnnotation {
+  const APIEndpointDocumentation({
+    required this.responseModels,
     super.description,
-  });
+  });  
+
+  String toPresentation() {
+    /// This condition is here because this is the general error response for any
+    /// exception thrown in the scope of the running server instance and even
+    /// if you don't throw it explicitly in one of your endpoint processing methods
+    /// it will still be possible
+    if (responseModels
+        .where((e) => e.statusCode == HttpStatus.internalServerError)
+        .isEmpty) {
+      responseModels.add(
+        APIResponseExample(
+          statusCode: HttpStatus.internalServerError,
+          response: GenericErrorResponse,
+        ),
+      );
+    }
+    return '';
+  }
 
   /// provide a list of objects or types as examples for each
   /// status code
   /// If you want to provide default value in your documentation for
-  /// a particular field you can add [FieldDocumentation] annotation to it
+  /// a particular field you can add [APIFieldDocumentation] annotation to it
   /// This will be displayed in the model description section
-  /*
-  @Documentation(
-    examples: [
-      OpenApiResponseExample(
-        statusCode: 200,
-        response: Car
-      ),
-      OpenApiResponseExample(
-        statusCode: 404,
-        response NotFoundException,
-      ),
-    ],
-  )
-  */
-  /// In this case the car object will be serialized with all the examples
-  /// But you may also provide a type instead, in this case the default
-  /// values will be generated.
-  /// IMPORTANT! If you have multiple places where the same type is used
-  /// but in some case you provide an instance and in other case you provide
-  /// a type, the INSTANCE will be used in all places where it's used by default
-  /// because it provides a more accurate representation of the data
-  final List<OpenApiResponseExample> examples;
+  /// 
+  final List<APIResponseExample> responseModels;
 }
 
-class FieldDocumentation extends DocumentationAnnotation {
-  const FieldDocumentation({
+class APIFieldDocumentation extends APIDocumentationAnnotation {
+  const APIFieldDocumentation({
     super.description,
     this.defaultValueExample,
   });
@@ -64,11 +70,11 @@ class FieldDocumentation extends DocumentationAnnotation {
 
 /// This is NOT an annotation and
 /// will not be processed if you use it as one
-class OpenApiResponseExample {
+class APIResponseExample {
   final int statusCode;
   final String contentType;
   final Object? response;
-  const OpenApiResponseExample({
+  const APIResponseExample({
     required this.statusCode,
     this.contentType = 'application/json',
     this.response,

@@ -7,7 +7,8 @@ import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
-import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
+import 'package:dart_core_orm/dart_core_orm.dart';
+// import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/configs/mongo_config.dart';
 import 'package:dart_net_core_api/configs/mysql_config.dart';
 import 'package:dart_net_core_api/configs/postgresql_config.dart';
@@ -15,17 +16,17 @@ import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/extensions/exports.dart';
 import 'package:dart_net_core_api/utils/extensions/https_request_extensions.dart';
-import 'package:dart_net_core_api/utils/json_utils/json_serializer.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 import 'package:dart_net_core_api/utils/server_utils/any_logger.dart';
 import 'package:dart_net_core_api/utils/server_utils/config/config_parser.dart';
-import 'package:logging/logging.dart';
-import 'package:uuid/uuid.dart';
 import 'package:reflect_buddy/reflect_buddy.dart' as rb;
+import 'package:uuid/uuid.dart';
 
-import 'config.dart';
+import 'exports.dart';
 import 'jwt/jwt_service.dart';
+
+export './base_services/exports.dart';
 
 part 'api_controller.dart';
 part 'base_services/service.dart';
@@ -148,7 +149,10 @@ class _Server extends IServer {
     /// We need to pass configs to singleton services right here
     /// to make them ready
     for (Service service in _singletonServices.values) {
-      _trySetServiceDependencies(service);
+      _tryRegisterServiceDependencies(
+        service,
+        settings.apiControllers,
+      );
     }
     if (settings.jsonSerializer?.keyNameConverter != null) {
       /// set converter to use in reflect buddy
@@ -185,12 +189,22 @@ class _Server extends IServer {
 
   void addSingletonService(covariant Service service) {
     _singletonServices[service.runtimeType] = service;
-    _trySetServiceDependencies(service);
+    _tryRegisterServiceDependencies(
+      service,
+      settings.apiControllers,
+    );
   }
 
-  void _trySetServiceDependencies(
+  void _tryRegisterServiceDependencies(
     Service? service,
+    List<Type>? controllerTypes,
   ) {
+    if (controllerTypes?.isNotEmpty == true) {
+      if (service is ApiDocumentationService) {
+        service.setControllerTypes(controllerTypes!);
+      }
+    }
+
     /// this is a special type of a built-in service
     /// which can nest socket controllers. That's why
     /// we need to instantiate them here
@@ -239,8 +253,9 @@ class _Server extends IServer {
       service = _singletonServices[type];
       service?.isSingleton = true;
     }
-    _trySetServiceDependencies(
+    _tryRegisterServiceDependencies(
       service,
+      null,
     );
     return service as T?;
   }
@@ -341,8 +356,15 @@ class _Server extends IServer {
     required HttpRequest request,
     required String traceId,
     required ApiException exception,
+    StackTrace? stackTrace,
   }) async {
     Object? result;
+    Logger.root.log(
+      Level.ALL,
+      exception.message,
+      traceId,
+      stackTrace,
+    );
     ExceptionHandler? handler;
     if (exception.statusCode == 500) {
       handler = settings.custom500Handler ?? _defaultErrorHandler;
@@ -401,7 +423,7 @@ class _Server extends IServer {
     Object? exception,
   }) {
     // if (rb.globalDefaultKeyNameConverter is rb.CamelToSnake) {}
-    final errorWrapper = ErrorWrapper();
+    final errorWrapper = GenericErrorResponse();
     errorWrapper.error = InnerError();
     errorWrapper.error!.message = message;
     errorWrapper.error!.traceId = traceId;
@@ -562,13 +584,20 @@ class _Server extends IServer {
         } else {
           request.response.statusCode = HttpStatus.noContent;
         }
-      } on ApiException catch (e) {
-        e.traceId ??= traceId;
+      } on OrmError catch (e) {
         result = await _onRequestError(
           request: request,
           traceId: traceId,
-          exception: e,
+          exception: ApiException(
+            message: e.message ?? 'Unknown error',
+            traceId: traceId,
+            statusCode: HttpStatus.internalServerError,
+          ),
         );
+      } on ApiException catch (e, s) {
+        e.traceId ??= traceId;
+        result = await _onRequestError(
+            request: request, traceId: traceId, exception: e, stackTrace: s);
       } on String catch (e) {
         result = await _onRequestError(
           request: request,
@@ -589,7 +618,7 @@ class _Server extends IServer {
       //     ),
       //   );
       // }
-      catch (e) {
+      catch (e, s) {
         result = await _onRequestError(
           request: request,
           traceId: traceId,
@@ -597,11 +626,13 @@ class _Server extends IServer {
             message: e.toString(),
             traceId: traceId,
           ),
+          stackTrace: s,
         );
       } finally {
         try {
           endpointMapper.controllerTypeReflection.instance?.dispose();
         } catch (e, s) {
+          /// Some extraordinary case. Should never happen in real life
           logGlobal(
             level: Level.SEVERE,
             traceId: traceId,
@@ -629,7 +660,7 @@ class _Server extends IServer {
   }
 }
 
-class ErrorWrapper {
+class GenericErrorResponse {
   InnerError? error;
 }
 

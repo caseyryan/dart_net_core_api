@@ -4,9 +4,8 @@ import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
+import 'package:dart_net_core_api/annotations/documentation_annotations/documentation_annotations.dart';
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
-import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
-import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
 import 'package:dart_net_core_api/config.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/server.dart';
@@ -100,6 +99,8 @@ class SimpleTypeReflector {
   late List<Method> constructors;
   late List<Method> methods;
   List<ControllerAnnotation>? _controllerAnnotations;
+  List<APIDocumentationAnnotation>? _apiDocumentationAnnotations;
+  APIControllerDocumentationContainer? _documentationContainer;
   // late final bool isApiController;
   // late final bool isSocketController;
   late final bool isPrimitive;
@@ -143,6 +144,29 @@ class SimpleTypeReflector {
         .whereType<ControllerAnnotation>()
         .cast<ControllerAnnotation>()
         .toList();
+    _apiDocumentationAnnotations =
+        _annotations.whereType<APIDocumentationAnnotation>().toList();
+    final List<EndpointDocumentationContainer> methodDocumentations = methods
+        .map(
+          (e) => e.documentationContainer,
+        )
+        .nonNulls
+        .toList();
+    var controllerDocumentationAnnotation = _apiDocumentationAnnotations
+        ?.whereType<APIControllerDocumentation>()
+        .firstOrNull;
+    controllerDocumentationAnnotation ??= APIControllerDocumentation(
+      description: 'No description provided for `$fromType`',
+    );
+    _documentationContainer = APIControllerDocumentationContainer(
+      endpoints: methodDocumentations,
+      controllerAnnotation: controllerDocumentationAnnotation,
+    );
+    if (_documentationContainer!.hasEndpoints) {
+      print(_documentationContainer);
+    }
+
+    // _apiDocumentationAnnotations!.addAll(methodDocumentations);
   }
 
   int get numConstructors {
@@ -219,6 +243,12 @@ class Method {
   late final List<MethodParameter> parameters;
   late List<dynamic> _annotations;
   late final String name;
+  APIDocumentationAnnotation? _apiDocumentationAnnotation;
+  EndpointAnnotation? _endpointAnnotation;
+  EndpointDocumentationContainer? _documentationContainer;
+  EndpointDocumentationContainer? get documentationContainer {
+    return _documentationContainer;
+  }
 
   late List<MethodParameter> _positionalParams;
   late List<MethodParameter> _namedParams;
@@ -278,6 +308,12 @@ class Method {
     required this.methodMirror,
   }) {
     _annotations = methodMirror.metadata.map((e) => e.reflectee).toList();
+    _apiDocumentationAnnotation =
+        _annotations.whereType<APIDocumentationAnnotation>().lastOrNull;
+
+    _endpointAnnotation =
+        _annotations.whereType<EndpointAnnotation>().lastOrNull;
+
     name = methodMirror.simpleName.toName();
     final controllerAnnotation = _annotations.whereType<ControllerAnnotation>();
     if (controllerAnnotation.isNotEmpty) {
@@ -291,6 +327,18 @@ class Method {
         .toList();
     _namedParams = parameters.where((e) => e.isNamed).toList();
     _positionalParams = parameters.where((e) => e.isPositional).toList();
+
+    if (_endpointAnnotation != null) {
+      if (_apiDocumentationAnnotation is APIEndpointDocumentation) {
+        _documentationContainer = EndpointDocumentationContainer(
+          endpointAnnotation: _endpointAnnotation!,
+          apiDocumentationAnnotation:
+              _apiDocumentationAnnotation! as APIEndpointDocumentation,
+          positionalParams: _positionalParams,
+          namedParams: _namedParams,
+        );
+      }
+    }
   }
 
   bool get hasEndpointAnnotations {

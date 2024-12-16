@@ -54,14 +54,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.12.0"
-  basic_utils:
-    dependency: transitive
-    description:
-      name: basic_utils
-      sha256: da518c9316eb83e13c0016592c226396c328a038d4cdbed9b7b2783a79620bfb
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.9.4"
   boolean_selector:
     dependency: transitive
     description:
@@ -70,14 +62,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  bson:
-    dependency: transitive
-    description:
-      name: bson
-      sha256: e22c0d0f663b377c85a067722e59ccb09a18ae3504fcaf9d37a19fec30497e50
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4"
   buffer:
     dependency: transitive
     description:
@@ -277,14 +261,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.1"
-  json_annotation:
-    dependency: transitive
-    description:
-      name: json_annotation
-      sha256: "1ce844379ca14835a50d2f019a3099f419082cfdd231cd86a142af94dd5c6bb1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.9.0"
   lints:
     dependency: "direct dev"
     description:
@@ -333,22 +309,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
-  mongo_dart:
-    dependency: "direct main"
-    description:
-      name: mongo_dart
-      sha256: edd2fe33858b49732cd7830ab2bd30a39a6cffb16022f1e03dd25dfc16b705d0
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.4+1"
-  mongo_dart_query:
-    dependency: transitive
-    description:
-      name: mongo_dart_query
-      sha256: "94b15fc202ecd9b48cff90685c05bd84bf572b339b4c4ee7c891eb2620cefb0f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   node_preamble:
     dependency: transitive
     description:
@@ -405,14 +365,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.4"
-  power_extensions:
-    dependency: transitive
-    description:
-      name: power_extensions
-      sha256: ad0e8b2420090d996fe8b7fd32cdf02b9b924b6d4fc0fb0b559ff6aa5e24d5b0
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.3"
   pub_semver:
     dependency: transitive
     description:
@@ -421,14 +373,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
-  rational:
-    dependency: transitive
-    description:
-      name: rational
-      sha256: "49ba0eb1a7b0d39358998cbbd4d4a384382a83ac02f433aefc567853c84ed975"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.1"
   reflect_buddy:
     dependency: "direct main"
     description:
@@ -645,14 +589,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "14.3.1"
-  vy_string_utils:
-    dependency: transitive
-    description:
-      name: vy_string_utils
-      sha256: "03f4f2ebba283b32623459fa9c47d5c70e085253c7891f5ef7d4fd539c41c078"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.6"
   watcher:
     dependency: transitive
     description:

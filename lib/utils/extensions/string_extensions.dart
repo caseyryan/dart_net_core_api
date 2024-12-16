@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 
 final RegExp _idRegExp = RegExp(r'^[a-z0-9]{24}$');
@@ -50,9 +49,9 @@ extension StringExtensions on String {
   /// Specially for MongoDB. Converts a string 
   /// to [ObjectId]. It will work if the string is 
   /// in a correct format
-  ObjectId toObjectId() {
-    return ObjectId.fromHexString(this);
-  }
+  // ObjectId toObjectId() {
+  //   return ObjectId.fromHexString(this);
+  // }
 
   /// just removes unnecessary slashes from endpoint
   /// declaration. So you may write /api/v1/ or even

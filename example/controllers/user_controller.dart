@@ -3,16 +3,14 @@ import 'package:dart_net_core_api/annotations/documentation_annotations/document
 import 'package:dart_net_core_api/default_setups/models/db_models/user.dart';
 import 'package:dart_net_core_api/server.dart';
 
-@ControllerDocumentation(
-  description: 'Works with users',
-)
+
 @BaseApiPath('/api/v1/users')
 class UserController extends ApiController {
   UserController();
 
-  @EndpointDocumentation(
-    examples: [
-      OpenApiResponseExample(
+  @APIEndpointDocumentation(
+    responseModels: [
+      APIResponseExample(
         statusCode: 200,
         response: User
       )

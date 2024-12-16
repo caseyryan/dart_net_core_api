@@ -1,5 +1,3 @@
-import 'package:dart_net_core_api/base_services/failed_password_blocking_service/failer_password_blocking_service.dart';
-import 'package:dart_net_core_api/base_services/password_hash_service/password_hash_service.dart';
 import 'package:dart_net_core_api/default_setups/controllers/admin_controller.dart';
 import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
 import 'package:dart_net_core_api/default_setups/controllers/health_controller.dart';
@@ -30,6 +28,11 @@ void main(List<String> arguments) {
         /// If you don't need it
         /// you may implement your own authorization service
         JwtService(),
+        /// If this service is added, the server will generate documentation
+        /// for all controllers that have documentation annotations on every launch
+        ApiDocumentationService(),
+        /// This service is used by the AuthController to block
+        /// password login attempts if a passowrd was incorrect for a few times
         FailedPasswordBlockingService(),
         /// This service helps generate password hashes in a
         /// built-it AuthController

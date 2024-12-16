@@ -9,7 +9,7 @@ environment:
 dependencies:
   path: ^1.8.0
   yaml: ^3.1.2
-  mongo_dart: ^0.7.4+1
+  # mongo_dart: ^0.7.4+1
   reflect_buddy: ^1.5.9
   dart_core_orm:
     path: ./dart_core_orm
