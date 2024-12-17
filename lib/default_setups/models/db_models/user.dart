@@ -4,7 +4,7 @@ import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
-import 'base_mongo_model.dart';
+import 'base_model.dart';
 
 /// Notice that there are some JSON annotations are
 /// used here. None of them is required but they help you
@@ -42,6 +42,9 @@ class User extends BaseModel {
   )
   @ORMUniqueColumn()
   @ORMStringColumn(limit: 20)
+  @JsonPhoneConverter(
+    type: PhoneStringType.formatted,
+  )
   String? phone;
 
 

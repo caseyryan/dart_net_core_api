@@ -119,6 +119,15 @@ class _Server extends IServer {
       settings.useHttp == true || settings.useHttps == true,
       'You must use at least one protocol',
     );
+    
+    /// it's important to set the keyNameConverter as soon as possible
+    /// so that all services already had this setting available. 
+    /// Including the service for documentation generation
+    if (settings.jsonSerializer?.keyNameConverter != null) {
+      /// set converter to use in reflect buddy
+      rb.customGlobalKeyNameConverter =
+          settings.jsonSerializer!.keyNameConverter;
+    }
 
     if (settings.singletonServices?.isNotEmpty == true) {
       for (var s in settings.singletonServices!) {
@@ -159,11 +168,7 @@ class _Server extends IServer {
         settings.apiControllers,
       );
     }
-    if (settings.jsonSerializer?.keyNameConverter != null) {
-      /// set converter to use in reflect buddy
-      rb.customGlobalKeyNameConverter =
-          settings.jsonSerializer!.keyNameConverter;
-    }
+    
 
     _bindServer(
       useHttp: settings.useHttp,

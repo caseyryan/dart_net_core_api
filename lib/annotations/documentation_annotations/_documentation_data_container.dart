@@ -12,25 +12,75 @@ class APIControllerDocumentationContainer {
   final List<ControllerAnnotation> controllerAnnotations;
   final String controllerTypeName;
 
-  Map toPresentation(
+  /// [defaultValueSetter] will be called before [reflect_buddy] [toJson] method
+  /// tries to set a value to a field. In case of documentation generation
+  /// the value is always null because [APIDocumentationAnnotation] cannot accept
+  /// any non constant values. We provide a response type and this method
+  /// converts it to a json map filling all fields with some default values
+  Map toApiDocumentation(
     String serverBaseApiPath,
+    OnBeforeValueSetting? defaultValueSetter,
   ) {
-    final baseApiAnnotation =
-        controllerAnnotations.whereType<BaseApiPath>().firstOrNull;
+    final baseApiAnnotation = controllerAnnotations.whereType<BaseApiPath>().firstOrNull;
     final basePath = baseApiAnnotation?.basePath ?? serverBaseApiPath;
+
+    // controllerDocumentationAnnotation
 
     List<_EndpointDocumentationPresentation> endpointsPresentations = [];
     for (var endpoint in endpoints) {
       endpointsPresentations.add(
-        endpoint._toPresentation(basePath),
+        endpoint._toEndpointPresentation(basePath),
       );
     }
     final controllerPresentation = _ControllerDocumentationPresentation()
       ..endpoints = endpointsPresentations
       ..controllerName = controllerTypeName;
-
+    // TODO: выяснить почему игнорируется настройка keyNameConverter
     return controllerPresentation.toJson(
       tryUseNativeSerializerMethodsIfAny: false,
+      includeNullValues: true,
+      keyNameConverter: globalDefaultKeyNameConverter,
+      onBeforeValueSetting: (value, dartType, keyName) {
+        if (value == null) {
+          if (dartType == DateTime) {
+            return generateRandomDate();
+          } else if (dartType == int) {
+            return generateRandomInt(0, 999);
+          } else if (dartType == double || dartType == num) {
+            return generateRandomDouble(0.0, 1000.0);
+          } else if (dartType == String) {
+            final lowerName = keyName.toLowerCase();
+            if (lowerName.contains('name')) {
+              if (lowerName.contains('first')) {
+                return generateRandomFirstName();
+              } else if (lowerName.contains('last')) {
+                return generateRandomLastName();
+              } else if (lowerName.contains('middle') || lowerName.contains('second')) {
+                return generateRandomFirstName();
+              }
+              return generateRandomFirstName();
+            }
+            if (lowerName.contains('email')) {
+              return generateRandomEmail();
+            }
+            if (lowerName.contains('phone')) {
+              return generateRandomPhone();
+            }
+            return 'string';
+          } else if (dartType == bool) {
+            return false;
+          }
+
+          if (value == null && !dartType.isPrimitive) {
+            return dartType.newTypedInstance();
+          }
+        } else {
+          if (value is DateTime) {
+            return generateRandomDate();
+          }
+        }
+        return value;
+      },
     ) as Map;
   }
 
@@ -39,9 +89,11 @@ class APIControllerDocumentationContainer {
   }
 }
 
-/// accumelates all data to describe an endpoint
-/// An instance of this calss is used to describe
+/// accumulates all data to describe an endpoint
+/// An instance of this class is used to describe
 /// an endpoint in the documentation
+/// This is required because Annotation must be const and
+/// cannot contain any fields that are mutable
 class EndpointDocumentationContainer {
   EndpointDocumentationContainer({
     required this.endpointAnnotation,
@@ -55,12 +107,26 @@ class EndpointDocumentationContainer {
   final List<MethodParameter> positionalParams;
   final List<MethodParameter> namedParams;
 
-  _EndpointDocumentationPresentation _toPresentation(
+  _EndpointDocumentationPresentation _toEndpointPresentation(
     String basePath,
   ) {
+    final responseModels = [...apiDocumentationAnnotation.responseModels];
+
+    /// add the default error annotation because
+    /// it must be present for
+    if (responseModels.where((e) => e.statusCode == HttpStatus.internalServerError).isEmpty) {
+      responseModels.add(
+        APIResponseExample(
+          statusCode: HttpStatus.internalServerError,
+          response: GenericErrorResponse,
+        ),
+      );
+    }
+
     final presentation = _EndpointDocumentationPresentation()
-    ..method = endpointAnnotation.method
-    ..path = '$basePath${endpointAnnotation.path}';
+      ..method = endpointAnnotation.method
+      ..responseModels = responseModels
+      ..path = '$basePath${endpointAnnotation.path}';
 
     return presentation;
   }

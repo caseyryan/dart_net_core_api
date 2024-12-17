@@ -10,5 +10,6 @@ class _ControllerDocumentationPresentation {
 class _EndpointDocumentationPresentation {
   String? method;
   String? path;
+  List<APIResponseExample>? responseModels;
 
 }

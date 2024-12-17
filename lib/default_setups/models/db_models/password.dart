@@ -1,6 +1,6 @@
 import 'package:dart_core_orm/dart_core_orm.dart';
 
-import 'base_mongo_model.dart';
+import 'base_model.dart';
 
 class Password extends BaseModel {
 

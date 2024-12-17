@@ -1,7 +1,7 @@
 import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/utils/time_utils.dart';
 
-import 'base_mongo_model.dart';
+import 'base_model.dart';
 
 class RefreshToken extends BaseModel {
   @ORMStringColumn(limit: 1024)

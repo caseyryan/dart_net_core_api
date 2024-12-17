@@ -13,6 +13,18 @@ class ApiDocumentationService extends Service {
   List<Type> _controllerTypes = [];
   String? _serverBaseApiPath;
 
+  Object? defaultValueSetter(
+    Object? value,
+    Type dartType,
+    String? fieldName,
+  ) {
+    if (dartType == String) {
+      return 'string';
+    }
+
+    return value;
+  }
+
   void setControllerTypes(
     List<Type> controllerTypes,
     String? serverBaseApiPath,
@@ -21,13 +33,15 @@ class ApiDocumentationService extends Service {
     _serverBaseApiPath = serverBaseApiPath;
   }
 
+  /// Actual documentation generation
   void _generateDocumentation() {
     for (Type controllerType in _controllerTypes) {
       final simpleTypeReflector = SimpleTypeReflector(controllerType);
       final docContainer = simpleTypeReflector.documentationContainer;
       if (docContainer != null) {
-        final map = docContainer.toPresentation(
+        final map = docContainer.toApiDocumentation(
           _serverBaseApiPath!,
+          defaultValueSetter,
         );
         print(map.toFormattedJson());
       }

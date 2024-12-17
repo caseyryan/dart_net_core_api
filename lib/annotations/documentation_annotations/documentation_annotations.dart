@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_net_core_api/exports.dart';
-import 'package:dart_net_core_api/utils/extensions/exports.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 
 part '_documentation_data_container.dart';
@@ -36,24 +34,6 @@ class APIEndpointDocumentation extends APIDocumentationAnnotation {
     super.description,
   });  
 
-  String toPresentation() {
-    /// This condition is here because this is the general error response for any
-    /// exception thrown in the scope of the running server instance and even
-    /// if you don't throw it explicitly in one of your endpoint processing methods
-    /// it will still be possible
-    if (responseModels
-        .where((e) => e.statusCode == HttpStatus.internalServerError)
-        .isEmpty) {
-      responseModels.add(
-        APIResponseExample(
-          statusCode: HttpStatus.internalServerError,
-          response: GenericErrorResponse,
-        ),
-      );
-    }
-    return '';
-  }
-
   /// provide a list of objects or types as examples for each
   /// status code
   /// If you want to provide default value in your documentation for
@@ -76,10 +56,11 @@ class APIFieldDocumentation extends APIDocumentationAnnotation {
 class APIResponseExample {
   final int statusCode;
   final String contentType;
-  final Object? response;
+  final Type? response;
   const APIResponseExample({
     required this.statusCode,
     this.contentType = 'application/json',
     this.response,
   });
+
 }
