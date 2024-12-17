@@ -54,4 +54,8 @@ abstract class Service {
   T? getConfig<T extends IConfig>() {
     return _configParser?.getConfig<T>();
   }
+
+  String get environment {
+    return _configParser?.environment ?? '';
+  }
 }

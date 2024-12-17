@@ -158,7 +158,11 @@ class SimpleTypeReflector {
         ?.whereType<APIControllerDocumentation>()
         .firstOrNull;
     controllerDocumentationAnnotation ??= APIControllerDocumentation(
-      description: 'No description provided for `$fromType`',
+      description: '',
+      group: ApiDocumentationGroup(
+        name: '',
+        id: '',
+      ),
     );
     _documentationContainer = APIControllerDocumentationContainer(
       endpoints: methodDocumentations,

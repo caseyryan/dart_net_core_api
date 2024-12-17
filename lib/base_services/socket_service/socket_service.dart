@@ -283,6 +283,9 @@ class SocketService<T extends SocketClient> extends Service {
   Future dispose() async {}
 }
 
+
+
+@SnakeToCamel()
 class SocketConfig implements IConfig {
   int? port;
 }

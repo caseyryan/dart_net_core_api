@@ -26,6 +26,10 @@ enum LogoutScope {
 
 @APIControllerDocumentation(
   description: 'Generates JWT tokens and refresh tokens, creates new user accounts',
+  group: ApiDocumentationGroup(
+    name: 'User Area',
+    id: 'user-area',
+  ),
 )
 class AuthController extends ApiController {
   AuthController(
@@ -178,9 +182,7 @@ class AuthController extends ApiController {
     /// even the expired bearer can be used to refresh it
     /// Only the refresh token must be valid
     final currentBearer = httpContext.authorizationHeader;
-    if (currentBearer == null ||
-        currentBearer.isEmpty ||
-        currentBearer == 'null') {
+    if (currentBearer == null || currentBearer.isEmpty || currentBearer == 'null') {
       throw BadRequestException(
         message: 'Bearer token is not provided',
         code: '400009',
@@ -188,7 +190,7 @@ class AuthController extends ApiController {
     }
     final bearerData = jwtService.decodeAndVerify(
       token: currentBearer,
-      hmacKey: jwtConfig.hmacKey,
+      hmacKey: jwtConfig.hmacKey!,
       payloadType: JwtPayload,
       checkExpiresIn: false,
       checkNotBefore: false,
@@ -254,8 +256,7 @@ class AuthController extends ApiController {
       /// this situation should never happen
       /// but this condition here is just in case
       throw InternalServerException(
-        message:
-            'Seems like there is some problem with your password. Try to restore it',
+        message: 'Seems like there is some problem with your password. Try to restore it',
       );
     }
 
@@ -315,9 +316,9 @@ class AuthController extends ApiController {
       refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
       refreshToken = jwtService.generateJsonWebToken(
         hmacKey: jwtConfig.refreshTokenHmacKey!,
-        issuer: jwtConfig.issuer,
+        issuer: jwtConfig.issuer!,
         exp: jwtService.getExpirationSecondsFromNow(
-          jwtConfig.refreshLifeSeconds ?? jwtConfig.bearerLifeSeconds * 10,
+          jwtConfig.refreshLifeSeconds ?? jwtConfig.bearerLifeSeconds! * 10,
         ),
         payload: JwtPayload(publicKey: refreshPublicKey),
       );
@@ -385,18 +386,16 @@ class AuthController extends ApiController {
     );
     bool createNewRefreshToken = false;
     if (jwtConfig.useRefreshToken) {
-      createNewRefreshToken = forceNewRefreshToken ??
-          refreshTokenResponse?.isRefreshTokenExpired == true;
+      createNewRefreshToken = forceNewRefreshToken ?? refreshTokenResponse?.isRefreshTokenExpired == true;
     }
     if (createNewRefreshToken) {
       /// Update the expired refresh token in a database
-      final refreshPublicKey =
-          passwordHashService.generatePublicKeyForRefresh();
+      final refreshPublicKey = passwordHashService.generatePublicKeyForRefresh();
       final refreshToken = jwtService.generateJsonWebToken(
         hmacKey: jwtConfig.refreshTokenHmacKey!,
-        issuer: jwtConfig.issuer,
+        issuer: jwtConfig.issuer!,
         exp: jwtService.getExpirationSecondsFromNow(
-          jwtConfig.refreshLifeSeconds ?? jwtConfig.bearerLifeSeconds * 10,
+          jwtConfig.refreshLifeSeconds ?? jwtConfig.bearerLifeSeconds! * 10,
         ),
         payload: JwtPayload(publicKey: refreshPublicKey),
       );
@@ -426,14 +425,14 @@ class AuthController extends ApiController {
 
     final token = TokenResponse(
       bearerToken: jwtService.generateJsonWebToken(
-        issuer: jwtConfig.issuer,
-        hmacKey: jwtConfig.hmacKey,
+        issuer: jwtConfig.issuer!,
+        hmacKey: jwtConfig.hmacKey!,
         payload: _toUserTokenPayload(
           user,
           refreshTokenResponse?.publicKey,
         ),
         exp: jwtService.getExpirationSecondsFromNow(
-          jwtConfig.bearerLifeSeconds,
+          jwtConfig.bearerLifeSeconds!,
         ),
       ),
       bearerExpiresAt: jwtConfig.calculateBearerExpirationDateTime(),

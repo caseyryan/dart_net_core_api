@@ -157,6 +157,7 @@ class _Server extends IServer {
     _configParser = ConfigParser(
       configPath: _argResults!['configPath'],
       configType: settings.configType,
+      environment: _environment,
       server: this,
     );
 
@@ -167,6 +168,12 @@ class _Server extends IServer {
         service,
         settings.apiControllers,
       );
+    }
+    /// the second loop is essential because we need to inform all services 
+    /// only when the dependencies of other services are also ready
+    /// and the configs are set everywhere
+    for (Service service in _singletonServices.values) {
+      service.onReady();
     }
     
 
@@ -242,7 +249,6 @@ class _Server extends IServer {
         tryFindServiceByType,
       ],
     );
-    service?.onReady();
   }
 
   /// Creates a service instance on demand.

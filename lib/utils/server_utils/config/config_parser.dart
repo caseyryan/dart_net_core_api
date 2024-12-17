@@ -25,6 +25,7 @@ class ConfigParser {
   /// relatively to the current working directory
   ConfigParser({
     required Type configType,
+    required this.environment,
     String? configPath,
     bool isAbsolutePath = false,
     required IServer server,
@@ -60,7 +61,12 @@ class ConfigParser {
           throw 'The config file was not found at $configPath. Even though the path was specified';
         }
         _trySetValuesFromEnvironmentVariables(configJson);
-        _configInstance = configType.fromJson(configJson) as IConfig;
+        _configInstance = configType.fromJson(
+          configJson,
+        ) as IConfig;
+
+        // print(configJson.toFormattedJson());
+        // print(_configInstance);
       } else {
         Logger.root.log(
           Level.SEVERE,
@@ -91,6 +97,7 @@ class ConfigParser {
         /// reflect_buddy setting
         alwaysIncludeParentFields = true;
         final bool useCamelCase = _server.settings.jsonSerializer?.keyNameConverter is SnakeToCamel;
+
         /// what this actually does is only creating a settings object.
         /// It doesn't create a database or a table.
         Orm.initialize(
@@ -102,6 +109,7 @@ class ConfigParser {
           isSecureConnection: postgresqlConfig.isSecureConnection == true,
           printQueries: postgresqlConfig.printQueries == true,
           port: postgresqlConfig.port!,
+
           /// if true postgres will use double quotes for column and table names
           useCaseSensitiveNames: useCamelCase,
         );
@@ -137,6 +145,7 @@ class ConfigParser {
   final HashSet<IConfig> _allConfigs = HashSet();
   final Map<Type, IConfig> _cachedConfigs = {};
   final IServer _server;
+  final String environment;
 
   Object? _configInstance;
 

@@ -4,6 +4,8 @@ part of 'documentation_annotations.dart';
 /// JSON to represent documentation
 class _ControllerDocumentationPresentation {
   String? controllerName;
+  String? description;
+  ApiDocumentationGroup? group;
   List<_EndpointDocumentationPresentation>? endpoints;
 }
 

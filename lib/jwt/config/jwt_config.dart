@@ -1,19 +1,19 @@
-import 'package:dart_net_core_api/config.dart';
-import 'package:dart_net_core_api/utils/time_utils.dart';
+import 'package:dart_net_core_api/exports.dart';
 
+@SnakeToCamel()
 class JwtConfig implements IConfig {
-  late String hmacKey;
+  String? hmacKey;
   String? refreshTokenHmacKey;
-  late String issuer;
-  late int bearerLifeSeconds;
+  String? issuer;
+  int? bearerLifeSeconds;
   int? refreshLifeSeconds;
   bool useRefreshToken = false;
 
   DateTime calculateBearerExpirationDateTime() {
-    return utcNow.add(Duration(seconds: bearerLifeSeconds));
+    return utcNow.add(Duration(seconds: bearerLifeSeconds ?? 3600));
   }
 
   DateTime calculateRefreshExpirationDateTime() {
-    return utcNow.add(Duration(seconds: refreshLifeSeconds ?? 0));
+    return utcNow.add(Duration(seconds: refreshLifeSeconds ?? 3600 * 24));
   }
 }

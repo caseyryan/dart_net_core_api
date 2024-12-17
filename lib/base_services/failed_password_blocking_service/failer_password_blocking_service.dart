@@ -5,7 +5,6 @@ import 'package:dart_net_core_api/default_setups/configs/failed_password_config.
 import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/exports.dart';
-import 'package:dart_net_core_api/utils/time_utils.dart';
 
 import '../../default_setups/models/db_models/failed_password_info.dart';
 
@@ -68,7 +67,7 @@ class FailedPasswordBlockingService extends Service {
       info = result.value!;
     }
 
-    int maxAttempts = config.numAllowedAttempts;
+    int maxAttempts = config.numAllowedAttempts!;
     int currentAttemptCount = info.currentAttemptCount ?? 0;
 
     String? error = info.tryAgainErrorText;

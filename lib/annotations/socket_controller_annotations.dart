@@ -67,7 +67,7 @@ class SocketJwtAuthorization extends SocketAuthorization {
       final jwtConfig = jwtService.getConfig<JwtConfig>()!;
       return jwtService.decodeAndVerify(
         token: client.authorizationHeader!,
-        hmacKey: jwtConfig.hmacKey,
+        hmacKey: jwtConfig.hmacKey!,
       );
     }
     return null;

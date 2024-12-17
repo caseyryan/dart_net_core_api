@@ -77,6 +77,7 @@ class SocketControllerTypeReflector extends SimpleTypeReflector {
             configParser,
           ],
         );
+        service.onReady();
 
         if (param.isNamed) {
           namedArguments[Symbol(param.name)] = service;

@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
-import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/extensions/exports.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 
@@ -34,7 +35,12 @@ class ApiDocumentationService extends Service {
   }
 
   /// Actual documentation generation
-  void _generateDocumentation() {
+  Future _generateDocumentation() async {
+    final staticFileDir = getConfig<Config>()?.staticFileDirectory;
+    if (staticFileDir?.existsSync() != true) {
+      return;
+    }
+    final controllers = <Map>[];
     for (Type controllerType in _controllerTypes) {
       final simpleTypeReflector = SimpleTypeReflector(controllerType);
       final docContainer = simpleTypeReflector.documentationContainer;
@@ -43,9 +49,18 @@ class ApiDocumentationService extends Service {
           _serverBaseApiPath!,
           defaultValueSetter,
         );
-        print(map.toFormattedJson());
+        controllers.add(map);
       }
     }
+    final formattedJson = {
+      'controllers': controllers,
+    }.toFormattedJson();
+
+    final jsonFileName = 'docs/api.$environment.json';
+    final jsonFile = File('${staticFileDir!.path}/$jsonFileName');
+    await jsonFile.forceWriteBytes(
+      utf8.encode(formattedJson),
+    );
   }
 
   @override
@@ -54,7 +69,7 @@ class ApiDocumentationService extends Service {
   }
 
   @override
-  FutureOr onReady() {
+  FutureOr onReady() async {
     _generateDocumentation();
   }
 }

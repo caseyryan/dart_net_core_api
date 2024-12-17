@@ -34,9 +34,14 @@ class APIControllerDocumentationContainer {
     }
     final controllerPresentation = _ControllerDocumentationPresentation()
       ..endpoints = endpointsPresentations
+      ..group = controllerDocumentationAnnotation.group
+
+      /// If you don't provide a description there will
+      /// still be an empty string at this point
+      ..description = controllerDocumentationAnnotation.description
       ..controllerName = controllerTypeName;
-    // TODO: выяснить почему игнорируется настройка keyNameConverter
-    return controllerPresentation.toJson(
+
+    final map = controllerPresentation.toJson(
       tryUseNativeSerializerMethodsIfAny: false,
       includeNullValues: true,
       keyNameConverter: globalDefaultKeyNameConverter,
@@ -82,6 +87,8 @@ class APIControllerDocumentationContainer {
         return value;
       },
     ) as Map;
+
+    return map;
   }
 
   bool get hasEndpoints {

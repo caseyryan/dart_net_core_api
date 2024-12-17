@@ -1,0 +1,107 @@
+{
+  "controllers": [
+    {
+      "controller_name": "AuthController",
+      "description": "Generates JWT tokens and refresh tokens, creates new user accounts",
+      "group": {
+        "name": "User Area",
+        "id": "user-area"
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/v1/auth/refresh-token",
+          "response_models": [
+            {
+              "status_code": 200,
+              "content_type": "application/json",
+              "response": {
+                "bearer_token": "",
+                "refresh_token": "",
+                "bearer_expires_at": "1991-08-10T00:00:00.000",
+                "refresh_expires_at": "1972-06-15T00:00:00.000"
+              }
+            },
+            {
+              "status_code": 400,
+              "content_type": "application/json",
+              "response": {
+                "message": "",
+                "status_code": 400,
+                "trace_id": "",
+                "code": ""
+              }
+            },
+            {
+              "status_code": 401,
+              "content_type": "application/json",
+              "response": {
+                "error": {
+                  "code": "string",
+                  "message": "string",
+                  "trace_id": "string"
+                }
+              }
+            },
+            {
+              "status_code": 500,
+              "content_type": "application/json",
+              "response": {
+                "error": {
+                  "code": "string",
+                  "message": "string",
+                  "trace_id": "string"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "controller_name": "UserController",
+      "description": "",
+      "group": {
+        "name": "",
+        "id": ""
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/v1/users/list",
+          "response_models": [
+            {
+              "status_code": 200,
+              "content_type": "application/json",
+              "response": {
+                "roles": [],
+                "first_name": "Carsten",
+                "last_name": "Reed",
+                "email": "eyde.reid@dartcoreapi.com",
+                "phone": "+7 (261) 033-40-00",
+                "middle_name": "Shurlocke",
+                "nick_name": "Candi",
+                "birth_date": "1957-10-17",
+                "id": 707,
+                "created_at": "1976-06-06T00:00:00.000",
+                "updated_at": "2000-03-16T00:00:00.000",
+                "is_deleted": false
+              }
+            },
+            {
+              "status_code": 500,
+              "content_type": "application/json",
+              "response": {
+                "error": {
+                  "code": "string",
+                  "message": "string",
+                  "trace_id": "string"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
