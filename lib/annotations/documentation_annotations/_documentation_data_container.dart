@@ -125,14 +125,30 @@ class EndpointDocumentationContainer {
       responseModels.add(
         APIResponseExample(
           statusCode: HttpStatus.internalServerError,
-          response: GenericErrorResponse,
+          response: GenericJsonResponseWrapper,
         ),
+      );
+    }
+    final paramsPresentation = <_EndpointParameterDocumentationPresentation>[];
+    for (var value in [
+      ...namedParams,
+      ...positionalParams,
+    ]) {
+      paramsPresentation.add(
+        _EndpointParameterDocumentationPresentation.fromMethodParameter(value),
       );
     }
 
     final presentation = _EndpointDocumentationPresentation()
       ..method = endpointAnnotation.method
-      ..responseModels = responseModels
+      ..description = apiDocumentationAnnotation.description?.replaceAll(RegExp(r'\s+'), ' ').trim()
+      ..params = paramsPresentation
+      ..responseModels = responseModels.map((e) {
+        if (e.isSuccess) {
+          return GenericJsonResponseWrapper()..data = e;
+        }
+        return e;
+      }).toList()
       ..path = '$basePath${endpointAnnotation.path}';
 
     return presentation;

@@ -21,11 +21,16 @@ abstract class JsonSerializer {
   Object? toJson(Object? object) {
     return object?.toJson(
       keyNameConverter: keyNameConverter,
+      includeNullValues: true,
     );
   }
 
-  Object? tryConvertToJsonString(Object? object) {
-    final result = toJson(object);
+  Object? tryConvertToJsonString(
+    Object? object,
+  ) {
+    final result = toJson(
+      object,
+    );
     if (result is Map) {
       return jsonEncode(result);
     } else if (result is List) {

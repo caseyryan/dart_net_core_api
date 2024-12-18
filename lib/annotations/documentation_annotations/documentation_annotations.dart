@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_net_core_api/exports.dart';
@@ -22,6 +23,7 @@ abstract class APIDocumentationAnnotation {
   
 }
 
+/// This group can be used to separate controllers on the UI
 class ApiDocumentationGroup {
   final String name;
   final String id;
@@ -59,9 +61,7 @@ class APIEndpointDocumentation extends APIDocumentationAnnotation {
 class APIFieldDocumentation extends APIDocumentationAnnotation {
   const APIFieldDocumentation({
     super.description,
-    this.defaultValueExample,
   });
-  final dynamic defaultValueExample;
 }
 
 /// This is NOT an annotation and
@@ -75,4 +75,8 @@ class APIResponseExample {
     this.contentType = 'application/json',
     this.response,
   });
+
+  bool get isSuccess {
+    return statusCode >= 200 && statusCode < 300;
+  }
 }

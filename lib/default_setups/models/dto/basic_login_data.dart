@@ -16,7 +16,7 @@ class BasicLoginData {
   String? phone;
   
   @NonEmptyStringValidator()
-  late String password;
+  String? password;
 
   void validate() {
     if (email?.isNotEmpty != true && phone?.isNotEmpty != true) {

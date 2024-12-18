@@ -151,27 +151,30 @@ class AuthController extends ApiController {
   }
   */
 
-  @APIEndpointDocumentation(responseModels: [
-    APIResponseExample(
-      statusCode: HttpStatus.ok,
-      response: TokenResponse,
-    ),
-    APIResponseExample(
-      statusCode: HttpStatus.badRequest,
-      response: BadRequestException,
-    ),
-    APIResponseExample(
-      statusCode: HttpStatus.unauthorized,
-      response: GenericErrorResponse,
-    ),
-  ], description: '''
+  @APIEndpointDocumentation(
+    responseModels: [
+      APIResponseExample(
+        statusCode: HttpStatus.ok,
+        response: TokenResponse,
+      ),
+      APIResponseExample(
+        statusCode: HttpStatus.badRequest,
+        response: BadRequestException,
+      ),
+      APIResponseExample(
+        statusCode: HttpStatus.unauthorized,
+        response: GenericJsonResponseWrapper,
+      ),
+    ],
+    description: '''
     Used to retrieve a new bearer JWT token
     if the refresh token is used and has not expired yet.
     Basically, it's almost the same as a fresh login but instead of a login
     and a password it uses a valid JWT bearer token
     
     Has no effect if [jwtConfig.useRefreshToken] is false in the config
-    ''')
+    ''',
+  )
   @HttpPost('/auth/refresh-token')
   Future<TokenResponse?> refreshToken() async {
     if (!jwtConfig.useRefreshToken) {
@@ -226,6 +229,26 @@ class AuthController extends ApiController {
     );
   }
 
+  @APIEndpointDocumentation(
+    responseModels: [
+      APIResponseExample(
+        statusCode: HttpStatus.ok,
+        response: TokenResponse,
+      ),
+      APIResponseExample(
+        statusCode: HttpStatus.badRequest,
+        response: BadRequestException,
+      ),
+      APIResponseExample(
+        statusCode: HttpStatus.unauthorized,
+        response: GenericJsonResponseWrapper,
+      ),
+    ],
+    description: '''
+    Performs a simple login with a username and password. 
+    The accepted user name might be a phone or an email, or both. 
+    ''',
+  )
   @HttpPost('/auth/login/basic')
   Future<TokenResponse?> login(
     @FromBody() BasicLoginData basicLoginData,
@@ -261,7 +284,7 @@ class AuthController extends ApiController {
     }
 
     final passwordOk = passwordHashService.isPasswordOk(
-      rawPassword: basicLoginData.password,
+      rawPassword: basicLoginData.password!,
       existingHash: userPassHash.value.passwordHash!,
     );
     if (!passwordOk) {
@@ -479,7 +502,7 @@ class AuthController extends ApiController {
       }
     }
 
-    /// at this step a user is not presend and the database table is ready
+    /// at this step a user is not present and the database table is ready
     /// lets insert a new user
     final passwordHash = passwordHashService.hash(
       basicSignupData.password,

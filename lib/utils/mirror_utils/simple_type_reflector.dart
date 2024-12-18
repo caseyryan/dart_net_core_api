@@ -343,6 +343,8 @@ class Method {
     _namedParams = parameters.where((e) => e.isNamed).toList();
     _positionalParams = parameters.where((e) => e.isPositional).toList();
 
+
+
     if (_endpointAnnotation != null) {
       if (_apiDocumentationAnnotation is APIEndpointDocumentation) {
         _documentationContainer = EndpointDocumentationContainer(
@@ -385,9 +387,15 @@ class MethodParameter {
   late final Type type;
   late List<dynamic> _annotations;
 
+  bool get hasFromBodyAnnotation {
+    return _annotations.whereType<FromBody>().isNotEmpty;
+  }
+
+
   bool isSubclassOf<T>() {
     return reflectedType.isSubclassOf<T>();
   }
+
 
   bool get isRequired {
     return !isOptional;

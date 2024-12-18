@@ -9,17 +9,26 @@
       },
       "endpoints": [
         {
+          "description": "Used to retrieve a new bearer JWT token if the refresh token is used and has not expired yet. Basically, it's almost the same as a fresh login but instead of a login and a password it uses a valid JWT bearer token Has no effect if [jwtConfig.useRefreshToken] is false in the config",
           "method": "POST",
           "path": "/api/v1/auth/refresh-token",
+          "params": [],
           "response_models": [
             {
-              "status_code": 200,
-              "content_type": "application/json",
-              "response": {
-                "bearer_token": "",
-                "refresh_token": "",
-                "bearer_expires_at": "1991-08-10T00:00:00.000",
-                "refresh_expires_at": "1972-06-15T00:00:00.000"
+              "error": {
+                "code": "string",
+                "message": "string",
+                "trace_id": "string"
+              },
+              "data": {
+                "status_code": 200,
+                "content_type": "application/json",
+                "response": {
+                  "bearer_token": "",
+                  "refresh_token": "",
+                  "bearer_expires_at": "1963-03-13T00:00:00.000",
+                  "refresh_expires_at": "1960-01-11T00:00:00.000"
+                }
               }
             },
             {
@@ -40,7 +49,8 @@
                   "code": "string",
                   "message": "string",
                   "trace_id": "string"
-                }
+                },
+                "data": {}
               }
             },
             {
@@ -51,7 +61,74 @@
                   "code": "string",
                   "message": "string",
                   "trace_id": "string"
+                },
+                "data": {}
+              }
+            }
+          ]
+        },
+        {
+          "description": "Performs a simple login with a username and password. The accepted user name might be a phone or an email, or both.",
+          "method": "POST",
+          "path": "/api/v1/auth/login/basic",
+          "params": [
+            {
+              "type": "{\n  \"email\": null,\n  \"phone\": null,\n  \"password\": null\n}",
+              "name": "basicLoginData",
+              "is_body_param": true,
+              "is_required": true
+            }
+          ],
+          "response_models": [
+            {
+              "error": {
+                "code": "string",
+                "message": "string",
+                "trace_id": "string"
+              },
+              "data": {
+                "status_code": 200,
+                "content_type": "application/json",
+                "response": {
+                  "bearer_token": "",
+                  "refresh_token": "",
+                  "bearer_expires_at": "1985-04-01T00:00:00.000",
+                  "refresh_expires_at": "1971-05-19T00:00:00.000"
                 }
+              }
+            },
+            {
+              "status_code": 400,
+              "content_type": "application/json",
+              "response": {
+                "message": "",
+                "status_code": 400,
+                "trace_id": "",
+                "code": ""
+              }
+            },
+            {
+              "status_code": 401,
+              "content_type": "application/json",
+              "response": {
+                "error": {
+                  "code": "string",
+                  "message": "string",
+                  "trace_id": "string"
+                },
+                "data": {}
+              }
+            },
+            {
+              "status_code": 500,
+              "content_type": "application/json",
+              "response": {
+                "error": {
+                  "code": "string",
+                  "message": "string",
+                  "trace_id": "string"
+                },
+                "data": {}
               }
             }
           ]
@@ -67,25 +144,47 @@
       },
       "endpoints": [
         {
+          "description": "Returns a list of users. Supports pagination and limits",
           "method": "GET",
           "path": "/api/v1/users/list",
+          "params": [
+            {
+              "type": "int",
+              "name": "page",
+              "is_body_param": false,
+              "is_required": false
+            },
+            {
+              "type": "int",
+              "name": "limit",
+              "is_body_param": false,
+              "is_required": false
+            }
+          ],
           "response_models": [
             {
-              "status_code": 200,
-              "content_type": "application/json",
-              "response": {
-                "roles": [],
-                "first_name": "Carsten",
-                "last_name": "Reed",
-                "email": "eyde.reid@dartcoreapi.com",
-                "phone": "+7 (261) 033-40-00",
-                "middle_name": "Shurlocke",
-                "nick_name": "Candi",
-                "birth_date": "1957-10-17",
-                "id": 707,
-                "created_at": "1976-06-06T00:00:00.000",
-                "updated_at": "2000-03-16T00:00:00.000",
-                "is_deleted": false
+              "error": {
+                "code": "string",
+                "message": "string",
+                "trace_id": "string"
+              },
+              "data": {
+                "status_code": 200,
+                "content_type": "application/json",
+                "response": {
+                  "roles": [],
+                  "first_name": "Laurella",
+                  "last_name": "Wood",
+                  "email": "silvie.carr@example.com",
+                  "phone": "+7 (832) 464-42-00",
+                  "middle_name": "Nari",
+                  "nick_name": "Claudio",
+                  "birth_date": "1989-07-08",
+                  "id": 262,
+                  "created_at": "1951-04-26T00:00:00.000",
+                  "updated_at": "1968-07-17T00:00:00.000",
+                  "is_deleted": false
+                }
               }
             },
             {
@@ -96,7 +195,8 @@
                   "code": "string",
                   "message": "string",
                   "trace_id": "string"
-                }
+                },
+                "data": {}
               }
             }
           ]

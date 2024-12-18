@@ -9106,7 +9106,7 @@ String generateRandomFirstName() {
 }
 
 String generateRandomEmail() {
-  return '${generateRandomFirstName()}.${generateRandomLastName()}@dartcoreapi.com'.toLowerCase();
+  return '${generateRandomFirstName()}.${generateRandomLastName()}@example.com'.toLowerCase();
 }
 
 String generateRandomPhone() {

@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 
 final _depthRegex = RegExp(r'(?<=\()(\d+)(?=\))');
@@ -77,6 +79,8 @@ extension JsonListExtension on List {
     }
     return null;
   }
+
+  
 }
 
 Map _regExps = <String, RegExp>{};

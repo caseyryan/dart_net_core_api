@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:reflect_buddy/reflect_buddy.dart';
+
 extension MapExtensions on Map<dynamic, dynamic> {
   String toBase64() {
     return base64.encode(
@@ -25,13 +27,7 @@ extension MapExtensions on Map<dynamic, dynamic> {
   String toFormattedJson({
     bool includeNull = false,
   }) {
-    var map = {};
-    for (var kv in entries) {
-      if (kv.value == null) {
-        continue;
-      }
-      map[kv.key] = kv.value;
-    }
+    var map = (this as Object).toJson(includeNullValues: includeNull);
     return JsonEncoder.withIndent("  ").convert(map);
   }
 }

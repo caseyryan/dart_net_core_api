@@ -119,14 +119,13 @@ class _Server extends IServer {
       settings.useHttp == true || settings.useHttps == true,
       'You must use at least one protocol',
     );
-    
+
     /// it's important to set the keyNameConverter as soon as possible
-    /// so that all services already had this setting available. 
+    /// so that all services already had this setting available.
     /// Including the service for documentation generation
     if (settings.jsonSerializer?.keyNameConverter != null) {
       /// set converter to use in reflect buddy
-      rb.customGlobalKeyNameConverter =
-          settings.jsonSerializer!.keyNameConverter;
+      rb.customGlobalKeyNameConverter = settings.jsonSerializer!.keyNameConverter;
     }
 
     if (settings.singletonServices?.isNotEmpty == true) {
@@ -169,24 +168,20 @@ class _Server extends IServer {
         settings.apiControllers,
       );
     }
-    /// the second loop is essential because we need to inform all services 
+
+    /// the second loop is essential because we need to inform all services
     /// only when the dependencies of other services are also ready
     /// and the configs are set everywhere
     for (Service service in _singletonServices.values) {
       service.onReady();
     }
-    
 
     _bindServer(
       useHttp: settings.useHttp,
       useHttps: settings.useHttps,
       ipV4Address: settings.ipV4Address,
-      httpPort: settings.httpPort ??
-          _configParser.getConfig<Config>()?.httpPort ??
-          8084,
-      httpsPort: settings.httpsPort ??
-          _configParser.getConfig<Config>()?.httpsPort ??
-          8085,
+      httpPort: settings.httpPort ?? _configParser.getConfig<Config>()?.httpPort ?? 8084,
+      httpsPort: settings.httpsPort ?? _configParser.getConfig<Config>()?.httpsPort ?? 8085,
       securityContext: settings.securityContext ?? SecurityContext(),
       instanceNumber: instanceNumber,
     );
@@ -442,23 +437,13 @@ class _Server extends IServer {
     Object? exception,
   }) {
     // if (rb.globalDefaultKeyNameConverter is rb.CamelToSnake) {}
-    final errorWrapper = GenericErrorResponse();
+    final errorWrapper = GenericJsonResponseWrapper();
     errorWrapper.error = InnerError();
     errorWrapper.error!.message = message;
     errorWrapper.error!.traceId = traceId;
     if (code?.isNotEmpty == true) {
       errorWrapper.error!.code = code!;
     }
-
-    // final response = {
-    //   'error': {
-    //     'message': message,
-    //     'traceId': traceId,
-    //   }
-    // };
-    // if (code?.isNotEmpty == true) {
-    //   response['error']!['code'] = code!;
-    // }
     final jsonError = errorWrapper.toJson();
 
     request.response.headers.contentType = ContentType.json;
@@ -526,8 +511,7 @@ class _Server extends IServer {
       // if (context.isDev) {
       //   print('is dev $endpointMappers');
       // }
-      String message =
-          'Could not find the endpoint to process the request ${request.requestedUri.toString()}';
+      String message = 'Could not find the endpoint to process the request ${request.requestedUri.toString()}';
       if (endpoints != null) {
         message += '  All available:\n${endpoints.toString()}  ';
       }
@@ -572,8 +556,7 @@ class _Server extends IServer {
 
         /// endpointMapper.responseContentType uses client's Accept header value if
         /// there is no Content-Type header forced by the endpoint itself
-        request.response.headers.contentType =
-            endpointMapper.responseContentType;
+        request.response.headers.contentType = endpointMapper.responseContentType;
         if (result != null) {
           if (endpointMapper.producesJson && settings.jsonSerializer != null) {
             if (result is File) {
@@ -584,10 +567,10 @@ class _Server extends IServer {
                 );
               }
               throw UnsupportedMediaException(
-                message:
-                    'Unsupported media type. Try providing a correct `Accept` header',
+                message: 'Unsupported media type. Try providing a correct `Accept` header',
               );
             }
+            result = GenericJsonResponseWrapper()..data = result;
             result = settings.jsonSerializer!.tryConvertToJsonString(result);
             request.response.write(result);
           } else {
@@ -597,6 +580,7 @@ class _Server extends IServer {
                 response: request.response,
               );
             } else {
+              result = GenericJsonResponseWrapper()..data = result;
               request.response.write(result);
             }
           }
@@ -615,8 +599,7 @@ class _Server extends IServer {
         );
       } on ApiException catch (e, s) {
         e.traceId ??= traceId;
-        result = await _onRequestError(
-            request: request, traceId: traceId, exception: e, stackTrace: s);
+        result = await _onRequestError(request: request, traceId: traceId, exception: e, stackTrace: s);
       } on String catch (e) {
         result = await _onRequestError(
           request: request,
@@ -679,8 +662,14 @@ class _Server extends IServer {
   }
 }
 
-class GenericErrorResponse {
+/// This is used for every json response. 
+/// Anything you return from your endpoints except for files
+/// will be automatically wrapped with this 
+/// to make all JSON response models uniform and simplify 
+/// processing successful and erratic responses on the client side
+class GenericJsonResponseWrapper {
   InnerError? error;
+  Object? data;
 }
 
 class InnerError {
