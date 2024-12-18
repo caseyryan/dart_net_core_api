@@ -26,8 +26,8 @@
                 "response": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1963-03-13T00:00:00.000",
-                  "refresh_expires_at": "1960-01-11T00:00:00.000"
+                  "bearer_expires_at": "1994-03-24T00:00:00.000",
+                  "refresh_expires_at": "1956-09-08T00:00:00.000"
                 }
               }
             },
@@ -92,8 +92,8 @@
                 "response": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1985-04-01T00:00:00.000",
-                  "refresh_expires_at": "1971-05-19T00:00:00.000"
+                  "bearer_expires_at": "1961-01-21T00:00:00.000",
+                  "refresh_expires_at": "1971-02-20T00:00:00.000"
                 }
               }
             },
@@ -173,16 +173,16 @@
                 "content_type": "application/json",
                 "response": {
                   "roles": [],
-                  "first_name": "Laurella",
-                  "last_name": "Wood",
-                  "email": "silvie.carr@example.com",
-                  "phone": "+7 (832) 464-42-00",
-                  "middle_name": "Nari",
-                  "nick_name": "Claudio",
-                  "birth_date": "1989-07-08",
-                  "id": 262,
-                  "created_at": "1951-04-26T00:00:00.000",
-                  "updated_at": "1968-07-17T00:00:00.000",
+                  "first_name": "Reece",
+                  "last_name": "Cochran",
+                  "email": "katharyn.sullivan@example.com",
+                  "phone": "+7 (103) 888-42-00",
+                  "middle_name": "Jessey",
+                  "nick_name": "Emalia",
+                  "birth_date": "1991-07-05",
+                  "id": 101,
+                  "created_at": "1987-04-02T00:00:00.000",
+                  "updated_at": "1985-08-05T00:00:00.000",
                   "is_deleted": false
                 }
               }

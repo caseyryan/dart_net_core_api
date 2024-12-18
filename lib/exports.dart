@@ -5,3 +5,4 @@ export 'annotations/controller_annotations.dart';
 export 'config.dart';
 export 'server.dart';
 export 'utils/exports.dart';
+export 'default_setups/exports.dart';

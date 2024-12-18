@@ -26,6 +26,22 @@ class ApiDocumentationService extends Service {
     return value;
   }
 
+  Future<Map> tryGetDocumentationForCurrentEnvironment() async {
+    final staticFileDir = getConfig<Config>()?.staticFileDirectory;
+    if (staticFileDir?.existsSync() != true) {
+      return {};
+    }
+    final jsonFileName = 'docs/api.$environment.json';
+    final jsonFile = File('${staticFileDir!.path}/$jsonFileName');
+    if (jsonFile.existsSync()) {
+      final jsonString = await jsonFile.readAsString();
+      if (jsonString.startsWith('{')) {
+        return jsonDecode(jsonString);
+      }
+    }
+    return {};
+  }
+
   void setControllerTypes(
     List<Type> controllerTypes,
     String? serverBaseApiPath,

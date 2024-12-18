@@ -123,7 +123,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
             configParser,
           ],
         );
-        service.onReady();
+        if (!service.isSingleton) {
+          service.onReady();
+        }
       } else {
         /// TODO: process other types too, not only services
       }
