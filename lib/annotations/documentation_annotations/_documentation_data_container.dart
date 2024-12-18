@@ -143,12 +143,34 @@ class EndpointDocumentationContainer {
       ..method = endpointAnnotation.method
       ..description = apiDocumentationAnnotation.description?.replaceAll(RegExp(r'\s+'), ' ').trim()
       ..params = paramsPresentation
-      ..responseModels = responseModels.map((e) {
-        if (e.isSuccess) {
-          return GenericJsonResponseWrapper()..data = e;
-        }
-        return e;
-      }).toList()
+      ..responseModels = responseModels
+          .map((e) {
+            if (e.isSuccess) {
+              /// this is done here because by default all success
+              /// responses are wrapped in GenericJsonResponseWrapper when .write()
+              /// method is called on the response in Server
+              final wrappedResponse = GenericJsonResponseWrapper()..data = e.response;
+              return APIResponseExample(
+                statusCode: e.statusCode,
+                contentType: e.contentType,
+                response: wrappedResponse,
+              );
+            } else if (e.response is Type) {
+              final type = e.response as Type;
+              if (type.isSubclassOf<ApiException>() || type.isSubclassOf<GenericJsonResponseWrapper>()) {
+                // print(e.response);
+                final value = GenericJsonResponseWrapper()..error = InnerError();
+                return APIResponseExample(
+                  statusCode: e.statusCode,
+                  contentType: e.contentType,
+                  response: value,
+                );
+              }
+            }
+            return e;
+          })
+          .nonNulls
+          .toList()
       ..path = '$basePath${endpointAnnotation.path}';
 
     return presentation;

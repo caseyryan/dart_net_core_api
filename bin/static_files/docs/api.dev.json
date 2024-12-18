@@ -15,19 +15,15 @@
           "params": [],
           "response_models": [
             {
-              "error": {
-                "code": "string",
-                "message": "string",
-                "trace_id": "string"
-              },
-              "data": {
-                "status_code": 200,
-                "content_type": "application/json",
-                "response": {
+              "status_code": 200,
+              "content_type": "application/json",
+              "response": {
+                "error": {},
+                "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1994-03-24T00:00:00.000",
-                  "refresh_expires_at": "1956-09-08T00:00:00.000"
+                  "bearer_expires_at": "1969-06-19T00:00:00.000",
+                  "refresh_expires_at": "1989-08-18T00:00:00.000"
                 }
               }
             },
@@ -35,10 +31,12 @@
               "status_code": 400,
               "content_type": "application/json",
               "response": {
-                "message": "",
-                "status_code": 400,
-                "trace_id": "",
-                "code": ""
+                "error": {
+                  "code": "string",
+                  "message": "string",
+                  "trace_id": "string"
+                },
+                "data": {}
               }
             },
             {
@@ -81,19 +79,15 @@
           ],
           "response_models": [
             {
-              "error": {
-                "code": "string",
-                "message": "string",
-                "trace_id": "string"
-              },
-              "data": {
-                "status_code": 200,
-                "content_type": "application/json",
-                "response": {
+              "status_code": 200,
+              "content_type": "application/json",
+              "response": {
+                "error": {},
+                "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1961-01-21T00:00:00.000",
-                  "refresh_expires_at": "1971-02-20T00:00:00.000"
+                  "bearer_expires_at": "1975-06-11T00:00:00.000",
+                  "refresh_expires_at": "1963-09-15T00:00:00.000"
                 }
               }
             },
@@ -101,10 +95,12 @@
               "status_code": 400,
               "content_type": "application/json",
               "response": {
-                "message": "",
-                "status_code": 400,
-                "trace_id": "",
-                "code": ""
+                "error": {
+                  "code": "string",
+                  "message": "string",
+                  "trace_id": "string"
+                },
+                "data": {}
               }
             },
             {
@@ -163,26 +159,22 @@
           ],
           "response_models": [
             {
-              "error": {
-                "code": "string",
-                "message": "string",
-                "trace_id": "string"
-              },
-              "data": {
-                "status_code": 200,
-                "content_type": "application/json",
-                "response": {
+              "status_code": 200,
+              "content_type": "application/json",
+              "response": {
+                "error": {},
+                "data": {
                   "roles": [],
-                  "first_name": "Reece",
-                  "last_name": "Cochran",
-                  "email": "katharyn.sullivan@example.com",
-                  "phone": "+7 (103) 888-42-00",
-                  "middle_name": "Jessey",
-                  "nick_name": "Emalia",
-                  "birth_date": "1991-07-05",
-                  "id": 101,
-                  "created_at": "1987-04-02T00:00:00.000",
-                  "updated_at": "1985-08-05T00:00:00.000",
+                  "first_name": "Mead",
+                  "last_name": "Lancaster",
+                  "email": "thorndike.wheeler@example.com",
+                  "phone": "+7 (451) 371-68-00",
+                  "middle_name": "Cecil",
+                  "nick_name": "Bella",
+                  "birth_date": "1952-07-20",
+                  "id": 269,
+                  "created_at": "1972-11-14T00:00:00.000",
+                  "updated_at": "1963-06-27T00:00:00.000",
                   "is_deleted": false
                 }
               }

@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:lite_state/lite_state.dart';
 
-class MainPage extends StatelessWidget {
+import 'controllers/main_page_controller.dart';
+
+class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  final MainPageController _controller = MainPageController();
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
+    return LiteState<MainPageController>(
+      builder: (BuildContext c, MainPageController controller) {
+        return Scaffold(
+          appBar: AppBar(),
+        );
+      },
     );
   }
 }

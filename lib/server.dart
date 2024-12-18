@@ -438,12 +438,15 @@ class _Server extends IServer {
   }) {
     // if (rb.globalDefaultKeyNameConverter is rb.CamelToSnake) {}
     final errorWrapper = GenericJsonResponseWrapper();
-    errorWrapper.error = InnerError();
-    errorWrapper.error!.message = message;
-    errorWrapper.error!.traceId = traceId;
+    final innerError = InnerError();
+    innerError.message = message;
+    innerError.traceId = traceId;
     if (code?.isNotEmpty == true) {
-      errorWrapper.error!.code = code!;
+      innerError.code = code!;
     }
+    
+    errorWrapper.error = innerError;
+
     final jsonError = errorWrapper.toJson();
 
     request.response.headers.contentType = ContentType.json;
@@ -668,7 +671,11 @@ class _Server extends IServer {
 /// to make all JSON response models uniform and simplify 
 /// processing successful and erratic responses on the client side
 class GenericJsonResponseWrapper {
-  InnerError? error;
+  /// error should always be [InnerError] 
+  /// but it's declared as Object to avoid filling with default values 
+  /// while building the documentation automatically
+  /// it's a small hack
+  Object? error;
   Object? data;
 }
 

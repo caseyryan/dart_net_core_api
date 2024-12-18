@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
+import 'package:dart_net_core_api/default_setups/models/db_models/base_model.dart';
+import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/exports.dart';
+import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 
 part '_documentation_data_container.dart';
@@ -69,7 +73,10 @@ class APIFieldDocumentation extends APIDocumentationAnnotation {
 class APIResponseExample {
   final int statusCode;
   final String contentType;
-  final Type? response;
+  /// [response] must be a Type in general case 
+  /// but it's declared as object for the case of documentation 
+  /// generation where we need to wrap it in object
+  final Object? response;
   const APIResponseExample({
     required this.statusCode,
     this.contentType = 'application/json',
