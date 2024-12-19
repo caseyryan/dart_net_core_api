@@ -46,16 +46,16 @@ abstract class Authorization {
 /// [method] is a RESTful api method name like GET, POST, PATCH etc.
 /// You can also use [HttpGet], [HttpPost] and other ready to use annotations
 abstract class EndpointAnnotation {
-  const EndpointAnnotation(
-    this.path,
-    this.method,
-    this.contentType,
+  const EndpointAnnotation({
+    required this.path,
+    required this.method,
     this.responseTypes,
-  );
+    this.contentType = 'application/json; charset=utf-8',
+  });
 
   final String path;
   final String method;
-  final String? contentType;
+  final String contentType;
   final List<Object>? responseTypes;
 }
 
@@ -83,64 +83,64 @@ class FromBody extends ParameterAnnotation {
 class HttpGet extends EndpointAnnotation {
   const HttpGet(
     String path, {
-    String? contentType,
+    String contentType = 'application/json; charset=utf-8',
     List<Object>? responseTypes,
   }) : super(
-          path,
-          'GET',
-          contentType,
-          responseTypes,
+          path: path,
+          method: 'GET',
+          contentType: contentType,
+          responseTypes: responseTypes,
         );
 }
 
 class HttpPost extends EndpointAnnotation {
   const HttpPost(
     String path, {
-    String? contentType,
+    String contentType = 'application/json; charset=utf-8',
     List<Object>? responseTypes,
   }) : super(
-          path,
-          'POST',
-          contentType,
-          responseTypes,
+          path: path,
+          method: 'POST',
+          contentType: contentType,
+          responseTypes: responseTypes,
         );
 }
 
 class HttpPatch extends EndpointAnnotation {
   const HttpPatch(
     String path, {
-    String? contentType,
+    String contentType = 'application/json; charset=utf-8',
     List<Object>? responseTypes,
   }) : super(
-          path,
-          'PATCH',
-          contentType,
-          responseTypes,
+          path: path,
+          method: 'PATCH',
+          contentType: contentType,
+          responseTypes: responseTypes,
         );
 }
 
 class HttpPut extends EndpointAnnotation {
   const HttpPut(
     String path, {
-    String? contentType,
+    String contentType = 'application/json; charset=utf-8',
     List<Object>? responseTypes,
   }) : super(
-          path,
-          'PUT',
-          contentType,
-          responseTypes,
+          path: path,
+          method: 'PUT',
+          contentType: contentType,
+          responseTypes: responseTypes,
         );
 }
 
 class HttpDelete extends EndpointAnnotation {
   const HttpDelete(
     String path, {
-    String? contentType,
+    String contentType = 'application/json; charset=utf-8',
     List<Object>? responseTypes,
   }) : super(
-          path,
-          'DELETE',
-          contentType,
-          responseTypes,
+          path: path,
+          method: 'DELETE',
+          contentType: contentType,
+          responseTypes: responseTypes,
         );
 }

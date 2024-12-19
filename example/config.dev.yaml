@@ -19,6 +19,12 @@ maxUploadFileSizeBytes: 104857600
 httpPort: 8084
 httpsPort: 8085
 
+accessControlHeaders:
+  allowOrigin: '*'
+  allowMethods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS'
+  allowHeaders: 'Content-Type,Authorization,Accept,Origin,X-Requested-With,X-CSRF-Token,Cache-Control,Access-Control-Request-Method,Access-Control-Request-Headers'
+  maxAge: 3600
+
 # usedDbConfig must contain the name of the database config
 # which you want to use. In this case the server will use 
 # postgresqlConfig even if other database configs are also filled

@@ -2,11 +2,7 @@ import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/server.dart';
 
 class HealthController extends ApiController {
-  
-  @HttpGet(
-    '/health',
-    contentType: 'application/json',
-  )
+  @HttpGet('/health')
   Future<Map> getHealth() async {
     var env = 'dev';
     if (httpContext.isProd) {

@@ -22,8 +22,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1969-06-19T00:00:00.000",
-                  "refresh_expires_at": "1989-08-18T00:00:00.000"
+                  "bearer_expires_at": "1978-01-09T00:00:00.000",
+                  "refresh_expires_at": "1962-01-25T00:00:00.000"
                 }
               }
             },
@@ -86,8 +86,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1975-06-11T00:00:00.000",
-                  "refresh_expires_at": "1963-09-15T00:00:00.000"
+                  "bearer_expires_at": "1971-01-25T00:00:00.000",
+                  "refresh_expires_at": "1999-07-18T00:00:00.000"
                 }
               }
             },
@@ -165,16 +165,16 @@
                 "error": {},
                 "data": {
                   "roles": [],
-                  "first_name": "Mead",
-                  "last_name": "Lancaster",
-                  "email": "thorndike.wheeler@example.com",
-                  "phone": "+7 (451) 371-68-00",
-                  "middle_name": "Cecil",
-                  "nick_name": "Bella",
-                  "birth_date": "1952-07-20",
-                  "id": 269,
-                  "created_at": "1972-11-14T00:00:00.000",
-                  "updated_at": "1963-06-27T00:00:00.000",
+                  "first_name": "Ismail",
+                  "last_name": "Morris",
+                  "email": "querida.shore@example.com",
+                  "phone": "+7 (764) 481 4000",
+                  "middle_name": "Bobinette",
+                  "nick_name": "Cicily",
+                  "birth_date": "1965-08-18",
+                  "id": 366,
+                  "created_at": "1998-04-27T00:00:00.000",
+                  "updated_at": "1990-05-07T00:00:00.000",
                   "is_deleted": false
                 }
               }

@@ -344,6 +344,21 @@ class _Server extends IServer {
       final uri = request.requestedUri;
       final origin = uri.origin;
       final path = '${uri.path}?${uri.query}';
+      final accessControlConfig = _configParser.getConfig<Config>()?.accessControlHeaders;
+      if (accessControlConfig != null) {
+        if (accessControlConfig.allowOrigin != null) {
+          request.response.headers.add('Access-Control-Allow-Origin', accessControlConfig.allowOrigin!);
+        }
+        if (accessControlConfig.allowMethods != null) {
+          request.response.headers.add('Access-Control-Allow-Methods', accessControlConfig.allowMethods!);
+        }
+        if (accessControlConfig.allowHeaders != null) {
+          request.response.headers.add('Access-Control-Allow-Headers', accessControlConfig.allowHeaders!);
+        }
+        if (accessControlConfig.maxAge != null) {
+          request.response.headers.add('Access-Control-Max-Age', accessControlConfig.maxAge!.toString());
+        }
+      }
 
       request.ensureCharsetPresent();
       await _callEndpoint(
@@ -444,7 +459,7 @@ class _Server extends IServer {
     if (code?.isNotEmpty == true) {
       innerError.code = code!;
     }
-    
+
     errorWrapper.error = innerError;
 
     final jsonError = errorWrapper.toJson();
@@ -665,14 +680,14 @@ class _Server extends IServer {
   }
 }
 
-/// This is used for every json response. 
+/// This is used for every json response.
 /// Anything you return from your endpoints except for files
-/// will be automatically wrapped with this 
-/// to make all JSON response models uniform and simplify 
+/// will be automatically wrapped with this
+/// to make all JSON response models uniform and simplify
 /// processing successful and erratic responses on the client side
 class GenericJsonResponseWrapper {
-  /// error should always be [InnerError] 
-  /// but it's declared as Object to avoid filling with default values 
+  /// error should always be [InnerError]
+  /// but it's declared as Object to avoid filling with default values
   /// while building the documentation automatically
   /// it's a small hack
   Object? error;

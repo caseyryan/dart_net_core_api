@@ -57,6 +57,7 @@ class Config implements IConfig {
   FailedPasswordConfig? failedPasswordConfig;
   bool printDebugInfo = true;
   StaticFileConfig? staticFileConfig;
+  AccessControlConfig? accessControlHeaders;
   int? maxUploadFileSizeBytes;
   int? httpPort;
   int? httpsPort;
@@ -85,4 +86,12 @@ class StaticFileConfig implements IConfig {
   /// if true, it will not prepend current working directory
   bool isAbsolute = false;
   String? staticFilesRoot;
+}
+
+@SnakeToCamel()
+class AccessControlConfig implements IConfig {
+  String? allowOrigin;
+  String? allowMethods;
+  String? allowHeaders;
+  int? maxAge;
 }

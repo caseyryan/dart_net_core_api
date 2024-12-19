@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lite_state/lite_state.dart';
 
-import 'controllers/main_page_controller.dart';
+import '../controllers/main_page_controller.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -16,6 +16,10 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return LiteState<MainPageController>(
+      controller: _controller,
+      onReady: (MainPageController controller) {
+        controller.loadDocumentation();
+      },
       builder: (BuildContext c, MainPageController controller) {
         return Scaffold(
           appBar: AppBar(),
