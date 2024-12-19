@@ -14,8 +14,8 @@ class DocumentationResponse {
 
   DocumentationModel? data;
 
-  static DocumentationModel deserialize(Map<String, dynamic> json) {
-    return DocumentationModel.fromJson(json);
+  static DocumentationResponse deserialize(Map<String, dynamic> json) {
+    return DocumentationResponse.fromJson(json);
   }
 
   factory DocumentationResponse.fromJson(Map<String, dynamic> json) {

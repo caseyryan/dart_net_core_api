@@ -8,12 +8,14 @@ part 'api_endpoint_model.g.dart';
 class ApiEndpointModel {
   ApiEndpointModel({
     this.description,
+    this.title,
     this.method,
     this.path,
     this.responseModels,
   });
 
   String? description;
+  String? title;
   String? method;
   String? path;
   @JsonKey(name: 'response_models')

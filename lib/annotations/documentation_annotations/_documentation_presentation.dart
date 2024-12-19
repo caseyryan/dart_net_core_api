@@ -5,12 +5,14 @@ part of 'documentation_annotations.dart';
 class _ControllerDocumentationPresentation {
   String? controllerName;
   String? description;
+  String? title;
   ApiDocumentationGroup? group;
   List<_EndpointDocumentationPresentation>? endpoints;
 }
 
 class _EndpointDocumentationPresentation {
   String? description;
+  String? title;
   String? method;
   String? path;
   List<_EndpointParameterDocumentationPresentation>? params;

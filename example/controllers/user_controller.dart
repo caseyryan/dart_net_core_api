@@ -9,6 +9,7 @@ class UserController extends ApiController {
   UserController();
 
   @APIEndpointDocumentation(
+    title: 'User Controller',
     responseModels: [
       APIResponseExample(
         statusCode: 200,

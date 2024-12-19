@@ -3,6 +3,7 @@
     {
       "controller_name": "AuthController",
       "description": "Generates JWT tokens and refresh tokens, creates new user accounts",
+      "title": "User Authorization Controller",
       "group": {
         "name": "User Area",
         "id": "user-area"
@@ -10,6 +11,7 @@
       "endpoints": [
         {
           "description": "Used to retrieve a new bearer JWT token if the refresh token is used and has not expired yet. Basically, it's almost the same as a fresh login but instead of a login and a password it uses a valid JWT bearer token Has no effect if [jwtConfig.useRefreshToken] is false in the config",
+          "title": "Refresh JWT Token",
           "method": "POST",
           "path": "/api/v1/auth/refresh-token",
           "params": [],
@@ -22,8 +24,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1978-01-09T00:00:00.000",
-                  "refresh_expires_at": "1962-01-25T00:00:00.000"
+                  "bearer_expires_at": "1963-09-06T00:00:00.000",
+                  "refresh_expires_at": "1995-05-20T00:00:00.000"
                 }
               }
             },
@@ -67,6 +69,7 @@
         },
         {
           "description": "Performs a simple login with a username and password. The accepted user name might be a phone or an email, or both.",
+          "title": "Basic Login",
           "method": "POST",
           "path": "/api/v1/auth/login/basic",
           "params": [
@@ -86,8 +89,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1971-01-25T00:00:00.000",
-                  "refresh_expires_at": "1999-07-18T00:00:00.000"
+                  "bearer_expires_at": "1968-11-21T00:00:00.000",
+                  "refresh_expires_at": "1955-05-08T00:00:00.000"
                 }
               }
             },
@@ -134,6 +137,7 @@
     {
       "controller_name": "UserController",
       "description": "",
+      "title": "",
       "group": {
         "name": "",
         "id": ""
@@ -141,6 +145,7 @@
       "endpoints": [
         {
           "description": "Returns a list of users. Supports pagination and limits",
+          "title": "User Controller",
           "method": "GET",
           "path": "/api/v1/users/list",
           "params": [
@@ -165,16 +170,16 @@
                 "error": {},
                 "data": {
                   "roles": [],
-                  "first_name": "Ismail",
-                  "last_name": "Morris",
-                  "email": "querida.shore@example.com",
-                  "phone": "+7 (764) 481 4000",
-                  "middle_name": "Bobinette",
-                  "nick_name": "Cicily",
-                  "birth_date": "1965-08-18",
-                  "id": 366,
-                  "created_at": "1998-04-27T00:00:00.000",
-                  "updated_at": "1990-05-07T00:00:00.000",
+                  "first_name": "Nada",
+                  "last_name": "Skinner",
+                  "email": "philbert.watson@example.com",
+                  "phone": "+7 (389) 647-93-00",
+                  "middle_name": "Jean-Francois",
+                  "nick_name": "Markus",
+                  "birth_date": "1965-07-02",
+                  "id": 638,
+                  "created_at": "1981-05-01T00:00:00.000",
+                  "updated_at": "1987-02-17T00:00:00.000",
                   "is_deleted": false
                 }
               }

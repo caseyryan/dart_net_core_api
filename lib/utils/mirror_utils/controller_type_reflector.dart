@@ -62,7 +62,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
           fullPath: '$basePath${endPointAnnotation.path}',
           controllerTypeReflection: this,
           contentType: _getContentType(
-            endPointAnnotation.contentType ?? producesAnnotation?.defaultContentType,
+            endPointAnnotation.contentType.isNotEmpty
+                ? endPointAnnotation.contentType
+                : producesAnnotation?.defaultContentType,
           ),
           responseTypes: endPointAnnotation.responseTypes,
         ),

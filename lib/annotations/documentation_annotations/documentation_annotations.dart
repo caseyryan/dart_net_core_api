@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart_net_core_api/base_services/socket_service/socket_service.dart';
-import 'package:dart_net_core_api/default_setups/models/db_models/base_model.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/exports.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/extensions.dart';
@@ -19,11 +17,14 @@ part '_documentation_presentation.dart';
 abstract class APIDocumentationAnnotation {
   const APIDocumentationAnnotation({
     this.description,
+    required this.title,
   });
 
   /// write what your controller is intended to do in free form
   /// this will be displayed in the documentation web page
   final String? description;
+  /// [title] will be displayed as a short name in the doc previewer
+  final String title;
   
 }
 
@@ -41,6 +42,7 @@ class ApiDocumentationGroup {
 class APIControllerDocumentation extends APIDocumentationAnnotation {
   const APIControllerDocumentation({
     super.description,
+    required super.title,
     required this.group,
   });
 
@@ -50,6 +52,7 @@ class APIControllerDocumentation extends APIDocumentationAnnotation {
 class APIEndpointDocumentation extends APIDocumentationAnnotation {
   const APIEndpointDocumentation({
     required this.responseModels,
+    required super.title,
     super.description,
   });
 
@@ -65,6 +68,7 @@ class APIEndpointDocumentation extends APIDocumentationAnnotation {
 class APIFieldDocumentation extends APIDocumentationAnnotation {
   const APIFieldDocumentation({
     super.description,
+    required super.title,
   });
 }
 

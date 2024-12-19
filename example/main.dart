@@ -1,6 +1,3 @@
-import 'package:dart_net_core_api/default_setups/controllers/admin_controller.dart';
-import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
-import 'package:dart_net_core_api/default_setups/controllers/documentation_controller.dart';
 import 'package:dart_net_core_api/default_setups/controllers/health_controller.dart';
 import 'package:dart_net_core_api/exports.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';

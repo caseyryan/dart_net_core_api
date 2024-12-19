@@ -1,3 +1,4 @@
+import 'package:dart_core_doc_viewer/main_page/widgets/wide_screen_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:lite_state/lite_state.dart';
 
@@ -21,8 +22,8 @@ class _MainPageState extends State<MainPage> {
         controller.loadDocumentation();
       },
       builder: (BuildContext c, MainPageController controller) {
-        return Scaffold(
-          appBar: AppBar(),
+        return WideScreenLayout(
+          controller: controller,
         );
       },
     );

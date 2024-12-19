@@ -1,5 +1,6 @@
 
 
+const double kDividerThickness = .3;
 const double kPadding = 12.0;
 const double kBorderRadius = 12.0;
 const double kBlurSigma = 10.0;

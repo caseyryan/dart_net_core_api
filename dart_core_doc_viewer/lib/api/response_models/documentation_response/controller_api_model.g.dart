@@ -10,6 +10,7 @@ ControllerApiModel _$ControllerApiModelFromJson(Map<String, dynamic> json) =>
     ControllerApiModel(
       controllerName: json['controller_name'] as String?,
       description: json['description'] as String?,
+      title: json['title'] as String?,
       group: json['group'] == null
           ? null
           : ApiGroupModel.fromJson(json['group'] as Map<String, dynamic>),
@@ -22,6 +23,7 @@ Map<String, dynamic> _$ControllerApiModelToJson(ControllerApiModel instance) =>
     <String, dynamic>{
       'controller_name': instance.controllerName,
       'description': instance.description,
+      'title': instance.title,
       'group': instance.group?.toJson(),
       'endpoints': instance.endpoints?.map((e) => e.toJson()).toList(),
     };

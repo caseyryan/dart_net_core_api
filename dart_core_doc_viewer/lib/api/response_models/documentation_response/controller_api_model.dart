@@ -10,6 +10,7 @@ class ControllerApiModel {
   ControllerApiModel({
     this.controllerName,
     this.description,
+    this.title,
     this.group,
     this.endpoints,
   });
@@ -17,8 +18,16 @@ class ControllerApiModel {
   @JsonKey(name: 'controller_name')
   String? controllerName;
   String? description;
+  String? title;
   ApiGroupModel? group;
   List<ApiEndpointModel>? endpoints;
+
+  String getSafeTitle() {
+    if (title?.isNotEmpty != true) {
+      return controllerName!;
+    }
+    return title!;
+  }
 
   static ControllerApiModel deserialize(Map<String, dynamic> json) {
     return ControllerApiModel.fromJson(json);

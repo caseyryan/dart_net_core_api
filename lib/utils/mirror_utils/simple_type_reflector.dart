@@ -159,6 +159,7 @@ class SimpleTypeReflector {
         .firstOrNull;
     controllerDocumentationAnnotation ??= APIControllerDocumentation(
       description: '',
+      title: '',
       group: ApiDocumentationGroup(
         name: '',
         id: '',

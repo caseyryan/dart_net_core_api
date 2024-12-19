@@ -38,6 +38,7 @@ class APIControllerDocumentationContainer {
 
       /// If you don't provide a description there will
       /// still be an empty string at this point
+      ..title = controllerDocumentationAnnotation.title
       ..description = controllerDocumentationAnnotation.description
       ..controllerName = controllerTypeName;
 
@@ -142,6 +143,7 @@ class EndpointDocumentationContainer {
     final presentation = _EndpointDocumentationPresentation()
       ..method = endpointAnnotation.method
       ..description = apiDocumentationAnnotation.description?.replaceAll(RegExp(r'\s+'), ' ').trim()
+      ..title = apiDocumentationAnnotation.title
       ..params = paramsPresentation
       ..responseModels = responseModels
           .map((e) {

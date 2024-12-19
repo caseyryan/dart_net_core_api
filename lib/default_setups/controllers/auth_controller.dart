@@ -25,6 +25,7 @@ enum LogoutScope {
 }
 
 @APIControllerDocumentation(
+  title: 'User Authorization Controller',
   description: 'Generates JWT tokens and refresh tokens, creates new user accounts',
   group: ApiDocumentationGroup(
     name: 'User Area',
@@ -152,6 +153,7 @@ class AuthController extends ApiController {
   */
 
   @APIEndpointDocumentation(
+    title: 'Refresh JWT Token',
     responseModels: [
       APIResponseExample(
         statusCode: HttpStatus.ok,
@@ -230,6 +232,7 @@ class AuthController extends ApiController {
   }
 
   @APIEndpointDocumentation(
+    title: 'Basic Login',
     responseModels: [
       APIResponseExample(
         statusCode: HttpStatus.ok,
