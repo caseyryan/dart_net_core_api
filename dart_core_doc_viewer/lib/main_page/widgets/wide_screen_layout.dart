@@ -20,6 +20,7 @@ class WideScreenLayout extends StatelessWidget {
         Expanded(
           flex: 30,
           child: GroupList(
+            selectedController: controller.selectedController,
             controllersByGroups: controller.controllersByGroups,
             onControllerSelected: controller.onControllerSelected,
             onExpandToggle: controller.onGroupExpanded,
@@ -29,11 +30,9 @@ class WideScreenLayout extends StatelessWidget {
           height: 3.0,
         ),
         const VerticalLine(),
-        Expanded(
+        const Expanded(
           flex: 80,
-          child: ResponseList(
-            controllerApiModel: controller?.selectedController,
-          ),
+          child: ResponseList(),
         ),
       ],
     );

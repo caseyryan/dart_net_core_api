@@ -5,7 +5,7 @@ const kNormalFontSize = 16.0;
 
 double get bigTextSize => 32.0 * customFontScale;
 double get normalTextSize => kNormalFontSize * customFontScale;
-double get tinyTextSize => 12.0 * customFontScale;
+double get tinyTextSize => 13.0 * customFontScale;
 /// Используется для иероглифов в упражнениях
 double get mediumTextSize => 22.0 * customFontScale;
 
@@ -88,6 +88,7 @@ class CustomTextTheme extends ThemeExtension<CustomTextTheme> {
       headerStyle: GoogleFonts.lato().copyWith(
         inherit: true,
         fontSize: mediumTextSize,
+        fontWeight: FontWeight.w500,
       ),
       exerciseTextStyle: GoogleFonts.lato().copyWith(
         inherit: true,
@@ -150,7 +151,7 @@ class CustomTextTheme extends ThemeExtension<CustomTextTheme> {
       captionStyle: GoogleFonts.lato().copyWith(
         inherit: true,
         fontSize: tinyTextSize,
-        color: const Color.fromARGB(255, 139, 139, 139),
+        color: const Color.fromARGB(255, 67, 64, 64),
       ),
       descriptionStyle: GoogleFonts.lato().copyWith(
         inherit: true,
@@ -159,6 +160,7 @@ class CustomTextTheme extends ThemeExtension<CustomTextTheme> {
       headerStyle: GoogleFonts.lato().copyWith(
         inherit: true,
         fontSize: mediumTextSize,
+        fontWeight: FontWeight.w500,
       ),
       exerciseTextStyle: GoogleFonts.lato().copyWith(
         inherit: true,

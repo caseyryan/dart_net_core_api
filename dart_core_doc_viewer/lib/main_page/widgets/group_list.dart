@@ -5,7 +5,7 @@ import 'package:dart_core_doc_viewer/ui/horizontal_line.dart';
 import 'package:dart_core_doc_viewer/ui/themes/theme_switch.dart';
 import 'package:flutter/material.dart';
 
-import 'api_group_tile.dart';
+import 'tiles/api_group_tile.dart';
 
 class GroupData {
   final ApiGroupModel group;
@@ -17,6 +17,7 @@ class GroupData {
   });
 
   bool isExpanded = false;
+
 }
 
 class GroupList extends StatelessWidget {
@@ -25,11 +26,13 @@ class GroupList extends StatelessWidget {
     required this.controllersByGroups,
     required this.onControllerSelected,
     required this.onExpandToggle,
+    required this.selectedController,
   });
 
   final List<GroupData> controllersByGroups;
   final ValueChanged<GroupData> onExpandToggle;
   final ValueChanged<ControllerApiModel> onControllerSelected;
+  final ControllerApiModel? selectedController;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +62,7 @@ class GroupList extends StatelessWidget {
                       return ApiGroupTile(
                         key: ValueKey(e),
                         groupData: e,
+                        selectedController: selectedController,
                         onControllerSelected: onControllerSelected,
                         onExpandToggle: onExpandToggle,
                       );

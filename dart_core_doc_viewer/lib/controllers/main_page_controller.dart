@@ -1,12 +1,20 @@
 import 'package:dart_core_doc_viewer/api/base_api_dio.dart';
 import 'package:dart_core_doc_viewer/api/doc_api_dio.dart';
+import 'package:dart_core_doc_viewer/api/response_models/documentation_response/api_endpoint_model.dart';
 import 'package:dart_core_doc_viewer/api/response_models/documentation_response/api_group_model.dart';
 import 'package:dart_core_doc_viewer/api/response_models/documentation_response/controller_api_model.dart';
 import 'package:dart_core_doc_viewer/api/response_models/documentation_response/documentation_response.dart';
 import 'package:dart_core_doc_viewer/main_page/widgets/group_list.dart';
+import 'package:flutter/material.dart';
 import 'package:lite_state/lite_state.dart';
 
+MainPageController get mainPageController {
+  return findController<MainPageController>();
+}
+
 class MainPageController extends LiteStateController<MainPageController> {
+
+
   DocumentationResponse? _documentationResponse;
   DocumentationResponse? get documentationResponse => _documentationResponse;
 
@@ -14,6 +22,15 @@ class MainPageController extends LiteStateController<MainPageController> {
   ControllerApiModel? get selectedController {
     _selectedController ??= controllers.firstOrNull;
     return _selectedController;
+  }
+
+  String _searchValue = '';
+  String get searchValue => _searchValue;
+
+  Future onEndpointSearch(String value) async {
+    debugPrint('SEARCH VALUE: $value');
+    _searchValue = value;
+    rebuild();
   }
 
   final List<GroupData> _controllersByGroups = [];
@@ -27,8 +44,21 @@ class MainPageController extends LiteStateController<MainPageController> {
     return _documentationResponse != null;
   }
 
-  Future onControllerSelected(ControllerApiModel value) async {
+  List<ApiEndpointModel> get endpoints {
+    final selectedEndpoints = _selectedController?.endpoints ?? [];
+    if (_searchValue.isNotEmpty) {
+      return selectedEndpoints.where((e) => e.isMatchingSearch(_searchValue)).toList();
+    }
+    return selectedEndpoints;
+  }
 
+  void onControllerSelected(ControllerApiModel value)  {
+    if (_selectedController == value) {
+      return;
+    }
+    // _searchValue = '';
+    _selectedController = value;
+    rebuild();
   }
 
   void onGroupExpanded(GroupData value) {
@@ -43,7 +73,14 @@ class MainPageController extends LiteStateController<MainPageController> {
   @override
   void reset() {}
 
-  Future loadDocumentation() async {
+  Future loadDocumentation([bool force = false,]) async {
+    if (force) {
+      _controllersByGroups.clear();
+      stopAllLoadings();
+    }
+    if (isLoading || _controllersByGroups.isNotEmpty) {
+      return;
+    }
     startLoading();
     _controllersByGroups.clear();
     final temp = <ApiGroupModel, List<ControllerApiModel>>{};

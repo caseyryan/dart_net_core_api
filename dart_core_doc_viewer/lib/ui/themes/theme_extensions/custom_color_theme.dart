@@ -36,7 +36,7 @@ class CustomColorTheme extends ThemeExtension<CustomColorTheme> {
       wordHighlightColor: Color.fromARGB(255, 250, 250, 224),
       paleBackgroundColor: Color.fromARGB(255, 247, 247, 247),
       positiveColor: Color.fromARGB(255, 32, 187, 37),
-      negativeColor: Color.fromARGB(255, 238, 131, 131),
+      negativeColor: Color.fromARGB(255, 213, 64, 64),
       warningColor: Colors.orange,
       transparentButtonContentColor: Color(0xFF373737),
       normalTextColor: Color(0xFF373737),

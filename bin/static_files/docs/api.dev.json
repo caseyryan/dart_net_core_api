@@ -24,8 +24,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1963-09-06T00:00:00.000",
-                  "refresh_expires_at": "1995-05-20T00:00:00.000"
+                  "bearer_expires_at": "1975-05-17T00:00:00.000",
+                  "refresh_expires_at": "1993-10-06T00:00:00.000"
                 }
               }
             },
@@ -89,8 +89,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1968-11-21T00:00:00.000",
-                  "refresh_expires_at": "1955-05-08T00:00:00.000"
+                  "bearer_expires_at": "1980-08-27T00:00:00.000",
+                  "refresh_expires_at": "1977-11-15T00:00:00.000"
                 }
               }
             },
@@ -170,16 +170,16 @@
                 "error": {},
                 "data": {
                   "roles": [],
-                  "first_name": "Nada",
-                  "last_name": "Skinner",
-                  "email": "philbert.watson@example.com",
-                  "phone": "+7 (389) 647-93-00",
-                  "middle_name": "Jean-Francois",
-                  "nick_name": "Markus",
-                  "birth_date": "1965-07-02",
-                  "id": 638,
-                  "created_at": "1981-05-01T00:00:00.000",
-                  "updated_at": "1987-02-17T00:00:00.000",
+                  "first_name": "Andrei",
+                  "last_name": "Price",
+                  "email": "chet.mullen@example.com",
+                  "phone": "+7 (738) 552 8500",
+                  "middle_name": "Rickie",
+                  "nick_name": "Jeannette",
+                  "birth_date": "1978-06-25",
+                  "id": 637,
+                  "created_at": "2000-01-13T00:00:00.000",
+                  "updated_at": "1951-09-18T00:00:00.000",
                   "is_deleted": false
                 }
               }

@@ -5,6 +5,8 @@ import 'package:lite_state/lite_state.dart';
 import '../controllers/main_page_controller.dart';
 
 class MainPage extends StatefulWidget {
+  static const String routeName = 'MainPage';
+
   const MainPage({super.key});
 
   @override
@@ -12,12 +14,9 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final MainPageController _controller = MainPageController();
-
   @override
   Widget build(BuildContext context) {
     return LiteState<MainPageController>(
-      controller: _controller,
       onReady: (MainPageController controller) {
         controller.loadDocumentation();
       },

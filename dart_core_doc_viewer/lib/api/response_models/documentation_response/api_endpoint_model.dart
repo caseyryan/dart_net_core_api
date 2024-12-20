@@ -21,14 +21,32 @@ class ApiEndpointModel {
   @JsonKey(name: 'response_models')
   List<ResponseModel>? responseModels;
 
+  String? _searchString;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  String get searchString {
+    if (_searchString?.isNotEmpty != true) {
+      final responseSearchStrings = responseModels?.map((e) => e.searchString).join('');
+      _searchString = '$responseSearchStrings,$path,$method$title$description'.toLowerCase();
+    }
+    return _searchString ?? '';
+  }
+
+  bool isMatchingSearch(String searchFor) {
+    return searchString.contains(searchFor.toLowerCase());
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool isExpanded = false;
+
   static ApiEndpointModel deserialize(Map<String, dynamic> json) {
     return ApiEndpointModel.fromJson(json);
   }
 
   factory ApiEndpointModel.fromJson(Map<String, dynamic> json) {
-      return _$ApiEndpointModelFromJson(json);
-    }
-  
+    return _$ApiEndpointModelFromJson(json);
+  }
+
   Map<String, dynamic> toJson() {
     return _$ApiEndpointModelToJson(this);
   }
