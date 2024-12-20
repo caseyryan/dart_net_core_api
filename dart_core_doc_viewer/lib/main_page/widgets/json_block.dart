@@ -6,8 +6,6 @@ import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_text_them
 import 'package:flutter/material.dart';
 import 'package:flutter_highlighting/flutter_highlighting.dart';
 import 'package:flutter_highlighting/themes/github-dark-dimmed.dart';
-import 'package:flutter_highlighting/themes/github-dark.dart';
-import 'package:flutter_highlighting/themes/github-gist.dart';
 import 'package:flutter_highlighting/themes/github.dart';
 import 'package:highlighting/languages/json.dart';
 import 'package:lite_state/lite_state.dart';

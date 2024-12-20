@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 extension StringExtensions on String {
   String toSvgPath() => 'assets/svg/$this.svg';

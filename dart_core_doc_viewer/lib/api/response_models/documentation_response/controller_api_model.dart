@@ -1,6 +1,5 @@
 // ignore_for_file: depend_on_referenced_packages
 import 'package:dart_core_doc_viewer/extensions/string_extensions.dart';
-import 'package:dart_core_doc_viewer/ui/themes/theme_switch.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'api_group_model.dart';
 import 'api_endpoint_model.dart';

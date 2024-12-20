@@ -68,8 +68,8 @@ class ResponseList extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: LiteSearchField(
-                initialValue: mainPageController.searchValue,
-                hintText: 'Filter by endpoint name or description...',
+                initialValue: mainPageController.endpointSearchValue,
+                hintText: 'Filter endpoints...',
                 onSearch: mainPageController.onEndpointSearch,
               ),
             ),

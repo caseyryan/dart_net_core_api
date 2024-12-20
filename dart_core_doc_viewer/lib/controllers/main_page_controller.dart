@@ -24,12 +24,21 @@ class MainPageController extends LiteStateController<MainPageController> {
     return _selectedController;
   }
 
-  String _searchValue = '';
-  String get searchValue => _searchValue;
+  String _endpointSearchValue = '';
+  String get endpointSearchValue => _endpointSearchValue;
 
-  Future onEndpointSearch(String value) async {
-    debugPrint('SEARCH VALUE: $value');
-    _searchValue = value;
+  String _groupSearchValue = '';
+  String get groupSearchValue => _groupSearchValue;
+
+  void onEndpointSearch(String value) {
+    debugPrint('ENDPOINT SEARCH VALUE: $value');
+    _endpointSearchValue = value;
+    rebuild();
+  }
+
+  void onGroupSearch(String value) {
+    debugPrint('GROUP SEARCH VALUE: $value');
+    _groupSearchValue = value;
     rebuild();
   }
 
@@ -46,8 +55,8 @@ class MainPageController extends LiteStateController<MainPageController> {
 
   List<ApiEndpointModel> get endpoints {
     final selectedEndpoints = _selectedController?.endpoints ?? [];
-    if (_searchValue.isNotEmpty) {
-      return selectedEndpoints.where((e) => e.isMatchingSearch(_searchValue)).toList();
+    if (_endpointSearchValue.isNotEmpty) {
+      return selectedEndpoints.where((e) => e.isMatchingSearch(_endpointSearchValue)).toList();
     }
     return selectedEndpoints;
   }

@@ -1,7 +1,8 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:async';
 import 'dart:math';
 
-import 'package:dart_core_doc_viewer/main.dart';
 import 'package:dart_core_doc_viewer/ui/text/description.dart';
 import 'package:dart_core_doc_viewer/ui/text/header.dart';
 import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_color_theme.dart';

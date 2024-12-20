@@ -15,22 +15,17 @@ class WideScreenLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       children: [
         Expanded(
           flex: 30,
-          child: GroupList(
-            selectedController: controller.selectedController,
-            controllersByGroups: controller.controllersByGroups,
-            onControllerSelected: controller.onControllerSelected,
-            onExpandToggle: controller.onGroupExpanded,
-          ),
+          child: GroupList(),
         ),
-        const SizedBox(
+        SizedBox(
           height: 3.0,
         ),
-        const VerticalLine(),
-        const Expanded(
+        VerticalLine(),
+        Expanded(
           flex: 80,
           child: ResponseList(),
         ),
