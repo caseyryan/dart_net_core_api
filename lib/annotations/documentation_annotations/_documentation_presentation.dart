@@ -38,15 +38,19 @@ class _EndpointParameterDocumentationPresentation {
     // this.max,
   });
 
-  static String _toTypePresentation(
+  static Object? _toTypePresentation(
     Type? dartType,
     bool isBodyParam,
   ) {
     if (!isBodyParam) {
       return dartType.toString();
     }
-    final value = dartType!.toJson(includeNullValues: true);
-    return JsonEncoder.withIndent("  ").convert(value);
+    final value = dartType!.toJson(
+      includeNullValues: true,
+      onBeforeValueSetting: defaultParameterValueSetter,
+    );
+    return value;
+    // return JsonEncoder.withIndent("  ").convert(value);
   }
 
   factory _EndpointParameterDocumentationPresentation.fromMethodParameter(

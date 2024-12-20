@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 import 'package:json_annotation/json_annotation.dart';
+import 'endpoint_param.dart';
 import 'response_model.dart';
 
 part 'api_endpoint_model.g.dart';
@@ -12,6 +13,7 @@ class ApiEndpointModel {
     this.method,
     this.path,
     this.responseModels,
+    this.params,
   });
 
   String? description;
@@ -20,6 +22,7 @@ class ApiEndpointModel {
   String? path;
   @JsonKey(name: 'response_models')
   List<ResponseModel>? responseModels;
+  List<EndpointParam>? params;
 
   String? _searchString;
 

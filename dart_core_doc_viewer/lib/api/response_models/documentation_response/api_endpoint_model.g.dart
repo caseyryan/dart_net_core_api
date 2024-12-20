@@ -15,6 +15,9 @@ ApiEndpointModel _$ApiEndpointModelFromJson(Map<String, dynamic> json) =>
       responseModels: (json['response_models'] as List<dynamic>?)
           ?.map((e) => ResponseModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      params: (json['params'] as List<dynamic>?)
+          ?.map((e) => EndpointParam.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$ApiEndpointModelToJson(ApiEndpointModel instance) =>
@@ -25,4 +28,5 @@ Map<String, dynamic> _$ApiEndpointModelToJson(ApiEndpointModel instance) =>
       'path': instance.path,
       'response_models':
           instance.responseModels?.map((e) => e.toJson()).toList(),
+      'params': instance.params?.map((e) => e.toJson()).toList(),
     };

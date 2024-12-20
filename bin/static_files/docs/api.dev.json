@@ -24,8 +24,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1975-05-17T00:00:00.000",
-                  "refresh_expires_at": "1993-10-06T00:00:00.000"
+                  "bearer_expires_at": "1979-05-25T00:00:00.000",
+                  "refresh_expires_at": "1955-01-03T00:00:00.000"
                 }
               }
             },
@@ -74,7 +74,11 @@
           "path": "/api/v1/auth/login/basic",
           "params": [
             {
-              "type": "{\n  \"email\": null,\n  \"phone\": null,\n  \"password\": null\n}",
+              "type": {
+                "email": "twila.kessler@example.com",
+                "phone": "+75057655700",
+                "password": "string"
+              },
               "name": "basicLoginData",
               "is_body_param": true,
               "is_required": true
@@ -89,8 +93,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1980-08-27T00:00:00.000",
-                  "refresh_expires_at": "1977-11-15T00:00:00.000"
+                  "bearer_expires_at": "1956-11-25T00:00:00.000",
+                  "refresh_expires_at": "1963-05-04T00:00:00.000"
                 }
               }
             },
@@ -170,16 +174,16 @@
                 "error": {},
                 "data": {
                   "roles": [],
-                  "first_name": "Andrei",
-                  "last_name": "Price",
-                  "email": "chet.mullen@example.com",
-                  "phone": "+7 (738) 552 8500",
-                  "middle_name": "Rickie",
-                  "nick_name": "Jeannette",
-                  "birth_date": "1978-06-25",
-                  "id": 637,
-                  "created_at": "2000-01-13T00:00:00.000",
-                  "updated_at": "1951-09-18T00:00:00.000",
+                  "first_name": "Pablo",
+                  "last_name": "Steele",
+                  "email": "thia.clarke@example.com",
+                  "phone": "+7 (930) 974-28-00",
+                  "middle_name": "Xylina",
+                  "nick_name": "Lynnet",
+                  "birth_date": "1979-06-01",
+                  "id": 862,
+                  "created_at": "1956-07-02T00:00:00.000",
+                  "updated_at": "1995-02-02T00:00:00.000",
                   "is_deleted": false
                 }
               }

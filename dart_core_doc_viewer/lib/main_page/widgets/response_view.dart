@@ -1,6 +1,6 @@
 import 'package:dart_core_doc_viewer/api/response_models/documentation_response/response_model.dart';
 import 'package:dart_core_doc_viewer/constants.dart';
-import 'package:dart_core_doc_viewer/extensions/map_extenstions.dart';
+import 'package:dart_core_doc_viewer/extensions/map_extensions.dart';
 import 'package:dart_core_doc_viewer/main_page/widgets/json_block.dart';
 import 'package:dart_core_doc_viewer/ui/text/description.dart';
 import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_color_theme.dart';

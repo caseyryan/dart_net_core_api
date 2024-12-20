@@ -7,6 +7,7 @@ import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_color_the
 import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_text_theme.dart';
 import 'package:flutter/material.dart';
 
+import '../parameters_view.dart';
 import '../response_view.dart';
 
 class EndpointTile extends StatefulWidget {
@@ -67,6 +68,16 @@ class _EndpointTileState extends State<EndpointTile> {
               isOpen: widget.model.isExpanded,
             ),
           ),
+          ParametersView(
+            paddingBottom: kPadding,
+            paddingTop: kPadding,
+            paddingLeft: 0.0,
+            paddingRight: 0.0,
+            key: Key(
+              'params_view_${widget.model.method!.toUpperCase()}',
+            ),
+            model: widget.model,
+          ),
           if (widget.model.isExpanded)
             ...widget.model.responseModels!.map(
               (e) {
@@ -77,7 +88,6 @@ class _EndpointTileState extends State<EndpointTile> {
                   paddingRight: 0.0,
                   key: ValueKey(e),
                   model: e,
-                  
                 );
               },
             ),

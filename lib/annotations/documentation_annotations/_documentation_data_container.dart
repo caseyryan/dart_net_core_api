@@ -46,47 +46,7 @@ class APIControllerDocumentationContainer {
       tryUseNativeSerializerMethodsIfAny: false,
       includeNullValues: true,
       keyNameConverter: globalDefaultKeyNameConverter,
-      onBeforeValueSetting: (value, dartType, keyName) {
-        if (value == null) {
-          if (dartType == DateTime) {
-            return generateRandomDate();
-          } else if (dartType == int) {
-            return generateRandomInt(0, 999);
-          } else if (dartType == double || dartType == num) {
-            return generateRandomDouble(0.0, 1000.0);
-          } else if (dartType == String) {
-            final lowerName = keyName.toLowerCase();
-            if (lowerName.contains('name')) {
-              if (lowerName.contains('first')) {
-                return generateRandomFirstName();
-              } else if (lowerName.contains('last')) {
-                return generateRandomLastName();
-              } else if (lowerName.contains('middle') || lowerName.contains('second')) {
-                return generateRandomFirstName();
-              }
-              return generateRandomFirstName();
-            }
-            if (lowerName.contains('email')) {
-              return generateRandomEmail();
-            }
-            if (lowerName.contains('phone')) {
-              return generateRandomPhone();
-            }
-            return 'string';
-          } else if (dartType == bool) {
-            return false;
-          }
-
-          if (value == null && !dartType.isPrimitive) {
-            return dartType.newTypedInstance();
-          }
-        } else {
-          if (value is DateTime) {
-            return generateRandomDate();
-          }
-        }
-        return value;
-      },
+      onBeforeValueSetting: defaultParameterValueSetter,
     ) as Map;
 
     return map;
@@ -177,4 +137,51 @@ class EndpointDocumentationContainer {
 
     return presentation;
   }
+}
+
+/// tries to set some default values to documentation type parameters
+Object? defaultParameterValueSetter(
+  Object? value,
+  Type dartType,
+  String keyName,
+) {
+  if (value == null) {
+    if (dartType == DateTime) {
+      return generateRandomDate();
+    } else if (dartType == int) {
+      return generateRandomInt(0, 999);
+    } else if (dartType == double || dartType == num) {
+      return generateRandomDouble(0.0, 1000.0);
+    } else if (dartType == String) {
+      final lowerName = keyName.toLowerCase();
+      if (lowerName.contains('name')) {
+        if (lowerName.contains('first')) {
+          return generateRandomFirstName();
+        } else if (lowerName.contains('last')) {
+          return generateRandomLastName();
+        } else if (lowerName.contains('middle') || lowerName.contains('second')) {
+          return generateRandomFirstName();
+        }
+        return generateRandomFirstName();
+      }
+      if (lowerName.contains('email')) {
+        return generateRandomEmail();
+      }
+      if (lowerName.contains('phone')) {
+        return generateRandomPhone();
+      }
+      return 'string';
+    } else if (dartType == bool) {
+      return false;
+    }
+
+    if (value == null && !dartType.isPrimitive) {
+      return dartType.newTypedInstance();
+    }
+  } else {
+    if (value is DateTime) {
+      return generateRandomDate();
+    }
+  }
+  return value;
 }
