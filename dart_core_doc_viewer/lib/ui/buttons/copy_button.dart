@@ -1,4 +1,6 @@
+import 'package:dart_core_doc_viewer/ui/snack_bar_overlay.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CopyButton extends StatelessWidget {
   const CopyButton({
@@ -10,6 +12,15 @@ class CopyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return IconButton(
+      onPressed: () async {
+        await Clipboard.setData(ClipboardData(text: text));
+        showInformation(text: 'The text has been copied to the clipboard.');
+      },
+      icon: const Icon(
+        Icons.copy,
+        size: 18.0,
+      ),
+    );
   }
 }

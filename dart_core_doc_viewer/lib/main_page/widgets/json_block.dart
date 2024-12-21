@@ -2,6 +2,7 @@
 
 import 'package:dart_core_doc_viewer/constants.dart';
 import 'package:dart_core_doc_viewer/controllers/theme_controller.dart';
+import 'package:dart_core_doc_viewer/ui/buttons/copy_button.dart';
 import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_highlighting/flutter_highlighting.dart';
@@ -31,12 +32,22 @@ class JsonBlock extends StatelessWidget {
           color: bgColor,
           child: SizedBox(
             width: double.infinity,
-            child: HighlightView(
-              code,
-              languageId: json.id,
-              theme: colorTheme,
-              padding: const EdgeInsets.all(kPadding),
-              textStyle: CustomTextTheme.of(context).defaultStyle,
+            child: Stack(
+              children: [
+                HighlightView(
+                  code,
+                  languageId: json.id,
+                  theme: colorTheme,
+                  padding: const EdgeInsets.all(kPadding),
+                  textStyle: CustomTextTheme.of(context).defaultStyle,
+                ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: CopyButton(
+                    text: code,
+                  ),
+                ),
+              ],
             ),
           ),
         );

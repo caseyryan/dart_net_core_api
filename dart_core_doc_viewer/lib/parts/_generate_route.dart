@@ -1,6 +1,5 @@
 part of '../main.dart';
 
-
 Route<dynamic>? _generateRoute(
   RouteSettings routeSettings,
 ) {

@@ -1,8 +1,10 @@
 import 'package:dart_core_doc_viewer/api/response_models/documentation_response/api_endpoint_model.dart';
 import 'package:dart_core_doc_viewer/constants.dart';
+import 'package:dart_core_doc_viewer/main_page/widgets/highlighted_wrapper.dart';
 import 'package:dart_core_doc_viewer/ui/animated_arrow_icon.dart';
 import 'package:dart_core_doc_viewer/ui/horizontal_line.dart';
 import 'package:dart_core_doc_viewer/ui/text/caption.dart';
+import 'package:dart_core_doc_viewer/ui/text/description.dart';
 import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_color_theme.dart';
 import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_text_theme.dart';
 import 'package:flutter/material.dart';
@@ -68,22 +70,28 @@ class _EndpointTileState extends State<EndpointTile> {
               isOpen: widget.model.isExpanded,
             ),
           ),
-          ParametersView(
-            paddingBottom: kPadding,
-            paddingTop: kPadding,
-            paddingLeft: 0.0,
-            paddingRight: 0.0,
-            key: Key(
-              'params_view_${widget.model.method!.toUpperCase()}',
+          if (widget.model.isExpanded) ...[
+            ParametersView(
+              paddingTop: 0.0,
+              paddingBottom: 0.0,
+              paddingLeft: 0.0,
+              paddingRight: 0.0,
+              key: Key(
+                'params_view_${widget.model.method!.toUpperCase()}',
+              ),
+              model: widget.model,
             ),
-            model: widget.model,
-          ),
-          if (widget.model.isExpanded)
+            HighlightedWrapper(
+              child: Description(
+                text: 'Responses examples:',
+                style: CustomTextTheme.of(context).boldStyle,
+              ),
+            ),
             ...widget.model.responseModels!.map(
               (e) {
                 return ResponseView(
-                  paddingBottom: kPadding,
-                  paddingTop: kPadding,
+                  paddingBottom: 0.0,
+                  paddingTop: 0.0,
                   paddingLeft: 0.0,
                   paddingRight: 0.0,
                   key: ValueKey(e),
@@ -91,6 +99,7 @@ class _EndpointTileState extends State<EndpointTile> {
                 );
               },
             ),
+          ],
           const HorizontalLine(),
         ],
       ),

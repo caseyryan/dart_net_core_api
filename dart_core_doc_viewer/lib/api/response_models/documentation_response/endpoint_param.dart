@@ -13,7 +13,7 @@ class EndpointParam {
     this.isRequired,
   });
 
-  String? type;
+  Object? type;
   String? name;
   @JsonKey(name: 'is_body_param')
   bool? isBodyParam;

@@ -20,13 +20,15 @@ part 'parts/_init_lite_forms.dart';
 part 'parts/_widget_builder.dart';
 part 'parts/_generate_route.dart';
 
+GlobalKey<NavigatorState> get navigatorKey => GlobalKey<NavigatorState>();
+
 void main() {
   runApp(const App());
 }
 
+
 class App extends StatefulWidget {
   const App({super.key});
-  static GlobalKey<NavigatorState> get navigatorKey => GlobalKey();
 
   @override
   State<App> createState() => _AppState();
@@ -65,7 +67,7 @@ class _AppState extends State<App> {
         return LiteState<ThemeController>(
           builder: (BuildContext c, ThemeController themeController) {
             return MaterialApp(
-              navigatorKey: App.navigatorKey,
+              navigatorKey: navigatorKey,
               title: 'Api Documentation',
               debugShowCheckedModeBanner: false,
               showPerformanceOverlay: false,

@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 
 
 NavigatorState get navigatorState {
-  return App.navigatorKey.currentState!;
+  return navigatorKey.currentState!;
 }
 
 BuildContext get appContext {
-  return App.navigatorKey.currentContext!;
+  return navigatorKey.currentContext!;
 }
 
 Future<T?> pushNamed<T extends Object?>(

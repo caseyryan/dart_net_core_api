@@ -8,7 +8,7 @@ part of 'endpoint_param.dart';
 
 EndpointParam _$EndpointParamFromJson(Map<String, dynamic> json) =>
     EndpointParam(
-      type: json['type'] as String?,
+      type: json['type'],
       name: json['name'] as String?,
       isBodyParam: json['is_body_param'] as bool?,
       isRequired: json['is_required'] as bool?,
