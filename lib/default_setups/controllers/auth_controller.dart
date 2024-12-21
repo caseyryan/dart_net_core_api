@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_import
+
 import 'dart:io';
 
 import 'package:dart_core_orm/dart_core_orm.dart';
@@ -5,6 +7,7 @@ import 'package:dart_net_core_api/annotations/controller_annotations.dart';
 import 'package:dart_net_core_api/annotations/documentation_annotations/documentation_annotations.dart';
 import 'package:dart_net_core_api/default_setups/models/db_models/password.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
+import 'package:dart_net_core_api/exports.dart';
 import 'package:dart_net_core_api/jwt/config/jwt_config.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';
 import 'package:dart_net_core_api/jwt/token_response.dart';
@@ -13,7 +16,7 @@ import 'package:dart_net_core_api/server.dart';
 
 import '../models/db_models/refresh_token.dart';
 import '../models/dto/basic_auth_data.dart';
-import '../models/db_models/user.dart';
+import '../models/db_models/abstract_user.dart';
 import '../models/dto/basic_login_data.dart';
 
 enum LogoutScope {
@@ -32,7 +35,10 @@ enum LogoutScope {
     id: 'user-area',
   ),
 )
-class AuthController extends ApiController {
+class AuthController<
+  TUser extends AbstractUser, 
+  TSignupData extends BasicSignupData,
+  TLoginData extends BasicLoginData> extends ApiController {
   AuthController(
     this.jwtService,
     this.passwordHashService,
@@ -223,7 +229,7 @@ class AuthController extends ApiController {
       );
     }
 
-    final user = await (User()..id = userId).findOne<User>();
+    final user = await (((TUser).newTypedInstance() as TUser)..id = userId,).findOne<TUser>();
 
     return _createTokenResponseForUser(
       user,
@@ -252,15 +258,19 @@ class AuthController extends ApiController {
     The accepted user name might be a phone or an email, or both. 
     ''',
   )
+
+  /// [TUser] can be your own user model.
+  /// It must extend [AbstractUser] to avoid possible problems
+  /// with basic user operations, but the rest is up to you.
+  /// You may add whatever fields you need to your user model
   @HttpPost('/auth/login/basic')
   Future<TokenResponse?> login(
-    @FromBody() BasicLoginData basicLoginData,
+    @FromBody() TLoginData basicLoginData,
   ) async {
     basicLoginData.validate();
-    var user = User()
-      ..email = basicLoginData.email
-      ..phone = basicLoginData.phone;
-    final result = await user.tryFind<User>();
+    final loginDataJson = basicLoginData.toJson() as Map;
+    var user = (TUser).fromJson(loginDataJson) as TUser;
+    final result = await user.tryFind<TUser>();
 
     if (result.isError == false && result.value == null) {
       throw NotFoundException(
@@ -381,18 +391,10 @@ class AuthController extends ApiController {
     }
   }
 
-  // @JwtAuthWithRefresh()
-  // @HttpGet('/auth/profile')
-  // Future<User?> getProfile() async {
-  //   final user = await userStoreService.findOneByIdAsync(id: userId!);
-  //   user?.passwordHash = null;
-  //   return user;
-  // }
-
   /// When JwtAuth annotation is used on a controller or an endpoint
   /// this payload will be accessible via httpContext -> jwtPayload
   JwtPayload _toUserTokenPayload(
-    User user,
+    TUser user,
     String? publicKey,
   ) {
     final payload = JwtPayload(
@@ -404,7 +406,7 @@ class AuthController extends ApiController {
   }
 
   Future<TokenResponse?> _createTokenResponseForUser(
-    User user, {
+    TUser user, {
     bool? forceNewRefreshToken,
   }) async {
     TokenResponse? refreshTokenResponse = await _getOrCreateRefreshToken(
@@ -474,17 +476,15 @@ class AuthController extends ApiController {
 
   @HttpPost('/auth/signup/basic')
   Future<TokenResponse?> signup(
-    @FromBody() BasicSignupData basicSignupData,
+    @FromBody() TSignupData basicSignupData,
   ) async {
-    /// will throw exception is is not ok
+    /// will throw exception if is not ok
     basicSignupData.validate();
-
-    User? user = User()
-      ..email = basicSignupData.email
-      ..phone = basicSignupData.phone;
+    final signupDataJson = basicSignupData.toJson() as Map;
+    TUser? user = (TUser).fromJson(signupDataJson) as TUser;
 
     /// check if a user like this is already present
-    var result = await user.tryFind<User>();
+    var result = await user.tryFind<TUser>();
     if (result.value != null) {
       throw ConflictException(
         message: 'User already exists',
@@ -492,7 +492,7 @@ class AuthController extends ApiController {
       );
     } else if (result.isError) {
       if (result.error!.isTableNotExists) {
-        final result = await (User).createTable();
+        final result = await (TUser).createTable();
         if (result == false) {
           throw InternalServerException(
             message: 'Could not create table',
@@ -510,19 +510,13 @@ class AuthController extends ApiController {
     final passwordHash = passwordHashService.hash(
       basicSignupData.password,
     );
-    user = User()
-      ..firstName = basicSignupData.firstName
-      ..lastName = basicSignupData.lastName
-      ..email = basicSignupData.email
-      ..phone = basicSignupData.phone
-      ..birthDate = basicSignupData.birthDate
-      ..nickName = basicSignupData.nickName
-      ..middleName = basicSignupData.middleName
+    final jsonBody = basicSignupData.toJson();
+    user = (TUser).fromJson(jsonBody) as TUser
       ..roles = [
         Role.user,
       ];
 
-    final userInsertResult = await user.tryInsertOne<User>(
+    final userInsertResult = await user.tryInsertOne<TUser>(
       conflictResolution: ConflictResolution.error,
     );
     if (userInsertResult.isError) {
@@ -543,7 +537,7 @@ class AuthController extends ApiController {
       if (passwordInsertResult.isError) {
         /// if a password for a new user was not created
         /// remove the newly created user as well
-        await ((User).delete().where([
+        await ((TUser).delete().where([
           ORMWhereEqual(
             key: 'id',
             value: user.id,

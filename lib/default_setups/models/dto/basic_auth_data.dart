@@ -1,6 +1,7 @@
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
+@JsonExcludeParentFields()
 class BasicSignupData {
   @JsonTrimString()
   @EmailValidator(canBeNull: true)

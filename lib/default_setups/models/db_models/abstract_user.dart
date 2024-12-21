@@ -13,7 +13,8 @@ import 'base_model.dart';
 /// own validators extending [JsonValueValidator] class
 
 
-class User extends BaseModel {
+@TableName('users')
+class AbstractUser extends BaseModel {
   
   @ORMEnumConverter()
   List<Role>? roles;
@@ -68,7 +69,7 @@ class User extends BaseModel {
   DateTime? birthDate;
 
   @override
-  bool operator ==(covariant User other) {
+  bool operator ==(covariant AbstractUser other) {
     return other.id == id;
   }
 

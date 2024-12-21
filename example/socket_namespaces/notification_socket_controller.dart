@@ -1,6 +1,6 @@
 import 'package:dart_net_core_api/annotations/socket_controller_annotations.dart';
 import 'package:dart_net_core_api/base_services/socket_service/socket_controller.dart';
-import 'package:dart_net_core_api/default_setups/models/db_models/user.dart';
+import 'package:dart_net_core_api/default_setups/models/db_models/abstract_user.dart';
 
 
 @SocketJwtAuthorization()
@@ -12,14 +12,14 @@ class NotificationSocketController extends SocketController {
     name: 'getProfile',
     responseReceiverName: 'onProfile',
   )
-  Future<User?> getProfile(
+  Future<AbstractUser?> getProfile(
     int id,
     bool withAge, {
     String? firstName,
     required String lastName,
   }) async {
     print('CLIENT CALLED REMOTE METHOD $client');
-    final user = User()
+    final user = AbstractUser()
       ..firstName = firstName
       ..lastName = lastName;
     return user;

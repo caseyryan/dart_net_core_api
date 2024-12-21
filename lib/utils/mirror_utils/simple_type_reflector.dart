@@ -66,8 +66,7 @@ extension ClassMirrorExtension on ClassMirror {
   }
 
   bool get isList {
-    return qualifiedName == const Symbol('dart.core.List') ||
-        qualifiedName == const Symbol('dart.core.GrowableList');
+    return qualifiedName == const Symbol('dart.core.List') || qualifiedName == const Symbol('dart.core.GrowableList');
   }
 
   bool get isMap {
@@ -94,32 +93,34 @@ bool _isPrimitiveType(Type type) {
 /// Just a wrapper over mirrors to simplify working with
 /// class mirrors, instances and so on
 class SimpleTypeReflector {
-  late ClassMirror _classMirror;
-  late List<dynamic> _annotations;
-  late List<Method> constructors;
-  late List<Method> methods;
-  List<ControllerAnnotation>? _controllerAnnotations;
-  List<APIDocumentationAnnotation>? _apiDocumentationAnnotations;
-  APIControllerDocumentationContainer? _documentationContainer;
-  APIControllerDocumentationContainer? get documentationContainer =>
-      _documentationContainer;
-  // late final bool isApiController;
-  // late final bool isSocketController;
-  late final bool isPrimitive;
-
-  // bool get isList {
-  //   return _classMirror.qualifiedName == const Symbol('dart.core.List');
-  // }
-
-  // bool get isMap {
-  //   return _classMirror.qualifiedName == const Symbol('dart.core.Map');
-  // }
-
-  SimpleTypeReflector(Type fromType) {
+  SimpleTypeReflector(
+    Type fromType, {
+    bool includeSuperClassPropertiesAndMethods = false,
+  }) {
     _classMirror = reflectType(fromType) as ClassMirror;
     isPrimitive = _isPrimitiveType(fromType);
-    final methodMirrors =
-        _classMirror.declarations.values.whereType<MethodMirror>().toList();
+    // final declarationMirrors = [..._classMirror.declarations.values];
+    Iterable<DeclarationMirror> declarationMirrors;
+    if (!includeSuperClassPropertiesAndMethods) {
+      declarationMirrors = _classMirror.declarations.values;
+    } else {
+      /// also including all parent declarations
+      ClassMirror? cMirror = _classMirror.superclass;
+      declarationMirrors = [..._classMirror.declarations.values];
+      while (cMirror != null) {
+        (declarationMirrors as List).addAll(
+          cMirror.declarations.values,
+        );
+        cMirror = cMirror.superclass;
+        if (cMirror?.reflectedType == ApiController) {
+          /// stop at this point since we don't 
+          /// need anything from ApiController
+          /// and below it
+          cMirror = null;
+        }
+      }
+    }
+    final methodMirrors = declarationMirrors.whereType<MethodMirror>().toList();
 
     constructors = methodMirrors
         .where((e) => e.isConstructor)
@@ -142,21 +143,16 @@ class SimpleTypeReflector {
           (e) => e.reflectee,
         )
         .toList();
-    _controllerAnnotations = _annotations
-        .whereType<ControllerAnnotation>()
-        .cast<ControllerAnnotation>()
-        .toList();
-    _apiDocumentationAnnotations =
-        _annotations.whereType<APIDocumentationAnnotation>().toList();
+    _controllerAnnotations = _annotations.whereType<ControllerAnnotation>().cast<ControllerAnnotation>().toList();
+    _apiDocumentationAnnotations = _annotations.whereType<APIDocumentationAnnotation>().toList();
     final List<EndpointDocumentationContainer> methodDocumentations = methods
         .map(
           (e) => e.endpointDocumentationContainer,
         )
         .nonNulls
         .toList();
-    var controllerDocumentationAnnotation = _apiDocumentationAnnotations
-        ?.whereType<APIControllerDocumentation>()
-        .firstOrNull;
+    var controllerDocumentationAnnotation =
+        _apiDocumentationAnnotations?.whereType<APIControllerDocumentation>().firstOrNull;
     controllerDocumentationAnnotation ??= APIControllerDocumentation(
       description: '',
       title: '',
@@ -183,6 +179,15 @@ class SimpleTypeReflector {
 
     // _apiDocumentationAnnotations!.addAll(methodDocumentations);
   }
+  late ClassMirror _classMirror;
+  late List<dynamic> _annotations;
+  late List<Method> constructors;
+  late List<Method> methods;
+  List<ControllerAnnotation>? _controllerAnnotations;
+  List<APIDocumentationAnnotation>? _apiDocumentationAnnotations;
+  APIControllerDocumentationContainer? _documentationContainer;
+  APIControllerDocumentationContainer? get documentationContainer => _documentationContainer;
+  late final bool isPrimitive;
 
   int get numConstructors {
     return constructors.length;
@@ -298,8 +303,7 @@ class Method {
             convertedNamedArguments[Symbol(param.name)] = actualValue;
           } else {
             final expectedType = param.reflectedType;
-            convertedNamedArguments[Symbol(param.name)] =
-                expectedType.fromJson(actualValue);
+            convertedNamedArguments[Symbol(param.name)] = expectedType.fromJson(actualValue);
           }
         }
       }
@@ -323,11 +327,9 @@ class Method {
     required this.methodMirror,
   }) {
     _annotations = methodMirror.metadata.map((e) => e.reflectee).toList();
-    _apiDocumentationAnnotation =
-        _annotations.whereType<APIDocumentationAnnotation>().lastOrNull;
+    _apiDocumentationAnnotation = _annotations.whereType<APIDocumentationAnnotation>().lastOrNull;
 
-    _endpointAnnotation =
-        _annotations.whereType<EndpointAnnotation>().lastOrNull;
+    _endpointAnnotation = _annotations.whereType<EndpointAnnotation>().lastOrNull;
 
     name = methodMirror.simpleName.toName();
     final controllerAnnotation = _annotations.whereType<ControllerAnnotation>();
@@ -344,14 +346,11 @@ class Method {
     _namedParams = parameters.where((e) => e.isNamed).toList();
     _positionalParams = parameters.where((e) => e.isPositional).toList();
 
-
-
     if (_endpointAnnotation != null) {
       if (_apiDocumentationAnnotation is APIEndpointDocumentation) {
         _documentationContainer = EndpointDocumentationContainer(
           endpointAnnotation: _endpointAnnotation!,
-          apiDocumentationAnnotation:
-              _apiDocumentationAnnotation! as APIEndpointDocumentation,
+          apiDocumentationAnnotation: _apiDocumentationAnnotation! as APIEndpointDocumentation,
           positionalParams: _positionalParams,
           namedParams: _namedParams,
         );
@@ -392,11 +391,9 @@ class MethodParameter {
     return _annotations.whereType<FromBody>().isNotEmpty;
   }
 
-
   bool isSubclassOf<T>() {
     return reflectedType.isSubclassOf<T>();
   }
-
 
   bool get isRequired {
     return !isOptional;

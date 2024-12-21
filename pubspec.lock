@@ -377,10 +377,10 @@ packages:
     dependency: "direct main"
     description:
       name: reflect_buddy
-      sha256: "98427159365f700f3be6cc6c47ab084864f11f01f095047572657c88050260ca"
+      sha256: e18f578554baf6cd8697b3a6da66ff8a49766a5d9124e2c507993a018f83ea37
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.1"
+    version: "1.6.2"
   rikulo_commons:
     dependency: transitive
     description:

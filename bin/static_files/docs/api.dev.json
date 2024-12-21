@@ -1,144 +1,6 @@
 {
   "controllers": [
     {
-      "controller_name": "AuthController",
-      "description": "Generates JWT tokens and refresh tokens, creates new user accounts",
-      "title": "User Authorization Controller",
-      "group": {
-        "name": "User Area",
-        "id": "user-area"
-      },
-      "endpoints": [
-        {
-          "description": "Used to retrieve a new bearer JWT token if the refresh token is used and has not expired yet. Basically, it's almost the same as a fresh login but instead of a login and a password it uses a valid JWT bearer token Has no effect if [jwtConfig.useRefreshToken] is false in the config",
-          "title": "Refresh JWT Token",
-          "method": "POST",
-          "path": "/api/v1/auth/refresh-token",
-          "params": [],
-          "response_models": [
-            {
-              "status_code": 200,
-              "content_type": "application/json",
-              "response": {
-                "error": {},
-                "data": {
-                  "bearer_token": "",
-                  "refresh_token": "",
-                  "bearer_expires_at": "1979-05-25T00:00:00.000",
-                  "refresh_expires_at": "1955-01-03T00:00:00.000"
-                }
-              }
-            },
-            {
-              "status_code": 400,
-              "content_type": "application/json",
-              "response": {
-                "error": {
-                  "code": "string",
-                  "message": "string",
-                  "trace_id": "string"
-                },
-                "data": {}
-              }
-            },
-            {
-              "status_code": 401,
-              "content_type": "application/json",
-              "response": {
-                "error": {
-                  "code": "string",
-                  "message": "string",
-                  "trace_id": "string"
-                },
-                "data": {}
-              }
-            },
-            {
-              "status_code": 500,
-              "content_type": "application/json",
-              "response": {
-                "error": {
-                  "code": "string",
-                  "message": "string",
-                  "trace_id": "string"
-                },
-                "data": {}
-              }
-            }
-          ]
-        },
-        {
-          "description": "Performs a simple login with a username and password. The accepted user name might be a phone or an email, or both.",
-          "title": "Basic Login",
-          "method": "POST",
-          "path": "/api/v1/auth/login/basic",
-          "params": [
-            {
-              "type": {
-                "email": "twila.kessler@example.com",
-                "phone": "+75057655700",
-                "password": "string"
-              },
-              "name": "basicLoginData",
-              "is_body_param": true,
-              "is_required": true
-            }
-          ],
-          "response_models": [
-            {
-              "status_code": 200,
-              "content_type": "application/json",
-              "response": {
-                "error": {},
-                "data": {
-                  "bearer_token": "",
-                  "refresh_token": "",
-                  "bearer_expires_at": "1956-11-25T00:00:00.000",
-                  "refresh_expires_at": "1963-05-04T00:00:00.000"
-                }
-              }
-            },
-            {
-              "status_code": 400,
-              "content_type": "application/json",
-              "response": {
-                "error": {
-                  "code": "string",
-                  "message": "string",
-                  "trace_id": "string"
-                },
-                "data": {}
-              }
-            },
-            {
-              "status_code": 401,
-              "content_type": "application/json",
-              "response": {
-                "error": {
-                  "code": "string",
-                  "message": "string",
-                  "trace_id": "string"
-                },
-                "data": {}
-              }
-            },
-            {
-              "status_code": 500,
-              "content_type": "application/json",
-              "response": {
-                "error": {
-                  "code": "string",
-                  "message": "string",
-                  "trace_id": "string"
-                },
-                "data": {}
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
       "controller_name": "UserController",
       "description": "",
       "title": "",
@@ -174,16 +36,16 @@
                 "error": {},
                 "data": {
                   "roles": [],
-                  "first_name": "Pablo",
-                  "last_name": "Steele",
-                  "email": "thia.clarke@example.com",
-                  "phone": "+7 (930) 974-28-00",
-                  "middle_name": "Xylina",
-                  "nick_name": "Lynnet",
-                  "birth_date": "1979-06-01",
-                  "id": 862,
-                  "created_at": "1956-07-02T00:00:00.000",
-                  "updated_at": "1995-02-02T00:00:00.000",
+                  "first_name": "Rodrigo",
+                  "last_name": "Oakley",
+                  "email": "norbert.blackburn@example.com",
+                  "phone": "+7 (635) 266-14-00",
+                  "middle_name": "Ayn",
+                  "nick_name": "Henderson",
+                  "birth_date": "1979-01-01",
+                  "id": 203,
+                  "created_at": "1964-11-21T00:00:00.000",
+                  "updated_at": "1985-06-18T00:00:00.000",
                   "is_deleted": false
                 }
               }

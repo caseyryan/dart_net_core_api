@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/default_setups/configs/failed_password_config.dart';
-import 'package:dart_net_core_api/default_setups/controllers/auth_controller.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/exports.dart';
 

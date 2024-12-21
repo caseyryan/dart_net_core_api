@@ -10,7 +10,10 @@ class ControllerTypeReflector extends SimpleTypeReflector {
     /// If you add BaseApiPath annotation to a controller, it will override the
     /// [baseApiPath] for that controller
     String baseApiPath,
-  ) : super(controllerType) {
+  ) : super(
+          controllerType,
+          includeSuperClassPropertiesAndMethods: true,
+        ) {
     final isApiController = _classMirror.isSubclassOf(
       reflectType(ApiController) as ClassMirror,
     );
@@ -18,9 +21,9 @@ class ControllerTypeReflector extends SimpleTypeReflector {
       isApiController,
       'The provided type: $controllerType does not extend $ApiController. All api controllers must inherit from $ApiController',
     );
-    if (constructors.length > 1) {
-      throw 'A controller must have exactly one constructor but $controllerType has ${constructors.length}';
-    }
+    // if (constructors.length > 1) {
+    //   throw 'A controller must have exactly one constructor but $controllerType has ${constructors.length}';
+    // }
 
     _endpointMethods ??= methods
         .where((e) => e.hasEndpointAnnotations)

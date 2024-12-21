@@ -2,6 +2,7 @@ import 'package:dart_net_core_api/default_setups/controllers/health_controller.d
 import 'package:dart_net_core_api/exports.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';
 
+import 'controllers/extended_auth_controller.dart';
 import 'controllers/user_controller.dart';
 
 void main(List<String> arguments) {
@@ -13,7 +14,8 @@ void main(List<String> arguments) {
     settings: ServerSettings(
       arguments: arguments,
       apiControllers: [
-        AuthController,
+        // AuthController,
+        ExtendedAuthController,
         AdminController,
         HealthController,
         DocumentationController,

@@ -2,6 +2,7 @@ import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/json_utils/value_validators/non_empty_string_validator.dart';
 import 'package:reflect_buddy/reflect_buddy.dart';
 
+@JsonExcludeParentFields()
 class BasicLoginData {
   @JsonTrimString()
   @EmailValidator(canBeNull: true)
