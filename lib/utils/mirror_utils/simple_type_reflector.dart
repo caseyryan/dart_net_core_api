@@ -113,7 +113,7 @@ class SimpleTypeReflector {
         );
         cMirror = cMirror.superclass;
         if (cMirror?.reflectedType == ApiController) {
-          /// stop at this point since we don't 
+          /// stop at this point since we don't
           /// need anything from ApiController
           /// and below it
           cMirror = null;
@@ -121,7 +121,12 @@ class SimpleTypeReflector {
       }
     }
     final methodMirrors = declarationMirrors.whereType<MethodMirror>().toList();
-
+    _annotations = _classMirror.metadata
+        .map(
+          (e) => e.reflectee,
+        )
+        .toList();
+    _controllerAnnotations = _annotations.whereType<ControllerAnnotation>().toList();
     constructors = methodMirrors
         .where((e) => e.isConstructor)
         .map(
@@ -135,22 +140,22 @@ class SimpleTypeReflector {
       (e) {
         return Method(
           methodMirror: e,
+          classAnnotations: _annotations,
         );
       },
     ).toList();
-    _annotations = _classMirror.metadata
-        .map(
-          (e) => e.reflectee,
-        )
-        .toList();
-    _controllerAnnotations = _annotations.whereType<ControllerAnnotation>().cast<ControllerAnnotation>().toList();
+
+    // final classAuthAnnotations = _annotations.whereType<Authorization>();
     _apiDocumentationAnnotations = _annotations.whereType<APIDocumentationAnnotation>().toList();
     final List<EndpointDocumentationContainer> methodDocumentations = methods
         .map(
-          (e) => e.endpointDocumentationContainer,
+          (e) {
+            return e.endpointDocumentationContainer;
+          },
         )
         .nonNulls
         .toList();
+
     var controllerDocumentationAnnotation =
         _apiDocumentationAnnotations?.whereType<APIControllerDocumentation>().firstOrNull;
     controllerDocumentationAnnotation ??= APIControllerDocumentation(
@@ -184,6 +189,7 @@ class SimpleTypeReflector {
   late List<Method> constructors;
   late List<Method> methods;
   List<ControllerAnnotation>? _controllerAnnotations;
+  List<ControllerAnnotation>? get controllerAnnotations => _controllerAnnotations;
   List<APIDocumentationAnnotation>? _apiDocumentationAnnotations;
   APIControllerDocumentationContainer? _documentationContainer;
   APIControllerDocumentationContainer? get documentationContainer => _documentationContainer;
@@ -260,11 +266,13 @@ class EndpointMethod extends Method {
 
 class Method {
   final MethodMirror methodMirror;
+  final List<dynamic>? classAnnotations;
   late final List<MethodParameter> parameters;
   late List<dynamic> _annotations;
   late final String name;
   APIDocumentationAnnotation? _apiDocumentationAnnotation;
   EndpointAnnotation? _endpointAnnotation;
+  List<Authorization>? _authorizationAnnotations;
   EndpointDocumentationContainer? _documentationContainer;
   EndpointDocumentationContainer? get endpointDocumentationContainer {
     return _documentationContainer;
@@ -323,8 +331,12 @@ class Method {
     }
   }
 
+  /// [classAnnotations] might be passed if you want to use
+  /// authorization annotations from a controller
+  /// In general is't used for a documentation purposes
   Method({
     required this.methodMirror,
+    this.classAnnotations,
   }) {
     _annotations = methodMirror.metadata.map((e) => e.reflectee).toList();
     _apiDocumentationAnnotation = _annotations.whereType<APIDocumentationAnnotation>().lastOrNull;
@@ -347,8 +359,17 @@ class Method {
     _positionalParams = parameters.where((e) => e.isPositional).toList();
 
     if (_endpointAnnotation != null) {
+      _authorizationAnnotations = _annotations.whereType<Authorization>().toList();
+      if (_authorizationAnnotations!.isEmpty) {
+        _authorizationAnnotations = classAnnotations?.whereType<Authorization>().toList();
+      } 
+      if (_authorizationAnnotations?.isNotEmpty != true) {
+        _authorizationAnnotations = null;
+      }
+
       if (_apiDocumentationAnnotation is APIEndpointDocumentation) {
         _documentationContainer = EndpointDocumentationContainer(
+          authorizationAnnotations: _authorizationAnnotations,
           endpointAnnotation: _endpointAnnotation!,
           apiDocumentationAnnotation: _apiDocumentationAnnotation! as APIEndpointDocumentation,
           positionalParams: _positionalParams,

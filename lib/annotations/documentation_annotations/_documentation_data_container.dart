@@ -24,8 +24,6 @@ class APIControllerDocumentationContainer {
     final baseApiAnnotation = controllerAnnotations.whereType<BaseApiPath>().firstOrNull;
     final basePath = baseApiAnnotation?.basePath ?? serverBaseApiPath;
 
-    // controllerDocumentationAnnotation
-
     List<_EndpointDocumentationPresentation> endpointsPresentations = [];
     for (var endpoint in endpoints) {
       endpointsPresentations.add(
@@ -40,7 +38,7 @@ class APIControllerDocumentationContainer {
       /// still be an empty string at this point
       ..title = controllerDocumentationAnnotation.title
       ..description = controllerDocumentationAnnotation.description
-      ..controllerName = controllerTypeName;
+      ..controllerName = controllerTypeName.stripGenerics();
 
     final map = controllerPresentation.toJson(
       tryUseNativeSerializerMethodsIfAny: false,
@@ -65,12 +63,14 @@ class APIControllerDocumentationContainer {
 class EndpointDocumentationContainer {
   EndpointDocumentationContainer({
     required this.endpointAnnotation,
+    required this.authorizationAnnotations,
     required this.apiDocumentationAnnotation,
     required this.positionalParams,
     required this.namedParams,
   });
 
   final EndpointAnnotation endpointAnnotation;
+  final List<Authorization>? authorizationAnnotations;
   final APIEndpointDocumentation apiDocumentationAnnotation;
   final List<MethodParameter> positionalParams;
   final List<MethodParameter> namedParams;
@@ -90,6 +90,14 @@ class EndpointDocumentationContainer {
         ),
       );
     }
+    if (responseModels.where((e) => e.statusCode == HttpStatus.badRequest).isEmpty) {
+      responseModels.add(
+        APIResponseExample(
+          statusCode: HttpStatus.internalServerError,
+          response: BadRequestException,
+        ),
+      );
+    }
     final paramsPresentation = <_EndpointParameterDocumentationPresentation>[];
     for (var value in [
       ...namedParams,
@@ -99,10 +107,34 @@ class EndpointDocumentationContainer {
         _EndpointParameterDocumentationPresentation.fromMethodParameter(value),
       );
     }
+    _AuthorizationDocumentationPresentation? authPresentation;
+    if (authorizationAnnotations?.isNotEmpty == true) {
+      /// hash set is just a simple way to avoid duplicates here
+      /// because a developer can use more than one Authorization annotation
+      /// on and point or a controller. E.g. one can be used 
+      /// just to check the presence of some header and another one
+      /// can check JWT token. 
+      final requiredHeaders = <String>{};
+      final requiredRoles = <String>{};
+      for (var auth in authorizationAnnotations!) {
+        requiredHeaders.addAll(auth.requiredHeaders);
+        requiredRoles.addAll(auth.rolesAsStringList);
+      }
 
-    final presentation = _EndpointDocumentationPresentation()
+      authPresentation = _AuthorizationDocumentationPresentation();
+      authPresentation.requiredHeaders = requiredHeaders.toList();
+      authPresentation.roles = requiredRoles.toList();
+    }
+
+    final endpointPresentation = _EndpointDocumentationPresentation()
       ..method = endpointAnnotation.method
-      ..description = apiDocumentationAnnotation.description?.replaceAll(RegExp(r'\s+'), ' ').trim()
+      ..authorization = authPresentation
+      ..description = apiDocumentationAnnotation.description
+          ?.replaceAll(
+            RegExp(r'\s+'),
+            ' ',
+          )
+          .trim()
       ..title = apiDocumentationAnnotation.title
       ..params = paramsPresentation
       ..responseModels = responseModels
@@ -135,7 +167,7 @@ class EndpointDocumentationContainer {
           .toList()
       ..path = '$basePath${endpointAnnotation.path}';
 
-    return presentation;
+    return endpointPresentation;
   }
 }
 
@@ -145,6 +177,11 @@ Object? defaultParameterValueSetter(
   Type dartType,
   String keyName,
 ) {
+  if (keyName == 'authorization') {
+    if (value != null) {
+      print(value);
+    }
+  }
   if (value == null) {
     if (dartType == DateTime) {
       return generateRandomDate();
@@ -176,7 +213,8 @@ Object? defaultParameterValueSetter(
     }
 
     if (value == null && !dartType.isPrimitive) {
-      return dartType.newTypedInstance();
+      return null;
+      // return dartType.newTypedInstance();
     }
   } else {
     if (value is DateTime) {

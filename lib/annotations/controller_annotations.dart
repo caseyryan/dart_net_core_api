@@ -35,6 +35,14 @@ class BaseApiPath extends ControllerAnnotation {
 abstract class Authorization {
   const Authorization();
   Future authorize(HttpContext context);
+
+  List<String> get requiredHeaders;
+
+  /// might not be required in custom implementation
+  /// but it's required for the documentation generation
+  List<String> get rolesAsStringList => [
+        Role.guest.name,
+      ];
 }
 
 /// [path] You can use either enter an empty string or a format like this

@@ -29,6 +29,13 @@ class ForbiddenException extends ApiException {
     super.code,
   }) : super(statusCode: HttpStatus.forbidden);
 }
+class UnAuthorizedException extends ApiException {
+  UnAuthorizedException({
+    super.message = 'Unauthorized',
+    super.traceId,
+    super.code,
+  }) : super(statusCode: HttpStatus.unauthorized);
+}
 
 class UnsupportedMediaException extends ApiException {
   UnsupportedMediaException({

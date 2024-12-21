@@ -2,8 +2,6 @@ import 'package:dart_core_doc_viewer/constants.dart';
 import 'package:dart_core_doc_viewer/extensions/map_extensions.dart';
 import 'package:dart_core_doc_viewer/main_page/widgets/json_block.dart';
 import 'package:dart_core_doc_viewer/ui/text/description.dart';
-import 'package:dart_core_doc_viewer/ui/text/header.dart';
-import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_color_theme.dart';
 import 'package:dart_core_doc_viewer/ui/themes/theme_extensions/custom_text_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:lite_forms/base_form_fields/label.dart';

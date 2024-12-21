@@ -30,15 +30,10 @@ enum LogoutScope {
 @APIControllerDocumentation(
   title: 'User Authorization Controller',
   description: 'Generates JWT tokens and refresh tokens, creates new user accounts',
-  group: ApiDocumentationGroup(
-    name: 'User Area',
-    id: 'user-area',
-  ),
+  group: ApiDocumentationGroup.userAreaGroup,
 )
-class AuthController<
-  TUser extends AbstractUser, 
-  TSignupData extends BasicSignupData,
-  TLoginData extends BasicLoginData> extends ApiController {
+class AuthController<TUser extends AbstractUser, TSignupData extends BasicSignupData, TLoginData extends BasicLoginData>
+    extends ApiController {
   AuthController(
     this.jwtService,
     this.passwordHashService,
@@ -166,12 +161,12 @@ class AuthController<
         response: TokenResponse,
       ),
       APIResponseExample(
-        statusCode: HttpStatus.badRequest,
-        response: BadRequestException,
+        statusCode: HttpStatus.unauthorized,
+        response: UnAuthorizedException,
       ),
       APIResponseExample(
-        statusCode: HttpStatus.unauthorized,
-        response: GenericJsonResponseWrapper,
+        statusCode: HttpStatus.internalServerError,
+        response: InternalServerException,
       ),
     ],
     description: '''
@@ -221,15 +216,14 @@ class AuthController<
     if (existingRefreshToken == null ||
         existingRefreshToken.isExpired ||
         jwtPayload.publicKey != existingRefreshToken.publicKey) {
-      throw ApiException(
+      throw UnAuthorizedException(
         message: 'Unauthorized',
         traceId: httpContext.traceId,
-        statusCode: HttpStatus.unauthorized,
         code: '401012',
       );
     }
 
-    final user = await (((TUser).newTypedInstance() as TUser)..id = userId,).findOne<TUser>();
+    final user = await (((TUser).newTypedInstance() as TUser)..id = userId).findOne<TUser>();
 
     return _createTokenResponseForUser(
       user,
@@ -245,12 +239,8 @@ class AuthController<
         response: TokenResponse,
       ),
       APIResponseExample(
-        statusCode: HttpStatus.badRequest,
-        response: BadRequestException,
-      ),
-      APIResponseExample(
         statusCode: HttpStatus.unauthorized,
-        response: GenericJsonResponseWrapper,
+        response: UnAuthorizedException,
       ),
     ],
     description: '''

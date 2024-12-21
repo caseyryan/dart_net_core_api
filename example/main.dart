@@ -1,8 +1,9 @@
 import 'package:dart_net_core_api/default_setups/controllers/health_controller.dart';
+import 'package:dart_net_core_api/default_setups/controllers/profile_controller.dart';
 import 'package:dart_net_core_api/exports.dart';
 import 'package:dart_net_core_api/jwt/jwt_service.dart';
 
-import 'controllers/extended_auth_controller.dart';
+// import 'controllers/extended_auth_controller.dart';
 import 'controllers/user_controller.dart';
 
 void main(List<String> arguments) {
@@ -14,8 +15,8 @@ void main(List<String> arguments) {
     settings: ServerSettings(
       arguments: arguments,
       apiControllers: [
-        // AuthController,
-        ExtendedAuthController,
+        AuthController,
+        ProfileController,
         AdminController,
         HealthController,
         DocumentationController,
@@ -29,12 +30,15 @@ void main(List<String> arguments) {
         /// If you don't need it
         /// you may implement your own authorization service
         JwtService(),
+
         /// If this service is added, the server will generate documentation
         /// for all controllers that have documentation annotations on every launch
         ApiDocumentationService(),
+
         /// This service is used by the AuthController to block
         /// password login attempts if a password was incorrect for a few times
         FailedPasswordBlockingService(),
+
         /// This service helps generate password hashes in a
         /// built-it AuthController
         PasswordHashService(),

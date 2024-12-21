@@ -1,17 +1,16 @@
 import 'package:dart_net_core_api/annotations/controller_annotations.dart';
-import 'package:dart_net_core_api/default_setups/annotations/jwt_auth_with_refresh.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
+import 'package:dart_net_core_api/jwt/annotations/jwt_auth.dart';
 import 'package:dart_net_core_api/server.dart';
 import 'package:dart_net_core_api/utils/server_utils/response_wrappers/pageable.dart';
 
+
+
 @BaseApiPath('/api/v1/admin')
+@JwtAuth(roles: [Role.admin])
 class AdminController extends ApiController {
   AdminController();
 
-
-  @JwtAuthWithRefresh(roles: [
-    Role.admin,
-  ])
   @HttpGet('/user/all')
   Future<Pageable> getUsers({
     int page = 0,

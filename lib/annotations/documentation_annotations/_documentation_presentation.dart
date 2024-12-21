@@ -10,11 +10,17 @@ class _ControllerDocumentationPresentation {
   List<_EndpointDocumentationPresentation>? endpoints;
 }
 
+class _AuthorizationDocumentationPresentation {
+  List<String>? requiredHeaders;
+  List<String>? roles;
+}
+
 class _EndpointDocumentationPresentation {
   String? description;
   String? title;
   String? method;
   String? path;
+  _AuthorizationDocumentationPresentation? authorization;
   List<_EndpointParameterDocumentationPresentation>? params;
   List<Object>? responseModels;
 }
@@ -24,18 +30,12 @@ class _EndpointParameterDocumentationPresentation {
   String? name;
   bool? isBodyParam;
   bool? isRequired;
-  // String? description;
-  // int? min;
-  // int? max;
 
   _EndpointParameterDocumentationPresentation({
     this.type,
     this.name,
     this.isBodyParam,
     this.isRequired,
-    // this.description,
-    // this.min,
-    // this.max,
   });
 
   static Object? _toTypePresentation(
@@ -50,7 +50,6 @@ class _EndpointParameterDocumentationPresentation {
       onBeforeValueSetting: defaultParameterValueSetter,
     );
     return value;
-    // return JsonEncoder.withIndent("  ").convert(value);
   }
 
   factory _EndpointParameterDocumentationPresentation.fromMethodParameter(

@@ -27,6 +27,13 @@ extension JsonStringExtension on String {
     return startsWith('/') && endsWith('/');
   }
 
+  /// used on type names and simply removes all generic
+  /// types from the name of the class
+  /// Used for documentation generation
+  String stripGenerics() {
+    return replaceAll(RegExp(r'<.*>'), '');
+  }
+
   RegExp? toRegExp() {
     if (!hasRegexPattern) {
       return null;
