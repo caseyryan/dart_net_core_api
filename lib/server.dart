@@ -12,6 +12,7 @@ import 'package:dart_core_orm/dart_core_orm.dart';
 import 'package:dart_net_core_api/configs/mongo_config.dart';
 import 'package:dart_net_core_api/configs/mysql_config.dart';
 import 'package:dart_net_core_api/configs/postgresql_config.dart';
+import 'package:dart_net_core_api/cron/cron_job.dart';
 import 'package:dart_net_core_api/exceptions/api_exceptions.dart';
 import 'package:dart_net_core_api/utils/default_date_parser.dart';
 import 'package:dart_net_core_api/utils/extensions/exports.dart';
@@ -31,9 +32,10 @@ export './base_services/exports.dart';
 part 'api_controller.dart';
 part 'base_services/service.dart';
 part 'utils/server_utils/environment_reader.dart';
-part 'utils/server_utils/parts/http_context.dart';
-part 'utils/server_utils/parts/http_request_extension.dart';
-part 'utils/server_utils/parts/server_settings.dart';
+part 'utils/server_utils/parts/_http_context.dart';
+part 'utils/server_utils/parts/_http_request_extension.dart';
+part 'utils/server_utils/parts/_server_settings.dart';
+part 'utils/server_utils/parts/_configurable.dart';
 
 enum Role {
   guest(0),
@@ -128,6 +130,7 @@ class _Server extends IServer {
       rb.customGlobalKeyNameConverter = settings.jsonSerializer!.keyNameConverter;
     }
 
+    /// initialize singleton services
     if (settings.singletonServices?.isNotEmpty == true) {
       for (var s in settings.singletonServices!) {
         if (_singletonServices.containsKey(s.runtimeType)) {
@@ -174,6 +177,20 @@ class _Server extends IServer {
     /// and the configs are set everywhere
     for (Service service in _singletonServices.values) {
       service.onReady();
+    }
+    for (Configurable job in settings.cronJobs) {
+      job.callMethodByName(
+        methodName: '_setConfigParser',
+        positionalArguments: [
+          _configParser,
+        ],
+      );
+      job.callMethodByName(
+        methodName: '_setServiceLocator',
+        positionalArguments: [
+          tryFindServiceByType,
+        ],
+      );
     }
 
     _bindServer(

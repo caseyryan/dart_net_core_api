@@ -79,6 +79,24 @@ class Config implements IConfig {
     }
     return dir;
   }
+  
+  Directory? get tempFilesRoot {
+    Directory dir;
+    if (staticFileConfig?.isAbsolute == null) {
+      return null;
+    }
+    if (staticFileConfig!.isAbsolute) {
+      dir = Directory('${staticFileConfig?.tempFilesRoot}');
+    } else {
+      dir = Directory('${Directory.current.path}/${staticFileConfig?.tempFilesRoot}');
+    }
+    if (!dir.existsSync()) {
+      throw NotFoundException(
+        message: 'Temp files directory `${dir.path}` does not exist. You must create it manually',
+      );
+    }
+    return dir;
+  }
 }
 
 @SnakeToCamel()
@@ -86,6 +104,7 @@ class StaticFileConfig implements IConfig {
   /// if true, it will not prepend current working directory
   bool isAbsolute = false;
   String? staticFilesRoot;
+  String? tempFilesRoot;
 }
 
 @SnakeToCamel()

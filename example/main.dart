@@ -5,9 +5,14 @@ import 'package:dart_net_core_api/jwt/jwt_service.dart';
 
 // import 'controllers/extended_auth_controller.dart';
 import 'controllers/user_controller.dart';
+import 'cron_jobs/every_minute_print_job.dart';
 
 void main(List<String> arguments) {
   Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+
   Server(
     /// This is the number of isolates that will be created
     /// for the server to handle requests
@@ -25,6 +30,11 @@ void main(List<String> arguments) {
         UserController,
       ],
       configType: Config,
+      cronJobs: [
+        /// and example of a cron job that will be executed every minute
+        /// and print a message with number of time the hob has been executed
+        EveryMinutePrintJob(),
+      ],
       singletonServices: [
         /// the built-in Json Web Token Service.
         /// If you don't need it

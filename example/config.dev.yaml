@@ -49,6 +49,7 @@ passwordHashConfig:
 staticFileConfig:
   isAbsolute: false
   staticFilesRoot: bin/static_files
+  tempFilesRoot: bin/temp_files
 
 socketConfig:
   port: 3001

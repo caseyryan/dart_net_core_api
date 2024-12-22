@@ -3,6 +3,7 @@ part of '../../../server.dart';
 class ServerSettings {
   const ServerSettings({
     this.arguments,
+    this.cronJobs = const [],
     this.baseApiPath = '/api/v1',
     this.httpPort,
     this.httpsPort,
@@ -45,6 +46,11 @@ class ServerSettings {
   /// singletons in this server instance. Notice that a separate instance will
   /// be created for each isolate
   final List<Service>? singletonServices;
+  /// [cronJobs] a list of cron jobs that will be executed
+  /// on each server instance but the same job will not be executed 
+  /// simultaneously on different instances because it uses locks
+  /// so you can be sure you job will not be duplicated
+  final List<CronJob> cronJobs;
 
   /// [arguments] a list of arguments from main method
   /// e.g.

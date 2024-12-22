@@ -177,11 +177,6 @@ Object? defaultParameterValueSetter(
   Type dartType,
   String keyName,
 ) {
-  if (keyName == 'authorization') {
-    if (value != null) {
-      print(value);
-    }
-  }
   if (value == null) {
     if (dartType == DateTime) {
       return generateRandomDate();

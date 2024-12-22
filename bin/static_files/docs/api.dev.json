@@ -25,8 +25,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1987-10-07T00:00:00.000",
-                  "refresh_expires_at": "1950-02-25T00:00:00.000"
+                  "bearer_expires_at": "1983-02-13T00:00:00.000",
+                  "refresh_expires_at": "1996-07-24T00:00:00.000"
                 }
               }
             },
@@ -77,8 +77,8 @@
           "params": [
             {
               "type": {
-                "email": "kelcey.ferrell@example.com",
-                "phone": "+76618271800",
+                "email": "cherianne.bean@example.com",
+                "phone": "+77731960400",
                 "password": "string"
               },
               "name": "basicLoginData",
@@ -95,8 +95,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1983-04-08T00:00:00.000",
-                  "refresh_expires_at": "1957-02-15T00:00:00.000"
+                  "bearer_expires_at": "1955-10-20T00:00:00.000",
+                  "refresh_expires_at": "1975-02-07T00:00:00.000"
                 }
               }
             },
@@ -164,16 +164,16 @@
                 "error": null,
                 "data": {
                   "roles": null,
-                  "first_name": "Courtney",
-                  "last_name": "Fernandez",
-                  "email": "upton.kane@example.com",
-                  "phone": "+7 (846) 812-15-00",
-                  "middle_name": "Stephine",
-                  "nick_name": "Dore",
-                  "birth_date": "1981-08-06",
-                  "id": 394,
-                  "created_at": "1986-08-07T00:00:00.000",
-                  "updated_at": "1982-04-03T00:00:00.000",
+                  "first_name": "West",
+                  "last_name": "McNamara",
+                  "email": "ernest.lowry@example.com",
+                  "phone": "+7 (932) 611-46-00",
+                  "middle_name": "Agamemnon",
+                  "nick_name": "Thadeus",
+                  "birth_date": "1991-07-21",
+                  "id": 33,
+                  "created_at": "1979-05-11T00:00:00.000",
+                  "updated_at": "1952-04-17T00:00:00.000",
                   "is_deleted": false
                 }
               }
@@ -262,16 +262,16 @@
                 "error": null,
                 "data": {
                   "roles": null,
-                  "first_name": "Emmaline",
-                  "last_name": "Terrell",
-                  "email": "bela.nixon@example.com",
-                  "phone": "+7 (122) 384-51-00",
-                  "middle_name": "Irma",
-                  "nick_name": "Steward",
-                  "birth_date": "1992-11-10",
-                  "id": 91,
-                  "created_at": "1954-07-08T00:00:00.000",
-                  "updated_at": "1981-03-08T00:00:00.000",
+                  "first_name": "Lazar",
+                  "last_name": "Sharpe",
+                  "email": "carlena.hansen@example.com",
+                  "phone": "+7 (698) 915-20-00",
+                  "middle_name": "Tab",
+                  "nick_name": "Edin",
+                  "birth_date": "1954-09-03",
+                  "id": 133,
+                  "created_at": "1989-05-15T00:00:00.000",
+                  "updated_at": "1975-11-18T00:00:00.000",
                   "is_deleted": false
                 }
               }
