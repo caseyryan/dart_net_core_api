@@ -1,4 +1,5 @@
 import 'package:dart_core_orm/src/orm.dart';
+import 'package:reflect_buddy/reflect_buddy.dart';
 
 extension StringExtensions on String {
   String sanitize() {
@@ -12,6 +13,18 @@ extension StringExtensions on String {
     }
     return this;
   }
+
+  String toAlias() {
+    final a = CamelToSnake().convert(this).replaceAll('_', '');
+    if (a.length >= 3) {
+      return a.substring(0, 3);
+    }
+    return a.isEmpty ? this[0].toLowerCase() : a;
+  }
+
+  // String _removeVowels() {
+  //   return replaceAll(RegExp('[aeiou]'), '');
+  // }
 
   /// in some databases like PostgreSQL
   /// the names of tables and columns are lowercase by default.

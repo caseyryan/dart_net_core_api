@@ -76,6 +76,13 @@ enum Role {
   final int priority;
 }
 
+class Friend extends BaseModel {
+
+  @ORMIndexColumn()
+  @ORMStringColumn(limit: 40)
+  String? friendName;
+}
+
 @JsonIncludeParentFields()
 class User extends BaseModel {
 

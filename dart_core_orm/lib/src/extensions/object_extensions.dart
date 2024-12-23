@@ -169,7 +169,7 @@ extension ObjectExtensions on Object {
         type,
       );
       final uniqueColumns =
-          fieldDescription.where((e) => e.hasUniqueConstraints).toList();
+          fieldDescription.where((e) => e.hasUniqueConstraint).toList();
 
       final uniqueKeys = keys
           .where((e) => uniqueColumns.any((c) => c.fieldName == e))

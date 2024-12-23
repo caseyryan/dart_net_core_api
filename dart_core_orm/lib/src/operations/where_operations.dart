@@ -15,7 +15,6 @@ class ORMWhereEqual extends ORMWhereOperation {
         );
 }
 
-
 class ORMWhereNotEqual extends ORMWhereOperation {
   ORMWhereNotEqual({
     required super.key,
@@ -122,17 +121,19 @@ abstract class ORMWhereOperation {
   /// it will have effect if you provide more than one operation
   final ORMJoiner nextJoiner;
 
-  String toOperation() {
+  String toOperation([
+    String aliasPrefix = '',
+  ]) {
     if (orm.family == ORMDatabaseFamily.postgres) {
       Object? valueRepresentation;
-
+      final columnName = aliasPrefix.isEmpty ? key : '$aliasPrefix.$key';
       /// Som operations like IS NULL, IS NOT NULL
       /// don't require a value to compare with
       if (operation.canUseValue) {
         if (value is List) {
           final list = value as List;
           if (operation == ORMWhereOperationType.between) {
-            return '$key ${operation.toDatabaseWhereOperation()} ${list.first} AND ${list.last}';
+            return '$columnName ${operation.toDatabaseWhereOperation()} ${list.first} AND ${list.last}';
           }
           valueRepresentation = list.map((e) {
             // if (e is String) {
@@ -142,14 +143,12 @@ abstract class ORMWhereOperation {
           }).join(',');
           valueRepresentation = '($valueRepresentation)';
         } else {
-          valueRepresentation =
-              (value as Object).tryConvertValueToDatabaseCompatible();
+          valueRepresentation = (value as Object).tryConvertValueToDatabaseCompatible();
         }
       } else {
         valueRepresentation = '';
       }
-      return '$key ${operation.toDatabaseWhereOperation()} $valueRepresentation'
-          .trim();
+      return '$columnName ${operation.toDatabaseWhereOperation()} $valueRepresentation'.trim();
     }
     throw databaseFamilyNotSupportedYet();
   }

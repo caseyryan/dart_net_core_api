@@ -25,21 +25,27 @@ Future main() async {
 
   // await (User).alterTable(dryRun: false);
 
-  // await (User).createTable(
-  //   dryRun: true,
+  await (Friend).dropTable(dryRun: false);
+  final created = await (Friend).createTable(dryRun: false);
 
-  //   /// In this case it will create a trigger that will
-  //   /// set updatedAt field to the current timestamp
-  //   /// when a row is inserted or updated
-  //   createTriggerCode: createUpdatedAtTriggerCode(
-  //     tableName: (User).toTableName(),
-  //     columnName: 'updated_at',
-  //   ),
-  // );
+  if (created) {
+    (Friend).createIndices(dryRun: false);
+  }
 
-  // return;
-  final user = User();
-  (User).createIndices(dryRun: true);
+  // final friend = Friend()
+  // ..friendName = 'Donny';
+  await (Friend()..friendName = 'Tom').tryUpsertOne<Friend>();
+  await (Friend()..friendName = 'Dom').tryUpsertOne<Friend>();
+  // print(result);
+  final friends = await (Friend).select().where([
+    // ORMWhereEqual(
+    //   key: 'friend_name',
+    //   value: 'Dom',
+    // ),
+  ]).execute(
+    dryRun: false,
+  );
+  print(friends);
 
   return;
   // print(queryResult.value);

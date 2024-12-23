@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:collection/collection.dart';
@@ -183,17 +184,37 @@ extension TypeExtension on Type {
     );
   }
 
-
   /// Creates indices for all fields that have [ORMIndexColumn] or [ORMUniqueColumn] annotations
   Future<bool> createIndices({
     bool dryRun = false,
   }) async {
     if (orm.family == ORMDatabaseFamily.postgres) {
-      final fields = describeFields();
-      for (var field in fields) {
-        print(field);
+      final tableName = toTableName();
+      final List<FieldDescription> fields = describeFields().where((e) => e.isIndex).toList();
+      if (fields.isEmpty) {
+        return true;
       }
-      print(fields);
+      List<String> createIndexQueries = [
+        'BEGIN;',
+      ];
+      for (var field in fields) {
+        final fieldName = field.fieldName;
+        final indexName = 'idx_$fieldName';
+        createIndexQueries.add('  CREATE INDEX IF NOT EXISTS $indexName ON $tableName ($fieldName);');
+      }
+      createIndexQueries.add('COMMIT;');
+      final query = createIndexQueries.join('\n');
+      final result = await orm.executeSimpleQuery(
+        query: query,
+        dryRun: dryRun,
+      );
+      if (result is List && result.isEmpty) {
+        return true;
+      }
+      if (result is OrmError) {
+        throw result;
+      }
+      return true;
     }
     return false;
   }
@@ -381,14 +402,19 @@ extension TypeExtension on Type {
   ]) {
     final query = _toChainedQuery();
     final tableName = toTableName();
+    final alias = tableName.toAlias();
+    if (query.tableAliasPrefix.isEmpty) {
+      query.tableAliasPrefix = alias;
+    }
     if (orm.family == ORMDatabaseFamily.postgres) {
+
       query.add('SELECT');
       if (paramsNames?.isNotEmpty != true) {
-        query.add('*');
+        query.add('$alias.*');
       } else {
-        query.add(paramsNames!.join(', '));
+        query.add(paramsNames!.map((e) => '$alias.$e').join(', '));
       }
-      query.add('FROM $tableName');
+      query.add('FROM $tableName AS $alias');
     }
     return query;
   }
@@ -435,6 +461,7 @@ enum ConflictResolution {
 
 class ChainedQuery {
   Type? type;
+  String tableAliasPrefix = '';
 
   static const String delimiter = '|||';
 
@@ -470,7 +497,7 @@ class ChainedQuery {
     return '';
   }
 
-  /// With some type of conflic resolutions
+  /// With some type of conflict resolutions
   /// RETURNING might already be added to the query
   /// previously so adding it one more time will result in an error
   bool get _canAddReturningStatementAtTheEnd {
@@ -516,11 +543,11 @@ class ChainedQuery {
       _checkIfChainingIsAllowed();
       add('WHERE');
       if (operations.length == 1) {
-        add(operations.first.toOperation());
+        add(operations.first.toOperation(tableAliasPrefix));
       } else if (operations.length > 1) {
         for (var i = 0; i < operations.length; i++) {
           final operation = operations[i];
-          add(operation.toOperation());
+          add(operation.toOperation(tableAliasPrefix));
           if (i != operations.length - 1) {
             add(operation.nextJoiner.toDatabaseOperation());
           }
@@ -689,18 +716,19 @@ FieldDescription getFieldDescription({
     columnAnnotations,
     fieldName,
   );
-  print(databaseType);
+  // print(databaseType);
   final otherColumnAnnotations = columnAnnotations.where((e) {
     return e is! ORMLimitColumn;
   }).toList();
   otherColumnAnnotations.sort((a, b) => a.order.compareTo(b.order));
 
-  bool hasUniqueConstraints = otherColumnAnnotations.any((e) => e is ORMUniqueColumn || e is ORMPrimaryKeyColumn);
+  // bool hasUniqueConstraints = otherColumnAnnotations.any((e) => e is ORMUniqueColumn || e is ORMPrimaryKeyColumn);
 
   final fieldDescription = FieldDescription(
+    columnAnnotations: columnAnnotations,
     fieldName: fieldName,
     dartType: fieldDartType,
-    hasUniqueConstraints: hasUniqueConstraints,
+    // hasUniqueConstraints: hasUniqueConstraints,
     dataTypes: [
       databaseType,
       ...otherColumnAnnotations.mapIndexed(
@@ -730,19 +758,33 @@ FieldDescription getFieldDescription({
 /// [FieldDescription] objects that describe each field
 /// of the type to prepare a database query
 class FieldDescription {
+  FieldDescription({
+    required this.dataTypes,
+    required this.dartType,
+    required this.fieldName,
+    required this.columnAnnotations,
+  });
+
   /// this can contain a list of data types
   /// for example [VARCHAR(50), 'SERIAL', 'PRIMARY KEY', 'NOT NULL'] etc.
   /// it will be joined when query is about to be executed
   final List<String> dataTypes;
   final String fieldName;
-  final bool hasUniqueConstraints;
   final Type dartType;
-  FieldDescription({
-    required this.dataTypes,
-    required this.dartType,
-    required this.fieldName,
-    required this.hasUniqueConstraints,
-  });
+
+  bool get hasUniqueConstraint {
+    return columnAnnotations.any((e) => e is ORMUniqueColumn || e is ORMPrimaryKeyColumn);
+  }
+
+  bool get hasIndexColumn {
+    return columnAnnotations.any((e) => e is ORMIndexColumn);
+  }
+
+  bool get isIndex {
+    return hasIndexColumn || hasUniqueConstraint;
+  }
+
+  final List<ORMTableColumnAnnotation> columnAnnotations;
 
   @override
   String toString() {
