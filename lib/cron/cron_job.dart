@@ -45,16 +45,20 @@ abstract class CronJob extends Configurable {
   Future _startCronJob(Schedule schedule) async {
     /// this is a small hack to allow
     /// a Timer to be launched in isolate
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(seconds: 5));
     // print('ON START $hashCode CONFIG IS ${getConfig<Config>()}');
     _cron.schedule(
       schedule,
       () async {
         if (_jobLocker.obtainLock()) {
-          await doJob();
-          _jobLocker.releaseLock();
+          try {
+            await doJob();
+          } catch (e) {
+            rethrow;
+          } finally {
+            _jobLocker.releaseLock();
+          }
         }
-          
       },
     );
     onReady();

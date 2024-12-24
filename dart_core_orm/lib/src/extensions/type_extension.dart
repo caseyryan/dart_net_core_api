@@ -407,7 +407,6 @@ extension TypeExtension on Type {
       query.tableAliasPrefix = alias;
     }
     if (orm.family == ORMDatabaseFamily.postgres) {
-
       query.add('SELECT');
       if (paramsNames?.isNotEmpty != true) {
         query.add('$alias.*');

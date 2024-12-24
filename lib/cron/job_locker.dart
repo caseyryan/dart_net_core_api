@@ -25,11 +25,11 @@ class JobLocker {
   }
 
   String get _lockFilePath {
-    return '${tempFilesRoot.path}/_${jobName.camelToSnake()}.lock';
+    return '${tempFilesRoot.path}/.${jobName.camelToSnake()}.lock';
   }
 
   String get _counterFilePath {
-    return '${tempFilesRoot.path}/_${jobName.camelToSnake()}.counter';
+    return '${tempFilesRoot.path}/.${jobName.camelToSnake()}_run.counter';
   }
 
   bool obtainLock() {

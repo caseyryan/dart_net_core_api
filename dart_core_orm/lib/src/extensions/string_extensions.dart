@@ -16,10 +16,11 @@ extension StringExtensions on String {
 
   String toAlias() {
     final a = CamelToSnake().convert(this).replaceAll('_', '');
-    if (a.length >= 3) {
-      return a.substring(0, 3);
-    }
-    return a.isEmpty ? this[0].toLowerCase() : a;
+    return a;
+    // if (a.length >= 3) {
+    //   return a.substring(0, 3);
+    // }
+    // return a.isEmpty ? this[0].toLowerCase() : a;
   }
 
   // String _removeVowels() {

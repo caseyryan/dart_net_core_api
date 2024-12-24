@@ -36,6 +36,7 @@ Future main() async {
   // ..friendName = 'Donny';
   await (Friend()..friendName = 'Tom').tryUpsertOne<Friend>();
   await (Friend()..friendName = 'Dom').tryUpsertOne<Friend>();
+  
   // print(result);
   final friends = await (Friend).select().where([
     // ORMWhereEqual(

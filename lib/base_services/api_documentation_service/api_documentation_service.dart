@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart_net_core_api/cron/job_locker.dart';
 import 'package:dart_net_core_api/utils/extensions/exports.dart';
 import 'package:dart_net_core_api/utils/mirror_utils/simple_type_reflector.dart';
 
@@ -13,6 +14,8 @@ import '../../exports.dart';
 class ApiDocumentationService extends Service {
   List<Type> _controllerTypes = [];
   String? _serverBaseApiPath;
+
+  JobLocker? _jobLocker;
 
   Object? defaultValueSetter(
     Object? value,
@@ -27,6 +30,7 @@ class ApiDocumentationService extends Service {
   }
 
   Future<Map> tryGetDocumentationForCurrentEnvironment() async {
+    // if (_jobLocker!.obtainLock()) {
     final staticFileDir = getConfig<Config>()?.staticFileDirectory;
     if (staticFileDir?.existsSync() != true) {
       return {};
@@ -39,6 +43,7 @@ class ApiDocumentationService extends Service {
         return jsonDecode(jsonString);
       }
     }
+    // }
     return {};
   }
 
@@ -52,31 +57,45 @@ class ApiDocumentationService extends Service {
 
   /// Actual documentation generation
   Future _generateDocumentation() async {
-    final staticFileDir = getConfig<Config>()?.staticFileDirectory;
-    if (staticFileDir?.existsSync() != true) {
-      return;
-    }
-    final controllers = <Map>[];
-    for (Type controllerType in _controllerTypes) {
-      final simpleTypeReflector = SimpleTypeReflector(controllerType);
-      final docContainer = simpleTypeReflector.documentationContainer;
-      if (docContainer != null) {
-        final map = docContainer.toApiDocumentation(
-          _serverBaseApiPath!,
-          defaultValueSetter,
-        );
-        controllers.add(map);
-      }
-    }
-    final formattedJson = {
-      'controllers': controllers,
-    }.toFormattedJson();
-
-    final jsonFileName = 'docs/api.$environment.json';
-    final jsonFile = File('${staticFileDir!.path}/$jsonFileName');
-    await jsonFile.forceWriteBytes(
-      utf8.encode(formattedJson),
+    _jobLocker ??= JobLocker(
+      getConfig<Config>()!.tempFilesRoot!,
+      runtimeType.toString(),
     );
+
+
+    /// Only one process should generate the documentation at a time
+    if (_jobLocker!.obtainLock()) {
+      final staticFileDir = getConfig<Config>()?.staticFileDirectory;
+      if (staticFileDir?.existsSync() != true) {
+        _jobLocker?.releaseLock();
+        return;
+      }
+      final controllers = <Map>[];
+      for (Type controllerType in _controllerTypes) {
+        final simpleTypeReflector = SimpleTypeReflector(controllerType);
+        final docContainer = simpleTypeReflector.documentationContainer;
+        if (docContainer != null) {
+          final map = docContainer.toApiDocumentation(
+            _serverBaseApiPath!,
+            defaultValueSetter,
+          );
+          controllers.add(map);
+        }
+      }
+      final formattedJson = {
+        'controllers': controllers,
+      }.toFormattedJson();
+
+      final jsonFileName = 'docs/api.$environment.json';
+      final jsonFile = File('${staticFileDir!.path}/$jsonFileName');
+      await jsonFile.forceWriteBytes(
+        utf8.encode(formattedJson),
+      );
+      await Future.delayed(const Duration(seconds: 5));
+      _jobLocker?.releaseLock();
+    } else {
+      print('DOC FILE LOCKED');
+    }
   }
 
   @override

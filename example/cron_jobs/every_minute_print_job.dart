@@ -18,6 +18,6 @@ class EveryMinutePrintJob extends CronJob {
   
   @override
   void onReady() {
-    print('Cron job is ready');
+    print('$EveryMinutePrintJob job is ready');
   }
 }

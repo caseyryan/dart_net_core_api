@@ -25,8 +25,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1951-09-23T00:00:00.000",
-                  "refresh_expires_at": "1952-08-03T00:00:00.000"
+                  "bearer_expires_at": "1976-01-19T00:00:00.000",
+                  "refresh_expires_at": "1977-08-10T00:00:00.000"
                 }
               }
             },
@@ -77,8 +77,8 @@
           "params": [
             {
               "type": {
-                "email": "doloritas.caldwell@example.com",
-                "phone": "+77688406500",
+                "email": "gabbey.cash@example.com",
+                "phone": "+78397766600",
                 "password": "string"
               },
               "name": "basicLoginData",
@@ -95,8 +95,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "2000-06-15T00:00:00.000",
-                  "refresh_expires_at": "1988-06-18T00:00:00.000"
+                  "bearer_expires_at": "1983-04-14T00:00:00.000",
+                  "refresh_expires_at": "1970-01-20T00:00:00.000"
                 }
               }
             },
@@ -164,16 +164,16 @@
                 "error": null,
                 "data": {
                   "roles": null,
-                  "first_name": "Sibyl",
-                  "last_name": "Woodward",
-                  "email": "bette.clark@example.com",
-                  "phone": "+7 (987) 471-44-00",
-                  "middle_name": "Deborah",
-                  "nick_name": "Sullivan",
-                  "birth_date": "1989-09-16",
-                  "id": 306,
-                  "created_at": "1956-05-13T00:00:00.000",
-                  "updated_at": "1968-02-03T00:00:00.000",
+                  "first_name": "Trace",
+                  "last_name": "Hanna",
+                  "email": "miranda.lamb@example.com",
+                  "phone": "+7 (416) 775-77-00",
+                  "middle_name": "Eula",
+                  "nick_name": "Cleva",
+                  "birth_date": "1997-01-23",
+                  "id": 88,
+                  "created_at": "1956-10-25T00:00:00.000",
+                  "updated_at": "1981-06-02T00:00:00.000",
                   "is_deleted": false
                 }
               }
@@ -262,16 +262,16 @@
                 "error": null,
                 "data": {
                   "roles": null,
-                  "first_name": "Adoree",
-                  "last_name": "Green",
-                  "email": "bailey.sherrill@example.com",
-                  "phone": "+7 (272) 382-47-00",
-                  "middle_name": "Editha",
-                  "nick_name": "Salim",
-                  "birth_date": "1977-11-08",
-                  "id": 284,
-                  "created_at": "1977-08-07T00:00:00.000",
-                  "updated_at": "1986-05-18T00:00:00.000",
+                  "first_name": "Sanders",
+                  "last_name": "Womble",
+                  "email": "willdon.terrell@example.com",
+                  "phone": "+7 (875) 026-27-00",
+                  "middle_name": "Davide",
+                  "nick_name": "Alleen",
+                  "birth_date": "1974-05-08",
+                  "id": 713,
+                  "created_at": "1953-06-25T00:00:00.000",
+                  "updated_at": "1966-05-10T00:00:00.000",
                   "is_deleted": false
                 }
               }
