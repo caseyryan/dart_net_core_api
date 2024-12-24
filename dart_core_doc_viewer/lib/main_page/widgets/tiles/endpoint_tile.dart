@@ -2,6 +2,7 @@ import 'package:dart_core_doc_viewer/api/response_models/documentation_response/
 import 'package:dart_core_doc_viewer/constants.dart';
 import 'package:dart_core_doc_viewer/main_page/widgets/highlighted_wrapper.dart';
 import 'package:dart_core_doc_viewer/ui/animated_arrow_icon.dart';
+import 'package:dart_core_doc_viewer/ui/buttons/lock_button.dart';
 import 'package:dart_core_doc_viewer/ui/horizontal_line.dart';
 import 'package:dart_core_doc_viewer/ui/text/caption.dart';
 import 'package:dart_core_doc_viewer/ui/text/description.dart';
@@ -43,65 +44,77 @@ class _EndpointTileState extends State<EndpointTile> {
         left: widget.paddingLeft,
         right: widget.paddingRight,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            onTap: () {
-              setState(() {
-                widget.model.isExpanded = !widget.model.isExpanded;
-              });
-            },
-            selected: widget.model.isExpanded,
-            selectedTileColor: widget.model.isExpanded ? CustomColorTheme.of(context).paleBackgroundColor : null,
-            leading: _MethodIcon(
-              method: widget.model.method!.toUpperCase(),
-              key: Key(widget.model.method!),
-            ),
-            title: Padding(
-              padding: const EdgeInsets.only(
-                bottom: kPadding,
-              ),
-              child: Text(widget.model.path!),
-            ),
-            subtitle: Caption(text: widget.model.description ?? ''),
-            trailing: AnimatedArrowIcon(
-              isOpen: widget.model.isExpanded,
-            ),
-          ),
-          if (widget.model.isExpanded) ...[
-            ParametersView(
-              paddingTop: 0.0,
-              paddingBottom: 0.0,
-              paddingLeft: 0.0,
-              paddingRight: 0.0,
-              key: Key(
-                'params_view_${widget.model.method!.toUpperCase()}',
-              ),
-              model: widget.model,
-            ),
-            HighlightedWrapper(
-              child: Description(
-                text: 'Responses examples:',
-                style: CustomTextTheme.of(context).boldStyle,
-              ),
-            ),
-            ...widget.model.responseModels!.map(
-              (e) {
-                return ResponseView(
-                  paddingBottom: 0.0,
-                  paddingTop: 0.0,
-                  paddingLeft: 0.0,
-                  paddingRight: 0.0,
-                  key: ValueKey(e),
-                  model: e,
-                );
+      child: Material(
+        elevation: 5.0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              onTap: () {
+                setState(() {
+                  widget.model.isExpanded = !widget.model.isExpanded;
+                });
               },
+              selected: widget.model.isExpanded,
+              selectedTileColor: widget.model.isExpanded ? CustomColorTheme.of(context).paleBackgroundColor : null,
+              leading: _MethodIcon(
+                method: widget.model.method!.toUpperCase(),
+                key: Key(widget.model.method!),
+              ),
+              title: Padding(
+                padding: const EdgeInsets.only(
+                  bottom: kPadding,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(widget.model.path!),
+                    ),
+                    if (widget.model.requiresAuthorization) const LockButton(
+                      tooltip: 'This endpoint requires authorization. Press to authorize',
+                    ),
+                  ],
+                ),
+              ),
+              subtitle: Caption(text: widget.model.description ?? ''),
+              trailing: AnimatedArrowIcon(
+                isOpen: widget.model.isExpanded,
+              ),
             ),
+            if (widget.model.isExpanded) ...[
+              ParametersView(
+                paddingTop: 0.0,
+                paddingBottom: 0.0,
+                paddingLeft: 0.0,
+                paddingRight: 0.0,
+                key: Key(
+                  'params_view_${widget.model.method!.toUpperCase()}',
+                ),
+                model: widget.model,
+              ),
+              HighlightedWrapper(
+                child: Description(
+                  text: 'Responses examples:',
+                  style: CustomTextTheme.of(context).boldStyle,
+                ),
+              ),
+              ...widget.model.responseModels!.map(
+                (e) {
+                  return ResponseView(
+                    paddingBottom: 0.0,
+                    paddingTop: 0.0,
+                    paddingLeft: 0.0,
+                    paddingRight: 0.0,
+                    key: ValueKey(e),
+                    model: e,
+                  );
+                },
+              ),
+            ],
+            const HorizontalLine(),
           ],
-          const HorizontalLine(),
-        ],
+        ),
       ),
     );
   }

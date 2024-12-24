@@ -20,7 +20,7 @@ part 'parts/_init_lite_forms.dart';
 part 'parts/_widget_builder.dart';
 part 'parts/_generate_route.dart';
 
-GlobalKey<NavigatorState> get navigatorKey => GlobalKey<NavigatorState>();
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   runApp(const App());

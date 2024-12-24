@@ -32,7 +32,7 @@ void showError({
 }) {
   _showMessage(
     text: text,
-    title: title.isNotEmpty ? title : 'Произошла ошибка',
+    title: title.isNotEmpty ? title : 'Error',
     type: SnackbarType.error,
   );
 }
@@ -43,7 +43,7 @@ void showInformation({
 }) {
   _showMessage(
     text: text,
-    title: title.isNotEmpty ? title : 'Информация',
+    title: title.isNotEmpty ? title : 'Info',
     type: SnackbarType.info,
   );
 }
@@ -54,7 +54,7 @@ void showSuccess({
 }) {
   _showMessage(
     text: text,
-    title: title.isNotEmpty ? title : 'Успешно!',
+    title: title.isNotEmpty ? title : 'Success',
     type: SnackbarType.success,
   );
 }
@@ -112,10 +112,9 @@ class _SnackbarOverlayState extends State<_SnackbarOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
     return SizedBox(
-      width: mediaQuery.size.width,
-      height: mediaQuery.size.height,
+      width: screenWidthScaled,
+      height: screenHeightScaled,
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(kPadding),

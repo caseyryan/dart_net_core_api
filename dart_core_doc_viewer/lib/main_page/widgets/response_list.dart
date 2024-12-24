@@ -2,6 +2,7 @@
 
 import 'package:dart_core_doc_viewer/api/response_models/documentation_response/api_endpoint_model.dart';
 import 'package:dart_core_doc_viewer/api/response_models/documentation_response/controller_api_model.dart';
+import 'package:dart_core_doc_viewer/constants.dart';
 import 'package:dart_core_doc_viewer/controllers/main_page_controller.dart';
 import 'package:dart_core_doc_viewer/ui/horizontal_line.dart';
 import 'package:dart_core_doc_viewer/ui/text/description.dart';
@@ -42,7 +43,10 @@ class ResponseList extends StatelessWidget {
                   return EndpointTile(
                     key: Key('endpoint_$i'),
                     model: e,
-                    paddingBottom: isLast ? 40.0 : 0.0,
+                    paddingTop: kPadding,
+                    paddingLeft: kPadding,
+                    paddingRight: kPadding,
+                    paddingBottom: isLast ? 40.0 : kPadding,
                   );
                 }).toList(),
               ),

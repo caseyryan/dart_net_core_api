@@ -18,6 +18,10 @@ ApiEndpointModel _$ApiEndpointModelFromJson(Map<String, dynamic> json) =>
       params: (json['params'] as List<dynamic>?)
           ?.map((e) => EndpointParam.fromJson(e as Map<String, dynamic>))
           .toList(),
+      authorization: json['authorization'] == null
+          ? null
+          : AuthorizationModel.fromJson(
+              json['authorization'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ApiEndpointModelToJson(ApiEndpointModel instance) =>
@@ -25,6 +29,7 @@ Map<String, dynamic> _$ApiEndpointModelToJson(ApiEndpointModel instance) =>
       'description': instance.description,
       'title': instance.title,
       'method': instance.method,
+      'authorization': instance.authorization?.toJson(),
       'path': instance.path,
       'response_models':
           instance.responseModels?.map((e) => e.toJson()).toList(),

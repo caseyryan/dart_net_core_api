@@ -34,7 +34,7 @@ class CustomColorTheme extends ThemeExtension<CustomColorTheme> {
       circleButtonIconColor: Colors.white,
       actionSheetColor: Colors.white,
       wordHighlightColor: Color.fromARGB(255, 243, 255, 248),
-      paleBackgroundColor: Color.fromARGB(255, 247, 247, 247),
+      paleBackgroundColor: Color.fromARGB(255, 253, 247, 255),
       positiveColor: Color.fromARGB(255, 32, 187, 37),
       negativeColor: Color.fromARGB(255, 213, 64, 64),
       warningColor: Colors.orange,
