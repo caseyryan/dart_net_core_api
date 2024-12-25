@@ -20,16 +20,21 @@ class APIControllerDocumentationContainer {
   Map toApiDocumentation(
     String serverBaseApiPath,
     OnBeforeValueSetting? defaultValueSetter,
+    OnSetModels onSetModels,
   ) {
     final baseApiAnnotation = controllerAnnotations.whereType<BaseApiPath>().firstOrNull;
     final basePath = baseApiAnnotation?.basePath ?? serverBaseApiPath;
 
     List<_EndpointDocumentationPresentation> endpointsPresentations = [];
+    Set<Object> allResponseModels = <Object>{};
     for (var endpoint in endpoints) {
       endpointsPresentations.add(
-        endpoint._toEndpointPresentation(basePath),
+        endpoint._toEndpointPresentation(basePath, (models) {
+          allResponseModels.addAll(models);
+        }),
       );
     }
+    onSetModels(allResponseModels);
     final controllerPresentation = _ControllerDocumentationPresentation()
       ..endpoints = endpointsPresentations
       ..group = controllerDocumentationAnnotation.group
@@ -77,9 +82,9 @@ class EndpointDocumentationContainer {
 
   _EndpointDocumentationPresentation _toEndpointPresentation(
     String basePath,
+    OnSetModels onSetModels,
   ) {
     final responseModels = [...apiDocumentationAnnotation.responseModels];
-
     /// add the default error annotation because
     /// it must be present for
     if (responseModels.where((e) => e.statusCode == HttpStatus.internalServerError).isEmpty) {
@@ -98,6 +103,8 @@ class EndpointDocumentationContainer {
         ),
       );
     }
+    onSetModels(responseModels.map((e) => e.response!).toSet());
+    
     final paramsPresentation = <_EndpointParameterDocumentationPresentation>[];
     for (var value in [
       ...namedParams,
@@ -205,7 +212,12 @@ Object? defaultParameterValueSetter(
       return 'string';
     } else if (dartType == bool) {
       return false;
-    }
+    } else if (dartType.isList) {
+      return dartType.toJson(
+        onBeforeValueSetting: defaultParameterValueSetter,
+        includeNullValues: true,
+      );
+    } 
 
     if (value == null && !dartType.isPrimitive) {
       return null;
@@ -218,3 +230,6 @@ Object? defaultParameterValueSetter(
   }
   return value;
 }
+
+
+typedef OnSetModels = void Function(Set<Object> models);

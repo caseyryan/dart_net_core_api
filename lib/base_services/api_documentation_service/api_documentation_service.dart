@@ -12,22 +12,18 @@ import '../../exports.dart';
 /// you can also extend this class to process the documentation in your own way
 
 class ApiDocumentationService extends Service {
+  ApiDocumentationService({
+    required this.describeTypes,
+  });
+
+  /// [describeTypes] if true, all types will be described
+  /// and displayed in the documentation
+  final bool describeTypes;
+
   List<Type> _controllerTypes = [];
   String? _serverBaseApiPath;
 
   JobLocker? _jobLocker;
-
-  Object? defaultValueSetter(
-    Object? value,
-    Type dartType,
-    String? fieldName,
-  ) {
-    if (dartType == String) {
-      return 'string';
-    }
-
-    return value;
-  }
 
   Future<Map> tryGetDocumentationForCurrentEnvironment() async {
     // if (_jobLocker!.obtainLock()) {
@@ -62,7 +58,6 @@ class ApiDocumentationService extends Service {
       runtimeType.toString(),
     );
 
-
     /// Only one process should generate the documentation at a time
     if (_jobLocker!.obtainLock()) {
       final staticFileDir = getConfig<Config>()?.staticFileDirectory;
@@ -71,20 +66,37 @@ class ApiDocumentationService extends Service {
         return;
       }
       final controllers = <Map>[];
+      final allResponseModels = <Object>{};
       for (Type controllerType in _controllerTypes) {
         final simpleTypeReflector = SimpleTypeReflector(controllerType);
         final docContainer = simpleTypeReflector.documentationContainer;
         if (docContainer != null) {
           final map = docContainer.toApiDocumentation(
             _serverBaseApiPath!,
-            defaultValueSetter,
+            null,
+            (models) {
+              allResponseModels.addAll(models);
+            },
           );
           controllers.add(map);
         }
       }
-      final formattedJson = {
+      final maps = {};
+      if (describeTypes) {
+        for (var model in allResponseModels) {
+          if (model is Type) {
+            maps.addAll(model.documentType());
+          }
+        }
+        print(maps);
+      }
+      final data = <String, Object?>{
         'controllers': controllers,
-      }.toFormattedJson();
+      };
+      if (describeTypes) {
+        data['types'] = maps.values.toList();
+      }
+      final formattedJson = data.toFormattedJson();
 
       final jsonFileName = 'docs/api.$environment.json';
       final jsonFile = File('${staticFileDir!.path}/$jsonFileName');

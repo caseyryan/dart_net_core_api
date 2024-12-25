@@ -1,6 +1,5 @@
 // ignore_for_file: depend_on_referenced_packages
 
-import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:collection/collection.dart';

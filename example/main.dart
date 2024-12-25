@@ -43,7 +43,9 @@ void main(List<String> arguments) {
 
         /// If this service is added, the server will generate documentation
         /// for all controllers that have documentation annotations on every launch
-        ApiDocumentationService(),
+        ApiDocumentationService(
+          describeTypes: true,
+        ),
 
         /// This service is used by the AuthController to block
         /// password login attempts if a password was incorrect for a few times
