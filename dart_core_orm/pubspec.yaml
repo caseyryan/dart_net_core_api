@@ -9,7 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   # path: ^1.8.0
-  reflect_buddy: ^1.7.1
+  reflect_buddy: ^1.7.2
   postgres: ^3.4.0
 
 dev_dependencies:

@@ -14,14 +14,20 @@ class ControllerApiModel {
     this.title,
     this.group,
     this.endpoints,
+    this.types,
   });
 
   @JsonKey(name: 'controller_name')
   String? controllerName;
+  List<String>? types;
   String? description;
   String? title;
   ApiGroupModel? group;
   List<ApiEndpointModel>? endpoints;
+
+  bool get hasTypes {
+    return types?.isNotEmpty == true;
+  }
 
   String getSafeTitle() {
     if (title?.isNotEmpty != true) {
@@ -29,6 +35,7 @@ class ControllerApiModel {
     }
     return title!;
   }
+
   String getSafeDescription() {
     if (description?.isNotEmpty != true) {
       return 'Description for this API controller is not provided';
@@ -41,9 +48,9 @@ class ControllerApiModel {
   }
 
   factory ControllerApiModel.fromJson(Map<String, dynamic> json) {
-      return _$ControllerApiModelFromJson(json);
-    }
-  
+    return _$ControllerApiModelFromJson(json);
+  }
+
   Map<String, dynamic> toJson() {
     return _$ControllerApiModelToJson(this);
   }

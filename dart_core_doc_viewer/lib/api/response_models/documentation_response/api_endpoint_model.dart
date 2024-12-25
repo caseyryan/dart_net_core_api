@@ -32,6 +32,8 @@ class ApiEndpointModel {
     return authorization != null;
   }
 
+  
+
   String? _searchString;
 
   @JsonKey(includeFromJson: false, includeToJson: false)

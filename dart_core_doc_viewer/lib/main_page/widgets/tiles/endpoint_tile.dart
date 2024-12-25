@@ -45,7 +45,7 @@ class _EndpointTileState extends State<EndpointTile> {
         right: widget.paddingRight,
       ),
       child: Material(
-        elevation: 5.0,
+        elevation: kMaterialElevation,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

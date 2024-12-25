@@ -2,6 +2,7 @@
 
 const double kDividerThickness = .3;
 const double kPadding = 12.0;
+const double kMaterialElevation = 0.2;
 const double kBorderRadius = 12.0;
 const double kBlurSigma = 10.0;
 const double kButtonHeight = 48.0;

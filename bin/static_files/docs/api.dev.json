@@ -25,8 +25,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1959-05-07T00:00:00.000",
-                  "refresh_expires_at": "1996-11-19T00:00:00.000"
+                  "bearer_expires_at": "1994-06-16T00:00:00.000",
+                  "refresh_expires_at": "1990-05-12T00:00:00.000"
                 }
               }
             },
@@ -77,8 +77,8 @@
           "params": [
             {
               "type": {
-                "email": "nevin.jacobson@example.com",
-                "phone": "+70948460200",
+                "email": "susanna.albright@example.com",
+                "phone": "+71490963400",
                 "password": "string"
               },
               "name": "basicLoginData",
@@ -95,8 +95,8 @@
                 "data": {
                   "bearer_token": "",
                   "refresh_token": "",
-                  "bearer_expires_at": "1973-01-25T00:00:00.000",
-                  "refresh_expires_at": "1951-11-03T00:00:00.000"
+                  "bearer_expires_at": "1998-01-25T00:00:00.000",
+                  "refresh_expires_at": "1957-10-25T00:00:00.000"
                 }
               }
             },
@@ -140,11 +140,11 @@
         }
       ],
       "types": [
-        "TokenResponse \n\tString bearerToken: \n\tString refreshToken: \n\tDateTime bearerExpiresAt: -0001-11-30T00:00:00.000\n\tDateTime refreshExpiresAt: -0001-11-30T00:00:00.000\n}\n",
-        "UnAuthorizedException \n\tString message: \n\tint statusCode: 401\n\tString traceId: \n\tString code: \n}\n",
-        "InternalServerException \n\tString message: \n\tint statusCode: 500\n\tString traceId: \n\tString code: \n}\n",
-        "BadRequestException \n\tString message: \n\tint statusCode: 400\n\tString traceId: \n\tString code: \n}\n",
-        "GenericJsonResponseWrapper \n\tObject error: null\n\tObject data: null\n}\n"
+        "class TokenResponse {\n\tString bearerToken;\n\tString refreshToken;\n\tDateTime bearerExpiresAt;\n\tDateTime refreshExpiresAt;\n}\n",
+        "class UnAuthorizedException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n",
+        "class InternalServerException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n",
+        "class BadRequestException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n",
+        "class GenericJsonResponseWrapper {\n\tObject error;\n\tObject data;\n}\n"
       ]
     },
     {
@@ -171,16 +171,16 @@
                 "error": null,
                 "data": {
                   "roles": [],
-                  "first_name": "Grover",
-                  "last_name": "Kelly",
-                  "email": "marthe.cox@example.com",
-                  "phone": "+7 (126) 838-25-00",
-                  "middle_name": "Maurice",
-                  "nick_name": "Jephthah",
-                  "birth_date": "1997-01-14",
-                  "id": 696,
-                  "created_at": "1980-11-27T00:00:00.000",
-                  "updated_at": "1997-10-16T00:00:00.000",
+                  "first_name": "Annamaria",
+                  "last_name": "Collier",
+                  "email": "janaya.dunn@example.com",
+                  "phone": "+7 (470) 029-02-00",
+                  "middle_name": "Cecile",
+                  "nick_name": "Stafford",
+                  "birth_date": "1972-08-08",
+                  "id": 8,
+                  "created_at": "1996-04-10T00:00:00.000",
+                  "updated_at": "1985-08-03T00:00:00.000",
                   "is_deleted": false
                 }
               }
@@ -225,10 +225,10 @@
         }
       ],
       "types": [
-        "AbstractUser \n\tList<Role> roles: null\n\tString firstName: null\n\tString lastName: null\n\tString email: null\n\tString phone: null\n\tString middleName: null\n\tString nickName: null\n\tDateTime birthDate: null\n\tint id: null\n\tDateTime createdAt: null\n\tDateTime updatedAt: null\n\tbool isDeleted: null\n}\n",
-        "UnAuthorizedException \n\tString message: \n\tint statusCode: 401\n\tString traceId: \n\tString code: \n}\n",
-        "GenericJsonResponseWrapper \n\tObject error: null\n\tObject data: null\n}\n",
-        "BadRequestException \n\tString message: \n\tint statusCode: 400\n\tString traceId: \n\tString code: \n}\n"
+        "class AbstractUser {\n\tList<Role> roles;\n\tString firstName;\n\tString lastName;\n\tString email;\n\tString phone;\n\tString middleName;\n\tString nickName;\n\tDateTime birthDate;\n\tint id;\n\tDateTime createdAt;\n\tDateTime updatedAt;\n\tbool isDeleted;\n}\n",
+        "class UnAuthorizedException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n",
+        "class GenericJsonResponseWrapper {\n\tObject error;\n\tObject data;\n}\n",
+        "class BadRequestException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n"
       ]
     },
     {
@@ -275,16 +275,16 @@
                 "error": null,
                 "data": {
                   "roles": [],
-                  "first_name": "Caesar",
-                  "last_name": "Baldwin",
-                  "email": "conroy.griffith@example.com",
-                  "phone": "+7 (765) 722 7800",
-                  "middle_name": "Helaina",
-                  "nick_name": "Denny",
-                  "birth_date": "1955-06-03",
-                  "id": 423,
-                  "created_at": "1977-08-23T00:00:00.000",
-                  "updated_at": "1961-05-14T00:00:00.000",
+                  "first_name": "Sophronia",
+                  "last_name": "Barrett",
+                  "email": "gisele.henry@example.com",
+                  "phone": "+7 (319) 278-29-00",
+                  "middle_name": "Chryste",
+                  "nick_name": "Lise",
+                  "birth_date": "1972-11-26",
+                  "id": 887,
+                  "created_at": "1980-07-18T00:00:00.000",
+                  "updated_at": "1975-03-04T00:00:00.000",
                   "is_deleted": false
                 }
               }
@@ -317,18 +317,18 @@
         }
       ],
       "types": [
-        "AbstractUser \n\tList<Role> roles: null\n\tString firstName: null\n\tString lastName: null\n\tString email: null\n\tString phone: null\n\tString middleName: null\n\tString nickName: null\n\tDateTime birthDate: null\n\tint id: null\n\tDateTime createdAt: null\n\tDateTime updatedAt: null\n\tbool isDeleted: null\n}\n",
-        "GenericJsonResponseWrapper \n\tObject error: null\n\tObject data: null\n}\n",
-        "BadRequestException \n\tString message: \n\tint statusCode: 400\n\tString traceId: \n\tString code: \n}\n"
+        "class AbstractUser {\n\tList<Role> roles;\n\tString firstName;\n\tString lastName;\n\tString email;\n\tString phone;\n\tString middleName;\n\tString nickName;\n\tDateTime birthDate;\n\tint id;\n\tDateTime createdAt;\n\tDateTime updatedAt;\n\tbool isDeleted;\n}\n",
+        "class GenericJsonResponseWrapper {\n\tObject error;\n\tObject data;\n}\n",
+        "class BadRequestException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n"
       ]
     }
   ],
   "types": [
-    "TokenResponse \n\tString bearerToken: \n\tString refreshToken: \n\tDateTime bearerExpiresAt: -0001-11-30T00:00:00.000\n\tDateTime refreshExpiresAt: -0001-11-30T00:00:00.000\n}\n",
-    "UnAuthorizedException \n\tString message: \n\tint statusCode: 401\n\tString traceId: \n\tString code: \n}\n",
-    "InternalServerException \n\tString message: \n\tint statusCode: 500\n\tString traceId: \n\tString code: \n}\n",
-    "BadRequestException \n\tString message: \n\tint statusCode: 400\n\tString traceId: \n\tString code: \n}\n",
-    "GenericJsonResponseWrapper \n\tObject error: null\n\tObject data: null\n}\n",
-    "AbstractUser \n\tList<Role> roles: null\n\tString firstName: null\n\tString lastName: null\n\tString email: null\n\tString phone: null\n\tString middleName: null\n\tString nickName: null\n\tDateTime birthDate: null\n\tint id: null\n\tDateTime createdAt: null\n\tDateTime updatedAt: null\n\tbool isDeleted: null\n}\n"
+    "class TokenResponse {\n\tString bearerToken;\n\tString refreshToken;\n\tDateTime bearerExpiresAt;\n\tDateTime refreshExpiresAt;\n}\n",
+    "class UnAuthorizedException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n",
+    "class InternalServerException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n",
+    "class BadRequestException {\n\tString message;\n\tint statusCode;\n\tString traceId;\n\tString code;\n}\n",
+    "class GenericJsonResponseWrapper {\n\tObject error;\n\tObject data;\n}\n",
+    "class AbstractUser {\n\tList<Role> roles;\n\tString firstName;\n\tString lastName;\n\tString email;\n\tString phone;\n\tString middleName;\n\tString nickName;\n\tDateTime birthDate;\n\tint id;\n\tDateTime createdAt;\n\tDateTime updatedAt;\n\tbool isDeleted;\n}\n"
   ]
 }
