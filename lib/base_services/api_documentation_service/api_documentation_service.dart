@@ -77,18 +77,20 @@ class ApiDocumentationService extends Service {
             (models) {
               allResponseModels.addAll(models);
             },
+            describeTypes
           );
           controllers.add(map);
         }
       }
       final maps = {};
+      /// here we collect all types globally
+      /// but the controller types are also added to each endpoint map
       if (describeTypes) {
         for (var model in allResponseModels) {
           if (model is Type) {
             maps.addAll(model.documentType());
           }
         }
-        print(maps);
       }
       final data = <String, Object?>{
         'controllers': controllers,

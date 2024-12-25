@@ -68,11 +68,15 @@ class _EndpointTileState extends State<EndpointTile> {
                 ),
                 child: Row(
                   children: [
+                    if (widget.model.requiresAuthorization)
+                      const LockButton(
+                        tooltip: 'This endpoint requires authorization. Press to authorize',
+                      ),
                     Expanded(
-                      child: Text(widget.model.path!),
-                    ),
-                    if (widget.model.requiresAuthorization) const LockButton(
-                      tooltip: 'This endpoint requires authorization. Press to authorize',
+                      child: Text(
+                        widget.model.path!,
+                        style: const TextStyle(fontSize: 20.0),
+                      ),
                     ),
                   ],
                 ),
@@ -148,15 +152,21 @@ class _MethodIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+          kBorderRadius,
+        ),
+      ),
       child: SizedBox(
         width: 70.0,
         height: 70.0,
         child: Center(
           child: Text(
             method,
-            style: CustomTextTheme.of(context)
-                .defaultStyle
-                .copyWith(color: _getTextColor(context), fontWeight: FontWeight.w600),
+            style: CustomTextTheme.of(context).defaultStyle.copyWith(
+                  color: _getTextColor(context),
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ),
       ),

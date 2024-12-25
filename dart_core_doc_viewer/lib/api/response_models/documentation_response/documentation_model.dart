@@ -8,9 +8,11 @@ part 'documentation_model.g.dart';
 class DocumentationModel {
   DocumentationModel({
     this.controllers,
+    this.types,
   });
 
   List<ControllerApiModel>? controllers;
+  List<String>? types;
 
   static DocumentationModel deserialize(Map<String, dynamic> json) {
     return DocumentationModel.fromJson(json);

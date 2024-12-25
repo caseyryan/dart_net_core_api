@@ -21,6 +21,7 @@ class APIControllerDocumentationContainer {
     String serverBaseApiPath,
     OnBeforeValueSetting? defaultValueSetter,
     OnSetModels onSetModels,
+    bool describeTypes,
   ) {
     final baseApiAnnotation = controllerAnnotations.whereType<BaseApiPath>().firstOrNull;
     final basePath = baseApiAnnotation?.basePath ?? serverBaseApiPath;
@@ -51,6 +52,19 @@ class APIControllerDocumentationContainer {
       keyNameConverter: globalDefaultKeyNameConverter,
       onBeforeValueSetting: defaultParameterValueSetter,
     ) as Map;
+
+    /// to separate all models from particular controller models
+    if (describeTypes) {
+      final typeMaps = {};
+      for (var model in allResponseModels) {
+        if (model is Type) {
+          typeMaps.addAll(model.documentType());
+        }
+      }
+      if (typeMaps.isNotEmpty) {
+        map['types'] = typeMaps.values.toList();
+      }
+    }
 
     return map;
   }
@@ -85,6 +99,7 @@ class EndpointDocumentationContainer {
     OnSetModels onSetModels,
   ) {
     final responseModels = [...apiDocumentationAnnotation.responseModels];
+
     /// add the default error annotation because
     /// it must be present for
     if (responseModels.where((e) => e.statusCode == HttpStatus.internalServerError).isEmpty) {
@@ -104,7 +119,7 @@ class EndpointDocumentationContainer {
       );
     }
     onSetModels(responseModels.map((e) => e.response!).toSet());
-    
+
     final paramsPresentation = <_EndpointParameterDocumentationPresentation>[];
     for (var value in [
       ...namedParams,
@@ -118,9 +133,9 @@ class EndpointDocumentationContainer {
     if (authorizationAnnotations?.isNotEmpty == true) {
       /// hash set is just a simple way to avoid duplicates here
       /// because a developer can use more than one Authorization annotation
-      /// on and point or a controller. E.g. one can be used 
+      /// on and point or a controller. E.g. one can be used
       /// just to check the presence of some header and another one
-      /// can check JWT token. 
+      /// can check JWT token.
       final requiredHeaders = <String>{};
       final requiredRoles = <String>{};
       for (var auth in authorizationAnnotations!) {
@@ -217,7 +232,7 @@ Object? defaultParameterValueSetter(
         onBeforeValueSetting: defaultParameterValueSetter,
         includeNullValues: true,
       );
-    } 
+    }
 
     if (value == null && !dartType.isPrimitive) {
       return null;
@@ -230,6 +245,5 @@ Object? defaultParameterValueSetter(
   }
   return value;
 }
-
 
 typedef OnSetModels = void Function(Set<Object> models);
